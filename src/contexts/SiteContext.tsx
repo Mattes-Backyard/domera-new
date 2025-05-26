@@ -14,8 +14,8 @@ interface SiteContextType {
 }
 
 const sites: Site[] = [
-  { id: 'site1', name: 'Downtown Storage', location: 'Downtown District' },
-  { id: 'site2', name: 'Riverside Storage', location: 'Riverside Area' }
+  { id: 'site1', name: 'Split', location: 'Croatia' },
+  { id: 'site2', name: 'Sarajevo', location: 'Bosnia and Herzegovina' }
 ];
 
 const SiteContext = createContext<SiteContextType | undefined>(undefined);
