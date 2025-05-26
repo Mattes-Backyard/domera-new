@@ -45,7 +45,7 @@ export const UnitCard = ({ unit, isSelected, onTenantClick, onViewDetails }: Uni
   };
 
   return (
-    <Card className={`hover:shadow-lg transition-shadow duration-200 ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
+    <Card className={`hover:shadow-lg transition-shadow duration-200 ${isSelected ? 'ring-2 ring-blue-500' : ''} flex flex-col h-full`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-gray-900">
@@ -66,8 +66,8 @@ export const UnitCard = ({ unit, isSelected, onTenantClick, onViewDetails }: Uni
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+      <CardContent className="flex flex-col flex-1">
+        <div className="space-y-3 flex-1">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Monthly Rate:</span>
             <span className="font-semibold text-gray-900">${unit.rate}</span>
@@ -97,15 +97,15 @@ export const UnitCard = ({ unit, isSelected, onTenantClick, onViewDetails }: Uni
               Secure
             </Badge>
           </div>
-          
-          <Button 
-            variant="outline" 
-            className="w-full mt-3"
-            onClick={() => onViewDetails(unit)}
-          >
-            View Details
-          </Button>
         </div>
+        
+        <Button 
+          variant="outline" 
+          className="w-full mt-3"
+          onClick={() => onViewDetails(unit)}
+        >
+          View Details
+        </Button>
       </CardContent>
     </Card>
   );
