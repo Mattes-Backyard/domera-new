@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -11,6 +12,8 @@ import { CustomerList } from "@/components/customers/CustomerList";
 import { OperationsView } from "@/components/operations/OperationsView";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
 import { TenantDetailsPage } from "@/components/tenants/TenantDetailsPage";
+import { AddCustomerDialog } from "@/components/customers/AddCustomerDialog";
+import { AddUnitDialog } from "@/components/units/AddUnitDialog";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 interface Unit {
@@ -96,8 +99,8 @@ const Index = () => {
   const [viewingTenantDetails, setViewingTenantDetails] = useState<Customer | null>(null);
   const [units, setUnits] = useState<Unit[]>(initialUnits);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-  const [triggerAddCustomer, setTriggerAddCustomer] = useState(false);
-  const [triggerAddUnit, setTriggerAddUnit] = useState(false);
+  const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
+  const [showAddUnitDialog, setShowAddUnitDialog] = useState(false);
 
   const handleAddUnit = (newUnit: Unit) => {
     setUnits(prevUnits => [...prevUnits, newUnit]);
@@ -130,13 +133,11 @@ const Index = () => {
   };
 
   const handleQuickAddCustomer = () => {
-    setActiveView("customers");
-    setTriggerAddCustomer(true);
+    setShowAddCustomerDialog(true);
   };
 
   const handleQuickAddUnit = () => {
-    setActiveView("units");
-    setTriggerAddUnit(true);
+    setShowAddUnitDialog(true);
   };
 
   const renderContent = () => {
@@ -187,8 +188,8 @@ const Index = () => {
             units={units}
             onUnitSelect={(unit) => setViewingUnitDetails(unit)}
             onUnitAdd={handleAddUnit}
-            triggerAddDialog={triggerAddUnit}
-            onAddDialogClose={() => setTriggerAddUnit(false)}
+            triggerAddDialog={false}
+            onAddDialogClose={() => {}}
           />
         );
       case "customers":
@@ -199,8 +200,8 @@ const Index = () => {
             customers={customers} 
             onAddCustomer={handleAddCustomer}
             onViewDetails={(customer) => setViewingTenantDetails(customer)}
-            triggerAddDialog={triggerAddCustomer}
-            onAddDialogClose={() => setTriggerAddCustomer(false)}
+            triggerAddDialog={false}
+            onAddDialogClose={() => {}}
           />
         );
       case "operations":
@@ -242,6 +243,20 @@ const Index = () => {
             {renderContent()}
           </main>
         </div>
+        
+        {/* Global Add Customer Dialog */}
+        <AddCustomerDialog
+          onAddCustomer={handleAddCustomer}
+          triggerOpen={showAddCustomerDialog}
+          onClose={() => setShowAddCustomerDialog(false)}
+        />
+        
+        {/* Global Add Unit Dialog */}
+        <AddUnitDialog
+          isOpen={showAddUnitDialog}
+          onClose={() => setShowAddUnitDialog(false)}
+          onSave={handleAddUnit}
+        />
       </div>
     </SidebarProvider>
   );
