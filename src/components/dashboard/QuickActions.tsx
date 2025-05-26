@@ -14,23 +14,23 @@ const actions = [
     id: "add-unit",
     title: "Add Unit",
     icon: Package,
-    bgColor: "bg-blue-600 hover:bg-blue-700",
     iconBg: "bg-blue-100",
     iconColor: "text-blue-600",
+    hoverBg: "hover:bg-blue-50",
   },
   {
     title: "Create Invoice",
     icon: FileText,
-    bgColor: "bg-teal-600 hover:bg-teal-700",
     iconBg: "bg-teal-100",
     iconColor: "text-teal-600",
+    hoverBg: "hover:bg-teal-50",
   },
   {
     title: "Report Issue",
     icon: AlertTriangle,
-    bgColor: "bg-amber-600 hover:bg-amber-700",
     iconBg: "bg-amber-100",
     iconColor: "text-amber-600",
+    hoverBg: "hover:bg-amber-50",
   },
 ];
 
@@ -58,7 +58,7 @@ export const QuickActions = ({ onAddUnit }: QuickActionsProps) => {
             <Button
               key={index}
               variant="outline"
-              className={`h-24 flex flex-col items-center justify-center space-y-3 ${action.bgColor} text-white border-0 hover:scale-105 transition-all duration-200 shadow-md hover:shadow-lg`}
+              className={`h-24 flex flex-col items-center justify-center space-y-3 bg-white ${action.hoverBg} text-slate-700 border border-slate-200 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md`}
               onClick={() => handleActionClick(action.id || "")}
             >
               <div className={`p-2 rounded-full ${action.iconBg}`}>
