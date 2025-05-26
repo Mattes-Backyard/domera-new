@@ -81,8 +81,8 @@ export const CustomerList = ({
             </Button>
           )}
           <AddCustomerDialog 
-            onAddCustomer={onAddCustomer} 
-            triggerOpen={triggerAddDialog}
+            onSave={onAddCustomer} 
+            isOpen={triggerAddDialog}
             onClose={onAddDialogClose}
           />
         </div>
