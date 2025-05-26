@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,9 +27,11 @@ interface Customer {
 
 interface AddCustomerDialogProps {
   onAddCustomer?: (customer: Customer) => void;
+  triggerOpen?: boolean;
+  onClose?: () => void;
 }
 
-export const AddCustomerDialog = ({ onAddCustomer }: AddCustomerDialogProps) => {
+export const AddCustomerDialog = ({ onAddCustomer, triggerOpen = false, onClose }: AddCustomerDialogProps) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -44,6 +46,19 @@ export const AddCustomerDialog = ({ onAddCustomer }: AddCustomerDialogProps) => 
     emergencyContactRelationship: "",
     notes: "",
   });
+
+  useEffect(() => {
+    if (triggerOpen) {
+      setOpen(true);
+    }
+  }, [triggerOpen]);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen && onClose) {
+      onClose();
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,10 +125,13 @@ export const AddCustomerDialog = ({ onAddCustomer }: AddCustomerDialogProps) => 
       notes: "",
     });
     setOpen(false);
+    if (onClose) {
+      onClose();
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className="flex items-center space-x-2">
           <UserPlus className="h-4 w-4" />
@@ -254,7 +272,7 @@ export const AddCustomerDialog = ({ onAddCustomer }: AddCustomerDialogProps) => 
 
           {/* Action Buttons */}
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit">
