@@ -3,7 +3,6 @@ import { Bell, Search, Settings, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { SiteSelector } from "./SiteSelector";
 import { SearchResults } from "./SearchResults";
 import { useState, useRef, useEffect } from "react";
 
@@ -93,7 +92,6 @@ export const DashboardHeader = ({
     <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
       <div className="flex items-center space-x-6">
         <SidebarTrigger />
-        <SiteSelector />
         <div className="relative" ref={searchRef}>
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
