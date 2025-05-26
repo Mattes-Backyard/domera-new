@@ -1,3 +1,4 @@
+
 import { useMemo, useState, useEffect } from "react";
 import { UnitGridHeader } from "./UnitGridHeader";
 import { UnitCard } from "./UnitCard";
@@ -26,6 +27,7 @@ interface UnitGridProps {
   onUnitAdd?: (newUnit: Unit) => void;
   triggerAddDialog?: boolean;
   onAddDialogClose?: () => void;
+  onTenantClick?: (tenantId: string) => void;
 }
 
 export const UnitGrid = ({ 
@@ -36,7 +38,8 @@ export const UnitGrid = ({
   onUnitSelect, 
   onUnitAdd,
   triggerAddDialog = false,
-  onAddDialogClose
+  onAddDialogClose,
+  onTenantClick
 }: UnitGridProps) => {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [viewingUnitDetails, setViewingUnitDetails] = useState<Unit | null>(null);
@@ -72,7 +75,11 @@ export const UnitGrid = ({
   }, [selectedUnitId, filteredUnits.length, onClearSelection]);
 
   const handleTenantClick = (tenantId: string) => {
-    setSelectedClientId(tenantId);
+    if (onTenantClick) {
+      onTenantClick(tenantId);
+    } else {
+      setSelectedClientId(tenantId);
+    }
   };
 
   const handleViewDetails = (unit: Unit) => {

@@ -10,6 +10,7 @@ interface Unit {
   type: string;
   status: string;
   tenant: string | null;
+  tenantId?: string | null;
   rate: number;
   climate: boolean;
 }
@@ -19,9 +20,10 @@ interface UnitsTableProps {
   selectedUnits: string[];
   onSelectUnit: (unitId: string) => void;
   onSelectAll: () => void;
+  onTenantClick?: (tenantId: string) => void;
 }
 
-export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll }: UnitsTableProps) => {
+export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, onTenantClick }: UnitsTableProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
@@ -34,6 +36,12 @@ export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll }: 
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const handleTenantClick = (tenantId: string) => {
+    if (onTenantClick) {
+      onTenantClick(tenantId);
     }
   };
 
@@ -64,7 +72,15 @@ export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll }: 
                   <div className="font-semibold">{unit.id}</div>
                   <Badge className={getStatusColor(unit.status)}>{unit.status}</Badge>
                   <div className="text-sm text-gray-600">{unit.size} • {unit.type}</div>
-                  {unit.tenant && (
+                  {unit.tenant && unit.tenantId && (
+                    <button
+                      onClick={() => handleTenantClick(unit.tenantId!)}
+                      className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                    >
+                      {unit.tenant}
+                    </button>
+                  )}
+                  {unit.tenant && !unit.tenantId && (
                     <div className="text-sm text-blue-600">{unit.tenant}</div>
                   )}
                 </div>

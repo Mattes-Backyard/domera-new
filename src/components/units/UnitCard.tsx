@@ -38,6 +38,12 @@ export const UnitCard = ({ unit, isSelected, onTenantClick, onViewDetails }: Uni
     }
   };
 
+  const handleTenantClick = () => {
+    if (unit.tenantId) {
+      onTenantClick(unit.tenantId);
+    }
+  };
+
   return (
     <Card className={`hover:shadow-lg transition-shadow duration-200 ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
       <CardHeader className="pb-3">
@@ -71,7 +77,7 @@ export const UnitCard = ({ unit, isSelected, onTenantClick, onViewDetails }: Uni
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Tenant:</span>
               <button
-                onClick={() => onTenantClick(unit.tenantId!)}
+                onClick={handleTenantClick}
                 className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
               >
                 {unit.tenant}

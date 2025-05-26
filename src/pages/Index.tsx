@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -104,6 +103,14 @@ const Index = () => {
     setUnits(prevUnits => [...prevUnits, newUnit]);
   };
 
+  const handleTenantClick = (tenantId: string) => {
+    const customer = customers.find(c => c.id === tenantId);
+    if (customer) {
+      setViewingTenantDetails(customer);
+      setActiveView("customers");
+    }
+  };
+
   const handleSearchResultClick = (type: 'unit' | 'customer', id: string) => {
     if (type === 'unit') {
       const unit = units.find(u => u.id === id);
@@ -184,6 +191,7 @@ const Index = () => {
             onUnitAdd={handleAddUnit}
             triggerAddDialog={false}
             onAddDialogClose={() => {}}
+            onTenantClick={handleTenantClick}
           />
         );
       case "customers":
