@@ -80,11 +80,6 @@ export const CustomerList = ({
               Clear Selection
             </Button>
           )}
-          <AddCustomerDialog 
-            onSave={onAddCustomer} 
-            isOpen={triggerAddDialog}
-            onClose={onAddDialogClose}
-          />
         </div>
       </div>
       
