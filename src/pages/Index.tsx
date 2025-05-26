@@ -9,6 +9,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { AIInsights } from "@/components/dashboard/AIInsights";
 import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
+import { OperationsView } from "@/components/operations/OperationsView";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 const Index = () => {
@@ -21,6 +22,8 @@ const Index = () => {
         return <UnitGrid searchQuery={searchQuery} />;
       case "customers":
         return <CustomerList />;
+      case "operations":
+        return <OperationsView />;
       case "dashboard":
       default:
         return (
