@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -71,7 +72,7 @@ const initialCustomers: Customer[] = [
     name: "Mike Wilson",
     email: "mike.wilson@email.com",
     phone: "(555) 345-6789",
-    units: ["B-201", "C-301"],
+    units: ["B-201"],
     status: "active",
     joinDate: "2023-11-08",
     balance: -85,
@@ -99,8 +100,35 @@ const Index = () => {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [showAddUnitDialog, setShowAddUnitDialog] = useState(false);
 
+  // Function to sync customer units with actual unit assignments
+  const syncCustomerUnits = (updatedUnits: Unit[], updatedCustomers: Customer[]) => {
+    const syncedCustomers = updatedCustomers.map(customer => {
+      const customerUnits = updatedUnits
+        .filter(unit => unit.tenantId === customer.id)
+        .map(unit => unit.id);
+      
+      return {
+        ...customer,
+        units: customerUnits,
+        status: customerUnits.length > 0 ? "active" : customer.status === "active" ? "former" : customer.status
+      };
+    });
+    
+    setCustomers(syncedCustomers);
+    
+    // Update viewing tenant details if currently viewing one
+    if (viewingTenantDetails) {
+      const updatedTenant = syncedCustomers.find(c => c.id === viewingTenantDetails.id);
+      if (updatedTenant) {
+        setViewingTenantDetails(updatedTenant);
+      }
+    }
+  };
+
   const handleAddUnit = (newUnit: Unit) => {
-    setUnits(prevUnits => [...prevUnits, newUnit]);
+    const updatedUnits = [...units, newUnit];
+    setUnits(updatedUnits);
+    syncCustomerUnits(updatedUnits, customers);
   };
 
   const handleTenantClick = (tenantId: string) => {
@@ -125,16 +153,20 @@ const Index = () => {
   };
 
   const handleAddCustomer = (newCustomer: Customer) => {
-    setCustomers(prevCustomers => [...prevCustomers, newCustomer]);
+    const updatedCustomers = [...customers, newCustomer];
+    setCustomers(updatedCustomers);
+    syncCustomerUnits(units, updatedCustomers);
   };
 
   const handleUnitUpdate = (updatedUnit: Unit) => {
-    setUnits(prevUnits => 
-      prevUnits.map(unit => 
-        unit.id === updatedUnit.id ? updatedUnit : unit
-      )
+    const updatedUnits = units.map(unit => 
+      unit.id === updatedUnit.id ? updatedUnit : unit
     );
+    setUnits(updatedUnits);
     setViewingUnitDetails(updatedUnit);
+    
+    // Sync customer units after unit update
+    syncCustomerUnits(updatedUnits, customers);
   };
 
   const handleQuickAddUnit = () => {
@@ -162,7 +194,7 @@ const Index = () => {
     }
 
     if (viewingTenantDetails) {
-      // Convert customer to tenant format
+      // Convert customer to tenant format with synced units
       const tenant = {
         ...viewingTenantDetails,
         address: "Orkestergatan 7, Tomelilla, Sweden, 27397",
