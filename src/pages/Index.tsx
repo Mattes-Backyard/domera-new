@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -12,7 +11,6 @@ import { CustomerList } from "@/components/customers/CustomerList";
 import { OperationsView } from "@/components/operations/OperationsView";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
 import { TenantDetailsPage } from "@/components/tenants/TenantDetailsPage";
-import { AddCustomerDialog } from "@/components/customers/AddCustomerDialog";
 import { AddUnitDialog } from "@/components/units/AddUnitDialog";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -99,7 +97,6 @@ const Index = () => {
   const [viewingTenantDetails, setViewingTenantDetails] = useState<Customer | null>(null);
   const [units, setUnits] = useState<Unit[]>(initialUnits);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-  const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [showAddUnitDialog, setShowAddUnitDialog] = useState(false);
 
   const handleAddUnit = (newUnit: Unit) => {
@@ -130,10 +127,6 @@ const Index = () => {
       )
     );
     setViewingUnitDetails(updatedUnit);
-  };
-
-  const handleQuickAddCustomer = () => {
-    setShowAddCustomerDialog(true);
   };
 
   const handleQuickAddUnit = () => {
@@ -217,7 +210,6 @@ const Index = () => {
             </div>
             <div className="lg:col-span-4 space-y-6">
               <QuickActions 
-                onAddCustomer={handleQuickAddCustomer}
                 onAddUnit={handleQuickAddUnit}
               />
               <AIInsights />
@@ -243,13 +235,6 @@ const Index = () => {
             {renderContent()}
           </main>
         </div>
-        
-        {/* Global Add Customer Dialog */}
-        <AddCustomerDialog
-          onAddCustomer={handleAddCustomer}
-          triggerOpen={showAddCustomerDialog}
-          onClose={() => setShowAddCustomerDialog(false)}
-        />
         
         {/* Global Add Unit Dialog */}
         <AddUnitDialog

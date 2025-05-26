@@ -1,20 +1,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, Package, FileText, AlertTriangle } from "lucide-react";
+import { Plus, Package, FileText, AlertTriangle } from "lucide-react";
 
 interface QuickActionsProps {
-  onAddCustomer?: () => void;
   onAddUnit?: () => void;
 }
 
 const actions = [
-  {
-    id: "add-customer",
-    title: "Add Customer",
-    icon: Users,
-    color: "bg-blue-500 hover:bg-blue-600",
-  },
   {
     id: "add-unit",
     title: "Add Unit",
@@ -33,12 +26,9 @@ const actions = [
   },
 ];
 
-export const QuickActions = ({ onAddCustomer, onAddUnit }: QuickActionsProps) => {
+export const QuickActions = ({ onAddUnit }: QuickActionsProps) => {
   const handleActionClick = (actionId: string) => {
     switch (actionId) {
-      case "add-customer":
-        onAddCustomer?.();
-        break;
       case "add-unit":
         onAddUnit?.();
         break;
