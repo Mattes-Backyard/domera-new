@@ -96,6 +96,8 @@ const Index = () => {
   const [viewingTenantDetails, setViewingTenantDetails] = useState<Customer | null>(null);
   const [units, setUnits] = useState<Unit[]>(initialUnits);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const [triggerAddCustomer, setTriggerAddCustomer] = useState(false);
+  const [triggerAddUnit, setTriggerAddUnit] = useState(false);
 
   const handleAddUnit = (newUnit: Unit) => {
     setUnits(prevUnits => [...prevUnits, newUnit]);
@@ -129,12 +131,12 @@ const Index = () => {
 
   const handleQuickAddCustomer = () => {
     setActiveView("customers");
-    // The AddCustomerDialog will be triggered in the CustomerList component
+    setTriggerAddCustomer(true);
   };
 
   const handleQuickAddUnit = () => {
     setActiveView("units");
-    // The AddUnitDialog will be triggered in the UnitGrid component
+    setTriggerAddUnit(true);
   };
 
   const renderContent = () => {
@@ -185,6 +187,8 @@ const Index = () => {
             units={units}
             onUnitSelect={(unit) => setViewingUnitDetails(unit)}
             onUnitAdd={handleAddUnit}
+            triggerAddDialog={triggerAddUnit}
+            onAddDialogClose={() => setTriggerAddUnit(false)}
           />
         );
       case "customers":
@@ -195,6 +199,8 @@ const Index = () => {
             customers={customers} 
             onAddCustomer={handleAddCustomer}
             onViewDetails={(customer) => setViewingTenantDetails(customer)}
+            triggerAddDialog={triggerAddCustomer}
+            onAddDialogClose={() => setTriggerAddCustomer(false)}
           />
         );
       case "operations":

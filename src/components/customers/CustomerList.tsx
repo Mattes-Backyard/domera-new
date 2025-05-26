@@ -1,10 +1,10 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Mail, Phone, MapPin, Calendar, X } from "lucide-react";
 import { AddCustomerDialog } from "./AddCustomerDialog";
+import { useEffect } from "react";
 
 interface Customer {
   id: string;
@@ -23,6 +23,8 @@ interface CustomerListProps {
   customers?: Customer[];
   onAddCustomer?: (customer: Customer) => void;
   onViewDetails?: (customer: Customer) => void;
+  triggerAddDialog?: boolean;
+  onAddDialogClose?: () => void;
 }
 
 export const CustomerList = ({ 
@@ -30,7 +32,9 @@ export const CustomerList = ({
   onClearSelection, 
   customers = [], 
   onAddCustomer, 
-  onViewDetails 
+  onViewDetails,
+  triggerAddDialog = false,
+  onAddDialogClose
 }: CustomerListProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -76,7 +80,11 @@ export const CustomerList = ({
               Clear Selection
             </Button>
           )}
-          <AddCustomerDialog onAddCustomer={onAddCustomer} />
+          <AddCustomerDialog 
+            onAddCustomer={onAddCustomer} 
+            triggerOpen={triggerAddDialog}
+            onClose={onAddDialogClose}
+          />
         </div>
       </div>
       

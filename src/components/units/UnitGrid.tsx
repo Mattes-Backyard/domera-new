@@ -1,4 +1,3 @@
-
 import { useMemo, useState, useEffect } from "react";
 import { UnitGridHeader } from "./UnitGridHeader";
 import { UnitCard } from "./UnitCard";
@@ -25,6 +24,8 @@ interface UnitGridProps {
   units?: Unit[];
   onUnitSelect?: (unit: Unit) => void;
   onUnitAdd?: (newUnit: Unit) => void;
+  triggerAddDialog?: boolean;
+  onAddDialogClose?: () => void;
 }
 
 export const UnitGrid = ({ 
@@ -33,11 +34,19 @@ export const UnitGrid = ({
   onClearSelection, 
   units = [], 
   onUnitSelect, 
-  onUnitAdd 
+  onUnitAdd,
+  triggerAddDialog = false,
+  onAddDialogClose
 }: UnitGridProps) => {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [viewingUnitDetails, setViewingUnitDetails] = useState<Unit | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (triggerAddDialog) {
+      setIsAddDialogOpen(true);
+    }
+  }, [triggerAddDialog]);
 
   const filteredUnits = useMemo(() => {
     if (selectedUnitId) {
@@ -76,6 +85,11 @@ export const UnitGrid = ({
 
   const handleUnitAdd = (newUnit: Unit) => {
     onUnitAdd?.(newUnit);
+  };
+
+  const handleAddDialogClose = () => {
+    setIsAddDialogOpen(false);
+    onAddDialogClose?.();
   };
 
   if (viewingUnitDetails) {
@@ -122,7 +136,7 @@ export const UnitGrid = ({
 
       <AddUnitDialog
         isOpen={isAddDialogOpen}
-        onClose={() => setIsAddDialogOpen(false)}
+        onClose={handleAddDialogClose}
         onSave={handleUnitAdd}
       />
     </div>
