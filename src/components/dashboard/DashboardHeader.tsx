@@ -1,4 +1,3 @@
-
 import { Bell, Search, Settings, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,13 +6,35 @@ import { SiteSelector } from "./SiteSelector";
 import { SearchResults } from "./SearchResults";
 import { useState, useRef, useEffect } from "react";
 
+interface Unit {
+  id: string;
+  size: string;
+  type: string;
+  status: string;
+  tenant: string | null;
+  tenantId: string | null;
+  rate: number;
+  climate: boolean;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  units: string[];
+  status: string;
+}
+
 interface DashboardHeaderProps {
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
   onSearchResultClick?: (type: 'unit' | 'customer', id: string) => void;
+  units?: Unit[];
+  customers?: Customer[];
 }
 
-const units = [
+const units: Unit[] = [
   { id: "A-101", size: "5x5", type: "Standard", status: "occupied", tenant: "John Smith", tenantId: "john-smith", rate: 85, climate: true },
   { id: "A-102", size: "5x5", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 85, climate: true },
   { id: "A-103", size: "5x10", type: "Standard", status: "reserved", tenant: "Sarah Johnson", tenantId: "sarah-johnson", rate: 120, climate: true },
@@ -22,14 +43,20 @@ const units = [
   { id: "C-301", size: "10x20", type: "Large", status: "available", tenant: null, tenantId: null, rate: 280, climate: false },
 ];
 
-const customers = [
+const customers: Customer[] = [
   { id: "john-smith", name: "John Smith", email: "john.smith@email.com", phone: "(555) 123-4567", units: ["A-101"], status: "active" },
   { id: "sarah-johnson", name: "Sarah Johnson", email: "sarah.j@email.com", phone: "(555) 234-5678", units: ["A-103"], status: "reserved" },
   { id: "mike-wilson", name: "Mike Wilson", email: "mike.wilson@email.com", phone: "(555) 345-6789", units: ["B-201", "C-301"], status: "active" },
   { id: "emily-davis", name: "Emily Davis", email: "emily.davis@email.com", phone: "(555) 456-7890", units: [], status: "former" },
 ];
 
-export const DashboardHeader = ({ searchQuery = "", onSearchChange, onSearchResultClick }: DashboardHeaderProps) => {
+export const DashboardHeader = ({ 
+  searchQuery = "", 
+  onSearchChange, 
+  onSearchResultClick,
+  units = [],
+  customers = []
+}: DashboardHeaderProps) => {
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 

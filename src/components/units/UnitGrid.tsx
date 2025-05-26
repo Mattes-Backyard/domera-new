@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,22 +5,25 @@ import { Package, MapPin, Thermometer, Lock, X } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { ClientCard } from "@/components/clients/ClientCard";
 
-const units = [
-  { id: "A-101", size: "5x5", type: "Standard", status: "occupied", tenant: "John Smith", tenantId: "john-smith", rate: 85, climate: true },
-  { id: "A-102", size: "5x5", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 85, climate: true },
-  { id: "A-103", size: "5x10", type: "Standard", status: "reserved", tenant: "Sarah Johnson", tenantId: "sarah-johnson", rate: 120, climate: true },
-  { id: "B-201", size: "10x10", type: "Premium", status: "occupied", tenant: "Mike Wilson", tenantId: "mike-wilson", rate: 180, climate: true },
-  { id: "B-202", size: "10x10", type: "Premium", status: "maintenance", tenant: null, tenantId: null, rate: 180, climate: true },
-  { id: "C-301", size: "10x20", type: "Large", status: "available", tenant: null, tenantId: null, rate: 280, climate: false },
-];
+interface Unit {
+  id: string;
+  size: string;
+  type: string;
+  status: string;
+  tenant: string | null;
+  tenantId: string | null;
+  rate: number;
+  climate: boolean;
+}
 
 interface UnitGridProps {
   searchQuery?: string;
   selectedUnitId?: string | null;
   onClearSelection?: () => void;
+  units?: Unit[];
 }
 
-export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection }: UnitGridProps) => {
+export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection, units = [] }: UnitGridProps) => {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   const filteredUnits = useMemo(() => {
@@ -39,7 +41,7 @@ export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection }:
       unit.status.toLowerCase().includes(query) ||
       (unit.tenant && unit.tenant.toLowerCase().includes(query))
     );
-  }, [searchQuery, selectedUnitId]);
+  }, [searchQuery, selectedUnitId, units]);
 
   useEffect(() => {
     if (selectedUnitId && filteredUnits.length === 0) {

@@ -1,5 +1,3 @@
-
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,57 +16,14 @@ interface Customer {
   balance: number;
 }
 
-const initialCustomers: Customer[] = [
-  {
-    id: "john-smith",
-    name: "John Smith",
-    email: "john.smith@email.com",
-    phone: "(555) 123-4567",
-    units: ["A-101"],
-    status: "active",
-    joinDate: "2024-01-15",
-    balance: 0,
-  },
-  {
-    id: "sarah-johnson",
-    name: "Sarah Johnson",
-    email: "sarah.j@email.com",
-    phone: "(555) 234-5678",
-    units: ["A-103"],
-    status: "reserved",
-    joinDate: "2024-05-20",
-    balance: 120,
-  },
-  {
-    id: "mike-wilson",
-    name: "Mike Wilson",
-    email: "mike.wilson@email.com",
-    phone: "(555) 345-6789",
-    units: ["B-201", "C-301"],
-    status: "active",
-    joinDate: "2023-11-08",
-    balance: -85,
-  },
-  {
-    id: "emily-davis",
-    name: "Emily Davis",
-    email: "emily.davis@email.com",
-    phone: "(555) 456-7890",
-    units: [],
-    status: "former",
-    joinDate: "2023-06-12",
-    balance: 0,
-  },
-];
-
 interface CustomerListProps {
   selectedCustomerId?: string | null;
   onClearSelection?: () => void;
+  customers?: Customer[];
+  onAddCustomer?: (customer: Customer) => void;
 }
 
-export const CustomerList = ({ selectedCustomerId, onClearSelection }: CustomerListProps) => {
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-
+export const CustomerList = ({ selectedCustomerId, onClearSelection, customers = [], onAddCustomer }: CustomerListProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -86,10 +41,6 @@ export const CustomerList = ({ selectedCustomerId, onClearSelection }: CustomerL
     if (balance > 0) return "text-green-600";
     if (balance < 0) return "text-red-600";
     return "text-gray-600";
-  };
-
-  const handleAddCustomer = (newCustomer: Customer) => {
-    setCustomers(prevCustomers => [...prevCustomers, newCustomer]);
   };
 
   const filteredCustomers = selectedCustomerId 
@@ -117,7 +68,7 @@ export const CustomerList = ({ selectedCustomerId, onClearSelection }: CustomerL
               Clear Selection
             </Button>
           )}
-          <AddCustomerDialog onAddCustomer={handleAddCustomer} />
+          <AddCustomerDialog onAddCustomer={onAddCustomer} />
         </div>
       </div>
       
