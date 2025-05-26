@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Filter, Edit3, Save, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const units = [
+const initialUnits = [
   { id: "A-101", size: "5x5", type: "Standard", status: "occupied", tenant: "John Smith", rate: 85, climate: true },
   { id: "A-102", size: "5x5", type: "Standard", status: "available", tenant: null, rate: 85, climate: true },
   { id: "A-103", size: "5x10", type: "Standard", status: "reserved", tenant: "Sarah Johnson", rate: 120, climate: true },
@@ -21,6 +21,7 @@ const units = [
 
 export const OperationsView = () => {
   const { toast } = useToast();
+  const [units, setUnits] = useState(initialUnits);
   const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
   const [filters, setFilters] = useState({
     status: "all",
@@ -67,8 +68,38 @@ export const OperationsView = () => {
       return;
     }
 
-    // Here you would typically make API calls to update the units
-    console.log("Applying bulk changes to units:", selectedUnits, bulkChanges);
+    // Apply the actual changes to the units
+    setUnits(prevUnits => 
+      prevUnits.map(unit => {
+        if (selectedUnits.includes(unit.id)) {
+          const updatedUnit = { ...unit };
+          
+          // Apply status change if provided
+          if (bulkChanges.status) {
+            updatedUnit.status = bulkChanges.status as "available" | "occupied" | "reserved" | "maintenance";
+            // Clear tenant if status changes to available or maintenance
+            if (bulkChanges.status === "available" || bulkChanges.status === "maintenance") {
+              updatedUnit.tenant = null;
+            }
+          }
+          
+          // Apply rate change if provided
+          if (bulkChanges.rate) {
+            updatedUnit.rate = parseInt(bulkChanges.rate);
+          }
+          
+          // Apply type change if provided
+          if (bulkChanges.type) {
+            updatedUnit.type = bulkChanges.type as "Standard" | "Premium" | "Large";
+          }
+          
+          return updatedUnit;
+        }
+        return unit;
+      })
+    );
+
+    console.log("Applied bulk changes to units:", selectedUnits, bulkChanges);
     
     toast({
       title: "Changes Applied",
@@ -160,7 +191,51 @@ export const OperationsView = () => {
         </CardContent>
       </Card>
 
-      {/* Bulk Actions Section */}
+      {/* Units Table */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>All Units ({filteredUnits.length})</CardTitle>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                checked={selectedUnits.length === filteredUnits.length && filteredUnits.length > 0}
+                onCheckedChange={handleSelectAll}
+              />
+              <Label>Select All</Label>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {filteredUnits.map((unit) => (
+              <div key={unit.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                <div className="flex items-center space-x-4">
+                  <Checkbox
+                    checked={selectedUnits.includes(unit.id)}
+                    onCheckedChange={() => handleSelectUnit(unit.id)}
+                  />
+                  <div className="flex items-center space-x-4">
+                    <div className="font-semibold">{unit.id}</div>
+                    <Badge className={getStatusColor(unit.status)}>{unit.status}</Badge>
+                    <div className="text-sm text-gray-600">{unit.size} • {unit.type}</div>
+                    {unit.tenant && (
+                      <div className="text-sm text-blue-600">{unit.tenant}</div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="font-semibold">${unit.rate}/month</div>
+                  {unit.climate && (
+                    <Badge variant="outline" className="text-xs">Climate</Badge>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Bulk Actions Section - Now positioned after units */}
       {selectedUnits.length > 0 && (
         <Card>
           <CardHeader>
@@ -224,50 +299,6 @@ export const OperationsView = () => {
           </CardContent>
         </Card>
       )}
-
-      {/* Units Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Units ({filteredUnits.length})</CardTitle>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                checked={selectedUnits.length === filteredUnits.length && filteredUnits.length > 0}
-                onCheckedChange={handleSelectAll}
-              />
-              <Label>Select All</Label>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {filteredUnits.map((unit) => (
-              <div key={unit.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                <div className="flex items-center space-x-4">
-                  <Checkbox
-                    checked={selectedUnits.includes(unit.id)}
-                    onCheckedChange={() => handleSelectUnit(unit.id)}
-                  />
-                  <div className="flex items-center space-x-4">
-                    <div className="font-semibold">{unit.id}</div>
-                    <Badge className={getStatusColor(unit.status)}>{unit.status}</Badge>
-                    <div className="text-sm text-gray-600">{unit.size} • {unit.type}</div>
-                    {unit.tenant && (
-                      <div className="text-sm text-blue-600">{unit.tenant}</div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="font-semibold">${unit.rate}/month</div>
-                  {unit.climate && (
-                    <Badge variant="outline" className="text-xs">Climate</Badge>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
