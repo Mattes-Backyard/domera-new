@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -96,6 +95,10 @@ const Index = () => {
   const [units, setUnits] = useState<Unit[]>(initialUnits);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
 
+  const handleAddUnit = (newUnit: Unit) => {
+    setUnits(prevUnits => [...prevUnits, newUnit]);
+  };
+
   const handleSearchResultClick = (type: 'unit' | 'customer', id: string) => {
     if (type === 'unit') {
       const unit = units.find(u => u.id === id);
@@ -142,6 +145,7 @@ const Index = () => {
             onClearSelection={() => setSelectedUnitId(null)} 
             units={units}
             onUnitSelect={(unit) => setViewingUnitDetails(unit)}
+            onUnitAdd={handleAddUnit}
           />
         );
       case "customers":

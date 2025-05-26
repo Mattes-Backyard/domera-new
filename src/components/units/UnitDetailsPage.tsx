@@ -2,11 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Package, MapPin, Thermometer, Shield, Key, User, Calendar, DollarSign, Info, Edit, Plus } from "lucide-react";
+import { ArrowLeft, Package, MapPin, Thermometer, Shield, Key, User, Calendar, DollarSign, Info, Edit } from "lucide-react";
 import { useState } from "react";
 import { AddCommentForm } from "./AddCommentForm";
 import { EditUnitDialog } from "./EditUnitDialog";
-import { AddUnitDialog } from "./AddUnitDialog";
 
 interface Unit {
   id: string;
@@ -23,7 +22,6 @@ interface UnitDetailsPageProps {
   unit: Unit;
   onBack: () => void;
   onUnitUpdate?: (updatedUnit: Unit) => void;
-  onUnitAdd?: (newUnit: Unit) => void;
 }
 
 interface Comment {
@@ -60,7 +58,7 @@ const unitHistory = [
   }
 ];
 
-export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate, onUnitAdd }: UnitDetailsPageProps) => {
+export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageProps) => {
   const [comments, setComments] = useState<Comment[]>([
     {
       id: "1",
@@ -77,7 +75,6 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate, onUnitAdd }: UnitD
   ]);
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const handleUnitUpdate = (updatedUnit: Unit) => {
     onUnitUpdate?.(updatedUnit);
@@ -89,10 +86,6 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate, onUnitAdd }: UnitD
       id: Date.now().toString()
     };
     setComments(prev => [comment, ...prev]);
-  };
-
-  const handleUnitAdd = (newUnit: Unit) => {
-    onUnitAdd?.(newUnit);
   };
 
   const getStatusColor = (status: string) => {
@@ -145,15 +138,6 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate, onUnitAdd }: UnitD
           </div>
           
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setIsAddDialogOpen(true)} 
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add Unit
-            </Button>
-            
             <Button onClick={() => setIsEditDialogOpen(true)} className="flex items-center gap-2">
               <Edit className="h-4 w-4" />
               Edit Unit
@@ -393,12 +377,6 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate, onUnitAdd }: UnitD
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
         onSave={handleUnitUpdate}
-      />
-
-      <AddUnitDialog
-        isOpen={isAddDialogOpen}
-        onClose={() => setIsAddDialogOpen(false)}
-        onSave={handleUnitAdd}
       />
     </div>
   );

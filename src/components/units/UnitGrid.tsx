@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, MapPin, Thermometer, Lock, X } from "lucide-react";
+import { Package, MapPin, Thermometer, Lock, X, Plus } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { ClientCard } from "@/components/clients/ClientCard";
 import { UnitDetailsPage } from "./UnitDetailsPage";
+import { AddUnitDialog } from "./AddUnitDialog";
 
 interface Unit {
   id: string;
@@ -23,11 +24,13 @@ interface UnitGridProps {
   onClearSelection?: () => void;
   units?: Unit[];
   onUnitSelect?: (unit: Unit) => void;
+  onUnitAdd?: (newUnit: Unit) => void;
 }
 
-export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection, units = [], onUnitSelect }: UnitGridProps) => {
+export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection, units = [], onUnitSelect, onUnitAdd }: UnitGridProps) => {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [viewingUnitDetails, setViewingUnitDetails] = useState<Unit | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const filteredUnits = useMemo(() => {
     if (selectedUnitId) {
@@ -79,6 +82,10 @@ export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection, u
     setViewingUnitDetails(null);
   };
 
+  const handleUnitAdd = (newUnit: Unit) => {
+    onUnitAdd?.(newUnit);
+  };
+
   if (viewingUnitDetails) {
     return (
       <UnitDetailsPage 
@@ -108,12 +115,21 @@ export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection, u
               )}
             </p>
           </div>
-          {selectedUnitId && (
-            <Button variant="outline" onClick={onClearSelection} className="flex items-center gap-2">
-              <X className="h-4 w-4" />
-              Clear Selection
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={() => setIsAddDialogOpen(true)} 
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Unit
             </Button>
-          )}
+            {selectedUnitId && (
+              <Button variant="outline" onClick={onClearSelection} className="flex items-center gap-2">
+                <X className="h-4 w-4" />
+                Clear Selection
+              </Button>
+            )}
+          </div>
         </div>
       </div>
       
@@ -199,6 +215,12 @@ export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection, u
           onClose={() => setSelectedClientId(null)}
         />
       )}
+
+      <AddUnitDialog
+        isOpen={isAddDialogOpen}
+        onClose={() => setIsAddDialogOpen(false)}
+        onSave={handleUnitAdd}
+      />
     </div>
   );
 };
