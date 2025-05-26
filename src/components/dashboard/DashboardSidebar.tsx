@@ -1,0 +1,103 @@
+
+import { Building2, Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarHeader,
+} from "@/components/ui/sidebar";
+
+const menuItems = [
+  {
+    id: "dashboard",
+    title: "Dashboard",
+    icon: BarChart3,
+  },
+  {
+    id: "units",
+    title: "Units",
+    icon: Package,
+  },
+  {
+    id: "customers",
+    title: "Customers",
+    icon: Users,
+  },
+  {
+    id: "billing",
+    title: "Billing",
+    icon: CreditCard,
+  },
+  {
+    id: "maintenance",
+    title: "Maintenance",
+    icon: AlertTriangle,
+  },
+  {
+    id: "automation",
+    title: "AI Automation",
+    icon: Zap,
+  },
+];
+
+interface DashboardSidebarProps {
+  activeView: string;
+  setActiveView: (view: string) => void;
+}
+
+export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebarProps) => {
+  return (
+    <Sidebar className="border-r border-gray-200 bg-white">
+      <SidebarHeader className="p-6">
+        <div className="flex items-center space-x-2">
+          <Building2 className="h-8 w-8 text-blue-600" />
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">StoragePro</h2>
+            <p className="text-sm text-gray-500">PMS Suite</p>
+          </div>
+        </div>
+      </SidebarHeader>
+      
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    onClick={() => setActiveView(item.id)}
+                    isActive={activeView === item.id}
+                    className="w-full justify-start"
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        <SidebarGroup>
+          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton>
+                  <Settings className="h-4 w-4" />
+                  <span>System Settings</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  );
+};
