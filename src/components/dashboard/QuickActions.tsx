@@ -1,8 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Package, FileText, AlertTriangle, UserPlus } from "lucide-react";
-import { AddCustomerDialog } from "@/components/customers/AddCustomerDialog";
+import { Plus, Package, FileText, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 
 interface QuickActionsProps {
@@ -20,14 +19,6 @@ const actions = [
     shadow: "shadow-emerald-200",
   },
   {
-    id: "add-customer",
-    title: "Add Customer",
-    icon: UserPlus,
-    gradient: "from-blue-500 to-indigo-600",
-    hoverGradient: "from-blue-600 to-indigo-700",
-    shadow: "shadow-blue-200",
-  },
-  {
     title: "Create Invoice",
     icon: FileText,
     gradient: "from-purple-500 to-violet-600",
@@ -43,61 +34,39 @@ const actions = [
   },
 ];
 
-export const QuickActions = ({ onAddUnit, onAddCustomer }: QuickActionsProps) => {
-  const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
-
+export const QuickActions = ({ onAddUnit }: QuickActionsProps) => {
   const handleActionClick = (actionId: string) => {
     switch (actionId) {
       case "add-unit":
         onAddUnit?.();
-        break;
-      case "add-customer":
-        setShowAddCustomerDialog(true);
         break;
       default:
         break;
     }
   };
 
-  const handleCustomerDialogClose = () => {
-    setShowAddCustomerDialog(false);
-  };
-
-  const handleCustomerSave = (customer: any) => {
-    onAddCustomer?.(customer);
-    setShowAddCustomerDialog(false);
-  };
-
   return (
-    <>
-      <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-0 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
-            Quick Actions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-3">
-            {actions.map((action, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                className={`h-20 flex flex-col items-center justify-center space-y-2 bg-gradient-to-r ${action.gradient} text-white border-none hover:bg-gradient-to-r hover:${action.hoverGradient} hover:scale-105 transition-all duration-300 shadow-lg ${action.shadow}`}
-                onClick={() => handleActionClick(action.id || "")}
-              >
-                <action.icon className="h-6 w-6" />
-                <span className="text-xs font-medium">{action.title}</span>
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <AddCustomerDialog
-        isOpen={showAddCustomerDialog}
-        onClose={handleCustomerDialogClose}
-        onSave={handleCustomerSave}
-      />
-    </>
+    <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-0 shadow-lg">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
+          Quick Actions
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-3">
+          {actions.map((action, index) => (
+            <Button
+              key={index}
+              variant="outline"
+              className={`h-20 flex flex-col items-center justify-center space-y-2 bg-gradient-to-r ${action.gradient} text-white border-none hover:bg-gradient-to-r hover:${action.hoverGradient} hover:scale-105 transition-all duration-300 shadow-lg ${action.shadow}`}
+              onClick={() => handleActionClick(action.id || "")}
+            >
+              <action.icon className="h-6 w-6" />
+              <span className="text-xs font-medium">{action.title}</span>
+            </Button>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
