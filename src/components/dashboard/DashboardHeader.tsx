@@ -4,7 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-export const DashboardHeader = () => {
+interface DashboardHeaderProps {
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+}
+
+export const DashboardHeader = ({ searchQuery = "", onSearchChange }: DashboardHeaderProps) => {
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
       <div className="flex items-center space-x-4">
@@ -14,6 +19,8 @@ export const DashboardHeader = () => {
           <Input
             placeholder="Search units, customers, or invoices..."
             className="pl-10 w-80"
+            value={searchQuery}
+            onChange={(e) => onSearchChange?.(e.target.value)}
           />
         </div>
       </div>

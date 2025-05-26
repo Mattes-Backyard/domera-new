@@ -13,11 +13,12 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 
 const Index = () => {
   const [activeView, setActiveView] = useState("dashboard");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const renderContent = () => {
     switch (activeView) {
       case "units":
-        return <UnitGrid />;
+        return <UnitGrid searchQuery={searchQuery} />;
       case "customers":
         return <CustomerList />;
       case "dashboard":
@@ -43,7 +44,7 @@ const Index = () => {
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <DashboardSidebar activeView={activeView} setActiveView={setActiveView} />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <DashboardHeader />
+          <DashboardHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
           <main className="flex-1 overflow-y-auto">
             {renderContent()}
           </main>
