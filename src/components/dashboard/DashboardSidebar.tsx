@@ -1,5 +1,5 @@
 
-import { Building2, Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap, Wrench } from "lucide-react";
+import { Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap, Wrench } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -60,7 +60,11 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
     <Sidebar className="border-r border-gray-200 bg-white">
       <SidebarHeader className="p-6">
         <div className="flex items-center space-x-2">
-          <Building2 className="h-8 w-8 text-indigo-600" />
+          <img 
+            src="/lovable-uploads/4b583f6a-ce5a-4616-8696-9bd2a4eda24f.png" 
+            alt="Domera Logo" 
+            className="h-8 w-8"
+          />
           <div>
             <h2 className="text-xl font-bold text-gray-900">Domera</h2>
             <p className="text-sm text-gray-500">Storage Management</p>
