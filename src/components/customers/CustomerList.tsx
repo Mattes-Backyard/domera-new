@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,18 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Mail, Phone, MapPin, Calendar, X } from "lucide-react";
 import { AddCustomerDialog } from "./AddCustomerDialog";
 
-const customers = [
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  units: string[];
+  status: string;
+  joinDate: string;
+  balance: number;
+}
+
+const initialCustomers: Customer[] = [
   {
     id: "john-smith",
     name: "John Smith",
@@ -55,6 +67,8 @@ interface CustomerListProps {
 }
 
 export const CustomerList = ({ selectedCustomerId, onClearSelection }: CustomerListProps) => {
+  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -72,6 +86,10 @@ export const CustomerList = ({ selectedCustomerId, onClearSelection }: CustomerL
     if (balance > 0) return "text-green-600";
     if (balance < 0) return "text-red-600";
     return "text-gray-600";
+  };
+
+  const handleAddCustomer = (newCustomer: Customer) => {
+    setCustomers(prevCustomers => [...prevCustomers, newCustomer]);
   };
 
   const filteredCustomers = selectedCustomerId 
@@ -99,7 +117,7 @@ export const CustomerList = ({ selectedCustomerId, onClearSelection }: CustomerL
               Clear Selection
             </Button>
           )}
-          <AddCustomerDialog />
+          <AddCustomerDialog onAddCustomer={handleAddCustomer} />
         </div>
       </div>
       

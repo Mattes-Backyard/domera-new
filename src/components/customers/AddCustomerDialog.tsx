@@ -14,7 +14,22 @@ const availableUnits = [
   { id: "C-301", size: "10x20", rate: 280 },
 ];
 
-export const AddCustomerDialog = () => {
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  units: string[];
+  status: string;
+  joinDate: string;
+  balance: number;
+}
+
+interface AddCustomerDialogProps {
+  onAddCustomer?: (customer: Customer) => void;
+}
+
+export const AddCustomerDialog = ({ onAddCustomer }: AddCustomerDialogProps) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -43,8 +58,37 @@ export const AddCustomerDialog = () => {
       return;
     }
 
-    // Here you would typically send data to your backend
-    console.log("New customer data:", formData);
+    // Create new customer object
+    const newCustomer: Customer = {
+      id: formData.name.toLowerCase().replace(/\s+/g, '-'),
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      units: formData.assignedUnit ? [formData.assignedUnit] : [],
+      status: formData.assignedUnit ? "active" : "former",
+      joinDate: new Date().toISOString().split('T')[0],
+      balance: 0,
+    };
+
+    // Call the callback to add customer to the system
+    if (onAddCustomer) {
+      onAddCustomer(newCustomer);
+    }
+
+    console.log("New customer data:", {
+      customer: newCustomer,
+      additionalInfo: {
+        address: formData.address,
+        personalId: formData.personalId,
+        taxId: formData.taxId,
+        emergencyContact: {
+          name: formData.emergencyContactName,
+          phone: formData.emergencyContactPhone,
+          relationship: formData.emergencyContactRelationship,
+        },
+        notes: formData.notes,
+      }
+    });
     
     toast({
       title: "Success",
