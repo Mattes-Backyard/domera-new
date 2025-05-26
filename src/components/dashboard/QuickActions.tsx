@@ -14,23 +14,17 @@ const actions = [
     id: "add-unit",
     title: "Add Unit",
     icon: Package,
-    gradient: "from-emerald-500 to-teal-600",
-    hoverGradient: "from-emerald-600 to-teal-700",
-    shadow: "shadow-emerald-200",
+    bgColor: "bg-emerald-500 hover:bg-emerald-600",
   },
   {
     title: "Create Invoice",
     icon: FileText,
-    gradient: "from-purple-500 to-violet-600",
-    hoverGradient: "from-purple-600 to-violet-700",
-    shadow: "shadow-purple-200",
+    bgColor: "bg-purple-500 hover:bg-purple-600",
   },
   {
     title: "Report Issue",
     icon: AlertTriangle,
-    gradient: "from-orange-500 to-amber-600",
-    hoverGradient: "from-orange-600 to-amber-700",
-    shadow: "shadow-orange-200",
+    bgColor: "bg-orange-500 hover:bg-orange-600",
   },
 ];
 
@@ -58,7 +52,7 @@ export const QuickActions = ({ onAddUnit }: QuickActionsProps) => {
             <Button
               key={index}
               variant="outline"
-              className={`h-20 flex flex-col items-center justify-center space-y-2 bg-gradient-to-r ${action.gradient} text-white border-none hover:bg-gradient-to-r hover:${action.hoverGradient} hover:scale-105 transition-all duration-300 shadow-lg ${action.shadow}`}
+              className={`h-20 flex flex-col items-center justify-center space-y-2 ${action.bgColor} text-white border-none hover:scale-105 transition-all duration-300 shadow-lg`}
               onClick={() => handleActionClick(action.id || "")}
             >
               <action.icon className="h-6 w-6" />
