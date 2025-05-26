@@ -55,10 +55,10 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
     <Sidebar className="border-r border-gray-200 bg-white">
       <SidebarHeader className="p-6">
         <div className="flex items-center space-x-2">
-          <Building2 className="h-8 w-8 text-blue-600" />
+          <Building2 className="h-8 w-8 text-indigo-600" />
           <div>
-            <h2 className="text-xl font-bold text-gray-900">StoragePro</h2>
-            <p className="text-sm text-gray-500">PMS Suite</p>
+            <h2 className="text-xl font-bold text-gray-900">Domera</h2>
+            <p className="text-sm text-gray-500">Storage Management</p>
           </div>
         </div>
       </SidebarHeader>
