@@ -17,8 +17,13 @@ export const SiteSelector = () => {
     <div className="flex items-center space-x-2">
       <Building2 className="h-4 w-4 text-gray-500" />
       <Select value={currentSite.id} onValueChange={switchSite}>
-        <SelectTrigger className="w-48 border-0 shadow-none focus:ring-0">
-          <SelectValue />
+        <SelectTrigger className="w-auto min-w-[200px] border-0 shadow-none focus:ring-0">
+          <SelectValue>
+            <div className="flex flex-col text-left">
+              <span className="font-medium">{currentSite.name}</span>
+              <span className="text-xs text-gray-500">{currentSite.location}</span>
+            </div>
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {sites.map((site) => (
