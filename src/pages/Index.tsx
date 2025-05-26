@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -147,8 +146,11 @@ const Index = () => {
         setActiveView("units");
       }
     } else if (type === 'customer') {
-      setSelectedCustomerId(id);
-      setActiveView("customers");
+      const customer = customers.find(c => c.id === id);
+      if (customer) {
+        setViewingTenantDetails(customer);
+        setActiveView("customers");
+      }
     }
   };
 
