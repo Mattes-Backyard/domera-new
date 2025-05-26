@@ -1,13 +1,14 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Mail, Phone, MapPin, Calendar } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar, X } from "lucide-react";
 import { AddCustomerDialog } from "./AddCustomerDialog";
 
 const customers = [
   {
-    id: 1,
+    id: "john-smith",
     name: "John Smith",
     email: "john.smith@email.com",
     phone: "(555) 123-4567",
@@ -17,7 +18,7 @@ const customers = [
     balance: 0,
   },
   {
-    id: 2,
+    id: "sarah-johnson",
     name: "Sarah Johnson",
     email: "sarah.j@email.com",
     phone: "(555) 234-5678",
@@ -27,7 +28,7 @@ const customers = [
     balance: 120,
   },
   {
-    id: 3,
+    id: "mike-wilson",
     name: "Mike Wilson",
     email: "mike.wilson@email.com",
     phone: "(555) 345-6789",
@@ -37,7 +38,7 @@ const customers = [
     balance: -85,
   },
   {
-    id: 4,
+    id: "emily-davis",
     name: "Emily Davis",
     email: "emily.davis@email.com",
     phone: "(555) 456-7890",
@@ -48,7 +49,12 @@ const customers = [
   },
 ];
 
-export const CustomerList = () => {
+interface CustomerListProps {
+  selectedCustomerId?: string | null;
+  onClearSelection?: () => void;
+}
+
+export const CustomerList = ({ selectedCustomerId, onClearSelection }: CustomerListProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -68,19 +74,38 @@ export const CustomerList = () => {
     return "text-gray-600";
   };
 
+  const filteredCustomers = selectedCustomerId 
+    ? customers.filter(customer => customer.id === selectedCustomerId)
+    : customers;
+
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Customer Management</h1>
-          <p className="text-gray-600">Manage customer profiles and rental history</p>
+          <p className="text-gray-600">
+            Manage customer profiles and rental history
+            {selectedCustomerId && (
+              <span className="ml-2 text-sm text-blue-600">
+                • Showing customer {filteredCustomers[0]?.name}
+              </span>
+            )}
+          </p>
         </div>
-        <AddCustomerDialog />
+        <div className="flex items-center gap-3">
+          {selectedCustomerId && (
+            <Button variant="outline" onClick={onClearSelection} className="flex items-center gap-2">
+              <X className="h-4 w-4" />
+              Clear Selection
+            </Button>
+          )}
+          <AddCustomerDialog />
+        </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {customers.map((customer) => (
-          <Card key={customer.id} className="hover:shadow-lg transition-shadow duration-200">
+        {filteredCustomers.map((customer) => (
+          <Card key={customer.id} className={`hover:shadow-lg transition-shadow duration-200 ${selectedCustomerId === customer.id ? 'ring-2 ring-blue-500' : ''}`}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">

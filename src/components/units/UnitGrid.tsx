@@ -2,8 +2,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, MapPin, Thermometer, Lock } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Package, MapPin, Thermometer, Lock, X } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
 import { ClientCard } from "@/components/clients/ClientCard";
 
 const units = [
@@ -17,12 +17,18 @@ const units = [
 
 interface UnitGridProps {
   searchQuery?: string;
+  selectedUnitId?: string | null;
+  onClearSelection?: () => void;
 }
 
-export const UnitGrid = ({ searchQuery = "" }: UnitGridProps) => {
+export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection }: UnitGridProps) => {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   const filteredUnits = useMemo(() => {
+    if (selectedUnitId) {
+      return units.filter(unit => unit.id === selectedUnitId);
+    }
+    
     if (!searchQuery.trim()) return units;
     
     const query = searchQuery.toLowerCase();
@@ -33,7 +39,13 @@ export const UnitGrid = ({ searchQuery = "" }: UnitGridProps) => {
       unit.status.toLowerCase().includes(query) ||
       (unit.tenant && unit.tenant.toLowerCase().includes(query))
     );
-  }, [searchQuery]);
+  }, [searchQuery, selectedUnitId]);
+
+  useEffect(() => {
+    if (selectedUnitId && filteredUnits.length === 0) {
+      onClearSelection?.();
+    }
+  }, [selectedUnitId, filteredUnits.length, onClearSelection]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -57,18 +69,33 @@ export const UnitGrid = ({ searchQuery = "" }: UnitGridProps) => {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Unit Management</h1>
-        <p className="text-gray-600">
-          Manage your storage units and track occupancy
-          {searchQuery && (
-            <span className="ml-2 text-sm text-blue-600">
-              • {filteredUnits.length} result{filteredUnits.length !== 1 ? 's' : ''} for "{searchQuery}"
-            </span>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Unit Management</h1>
+            <p className="text-gray-600">
+              Manage your storage units and track occupancy
+              {searchQuery && !selectedUnitId && (
+                <span className="ml-2 text-sm text-blue-600">
+                  • {filteredUnits.length} result{filteredUnits.length !== 1 ? 's' : ''} for "{searchQuery}"
+                </span>
+              )}
+              {selectedUnitId && (
+                <span className="ml-2 text-sm text-blue-600">
+                  • Showing unit {selectedUnitId}
+                </span>
+              )}
+            </p>
+          </div>
+          {selectedUnitId && (
+            <Button variant="outline" onClick={onClearSelection} className="flex items-center gap-2">
+              <X className="h-4 w-4" />
+              Clear Selection
+            </Button>
           )}
-        </p>
+        </div>
       </div>
       
-      {filteredUnits.length === 0 && searchQuery ? (
+      {filteredUnits.length === 0 && searchQuery && !selectedUnitId ? (
         <div className="text-center py-12">
           <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No units found</h3>
@@ -77,7 +104,7 @@ export const UnitGrid = ({ searchQuery = "" }: UnitGridProps) => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredUnits.map((unit) => (
-            <Card key={unit.id} className="hover:shadow-lg transition-shadow duration-200">
+            <Card key={unit.id} className={`hover:shadow-lg transition-shadow duration-200 ${selectedUnitId === unit.id ? 'ring-2 ring-blue-500' : ''}`}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-semibold text-gray-900">
