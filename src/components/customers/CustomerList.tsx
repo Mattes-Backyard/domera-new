@@ -1,9 +1,9 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Mail, Phone, MapPin, Calendar } from "lucide-react";
+import { AddCustomerDialog } from "./AddCustomerDialog";
 
 const customers = [
   {
@@ -70,9 +70,12 @@ export const CustomerList = () => {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Customer Management</h1>
-        <p className="text-gray-600">Manage customer profiles and rental history</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Customer Management</h1>
+          <p className="text-gray-600">Manage customer profiles and rental history</p>
+        </div>
+        <AddCustomerDialog />
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
