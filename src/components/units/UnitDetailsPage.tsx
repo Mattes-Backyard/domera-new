@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Package, MapPin, Thermometer, Shield, Key, User, Calendar, DollarSign, Info } from "lucide-react";
 import { useState } from "react";
 import { AddCommentForm } from "./AddCommentForm";
+import { EditUnitDialog } from "./EditUnitDialog";
 
 interface Unit {
   id: string;
@@ -20,6 +21,7 @@ interface Unit {
 interface UnitDetailsPageProps {
   unit: Unit;
   onBack: () => void;
+  onUnitUpdate?: (updatedUnit: Unit) => void;
 }
 
 interface Comment {
@@ -56,7 +58,7 @@ const unitHistory = [
   }
 ];
 
-export const UnitDetailsPage = ({ unit, onBack }: UnitDetailsPageProps) => {
+export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageProps) => {
   const [comments, setComments] = useState<Comment[]>([
     {
       id: "1",
@@ -71,6 +73,12 @@ export const UnitDetailsPage = ({ unit, onBack }: UnitDetailsPageProps) => {
       date: "2024-02-03"
     }
   ]);
+
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const handleUnitUpdate = (updatedUnit: Unit) => {
+    onUnitUpdate?.(updatedUnit);
+  };
 
   const handleAddComment = (newComment: Omit<Comment, 'id'>) => {
     const comment: Comment = {
@@ -128,6 +136,11 @@ export const UnitDetailsPage = ({ unit, onBack }: UnitDetailsPageProps) => {
               </div>
             </div>
           </div>
+          
+          <Button onClick={() => setIsEditDialogOpen(true)} className="flex items-center gap-2">
+            <edit className="h-4 w-4" />
+            Edit Unit
+          </Button>
         </div>
       </div>
 
@@ -356,6 +369,13 @@ export const UnitDetailsPage = ({ unit, onBack }: UnitDetailsPageProps) => {
           </CardContent>
         </Card>
       </div>
+
+      <EditUnitDialog
+        unit={unit}
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        onSave={handleUnitUpdate}
+      />
     </div>
   );
 };

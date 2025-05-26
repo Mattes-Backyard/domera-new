@@ -10,6 +10,7 @@ import { AIInsights } from "@/components/dashboard/AIInsights";
 import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { OperationsView } from "@/components/operations/OperationsView";
+import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 interface Unit {
@@ -91,13 +92,17 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [viewingUnitDetails, setViewingUnitDetails] = useState<Unit | null>(null);
   const [units, setUnits] = useState<Unit[]>(initialUnits);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
 
   const handleSearchResultClick = (type: 'unit' | 'customer', id: string) => {
     if (type === 'unit') {
-      setSelectedUnitId(id);
-      setActiveView("units");
+      const unit = units.find(u => u.id === id);
+      if (unit) {
+        setViewingUnitDetails(unit);
+        setActiveView("units");
+      }
     } else if (type === 'customer') {
       setSelectedCustomerId(id);
       setActiveView("customers");
@@ -108,10 +113,37 @@ const Index = () => {
     setCustomers(prevCustomers => [...prevCustomers, newCustomer]);
   };
 
+  const handleUnitUpdate = (updatedUnit: Unit) => {
+    setUnits(prevUnits => 
+      prevUnits.map(unit => 
+        unit.id === updatedUnit.id ? updatedUnit : unit
+      )
+    );
+    setViewingUnitDetails(updatedUnit);
+  };
+
   const renderContent = () => {
+    if (viewingUnitDetails) {
+      return (
+        <UnitDetailsPage 
+          unit={viewingUnitDetails} 
+          onBack={() => setViewingUnitDetails(null)}
+          onUnitUpdate={handleUnitUpdate}
+        />
+      );
+    }
+
     switch (activeView) {
       case "units":
-        return <UnitGrid searchQuery={searchQuery} selectedUnitId={selectedUnitId} onClearSelection={() => setSelectedUnitId(null)} units={units} />;
+        return (
+          <UnitGrid 
+            searchQuery={searchQuery} 
+            selectedUnitId={selectedUnitId} 
+            onClearSelection={() => setSelectedUnitId(null)} 
+            units={units}
+            onUnitSelect={(unit) => setViewingUnitDetails(unit)}
+          />
+        );
       case "customers":
         return <CustomerList selectedCustomerId={selectedCustomerId} onClearSelection={() => setSelectedCustomerId(null)} customers={customers} onAddCustomer={handleAddCustomer} />;
       case "operations":

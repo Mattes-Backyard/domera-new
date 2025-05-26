@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,9 +22,10 @@ interface UnitGridProps {
   selectedUnitId?: string | null;
   onClearSelection?: () => void;
   units?: Unit[];
+  onUnitSelect?: (unit: Unit) => void;
 }
 
-export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection, units = [] }: UnitGridProps) => {
+export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection, units = [], onUnitSelect }: UnitGridProps) => {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [viewingUnitDetails, setViewingUnitDetails] = useState<Unit | null>(null);
 
@@ -72,7 +72,7 @@ export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection, u
   };
 
   const handleViewDetails = (unit: Unit) => {
-    setViewingUnitDetails(unit);
+    onUnitSelect?.(unit);
   };
 
   const handleBackFromDetails = () => {
