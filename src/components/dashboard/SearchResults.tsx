@@ -55,7 +55,7 @@ export const SearchResults = ({ searchQuery, searchResults, onResultClick }: Sea
   const hasResults = searchResults.units.length > 0 || searchResults.customers.length > 0;
 
   return (
-    <Card className="absolute top-full left-0 right-0 mt-1 z-50 bg-white shadow-lg border border-gray-200 max-h-80 overflow-y-auto">
+    <Card className="absolute top-full left-0 right-0 mt-1 z-50 bg-white shadow-lg border border-gray-200 max-h-96 overflow-y-auto min-w-[600px]">
       {!hasResults && searchQuery.trim() ? (
         <div className="p-4 text-center text-gray-500">
           <Package className="h-8 w-8 mx-auto mb-2 text-gray-300" />
@@ -73,19 +73,21 @@ export const SearchResults = ({ searchQuery, searchResults, onResultClick }: Sea
                 <div
                   key={unit.id}
                   onClick={() => onResultClick('unit', unit.id)}
-                  className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer rounded-md border-b border-gray-100 last:border-b-0"
+                  className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer rounded-md border-b border-gray-100 last:border-b-0 min-h-[60px]"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="font-medium text-gray-900">{unit.id}</div>
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 whitespace-nowrap">{unit.id}</div>
                     <Badge className={getStatusColor(unit.status)} variant="secondary">
                       {unit.status}
                     </Badge>
-                    <span className="text-sm text-gray-600">{unit.size} • {unit.type}</span>
+                    <span className="text-sm text-gray-600 whitespace-nowrap">{unit.size} • {unit.type}</span>
                     {unit.tenant && (
-                      <span className="text-sm text-blue-600">{unit.tenant}</span>
+                      <span className="text-sm text-blue-600 truncate max-w-[200px]" title={unit.tenant}>
+                        {unit.tenant}
+                      </span>
                     )}
                   </div>
-                  <div className="text-sm font-medium text-gray-900">${unit.rate}/month</div>
+                  <div className="text-sm font-medium text-gray-900 whitespace-nowrap ml-3">${unit.rate}/month</div>
                 </div>
               ))}
             </div>
@@ -101,18 +103,24 @@ export const SearchResults = ({ searchQuery, searchResults, onResultClick }: Sea
                 <div
                   key={customer.id}
                   onClick={() => onResultClick('customer', customer.id)}
-                  className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer rounded-md border-b border-gray-100 last:border-b-0"
+                  className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer rounded-md border-b border-gray-100 last:border-b-0 min-h-[60px]"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="font-medium text-gray-900">{customer.name}</div>
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 truncate max-w-[150px]" title={customer.name}>
+                      {customer.name}
+                    </div>
                     <Badge className={getStatusColor(customer.status)} variant="secondary">
                       {customer.status}
                     </Badge>
-                    <span className="text-sm text-gray-600">{customer.email}</span>
+                    <span className="text-sm text-gray-600 truncate max-w-[200px]" title={customer.email}>
+                      {customer.email}
+                    </span>
                     {customer.units.length > 0 && (
                       <div className="flex items-center space-x-1 text-sm text-blue-600">
-                        <MapPin className="h-3 w-3" />
-                        <span>{customer.units.join(", ")}</span>
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate max-w-[150px]" title={customer.units.join(", ")}>
+                          {customer.units.join(", ")}
+                        </span>
                       </div>
                     )}
                   </div>
