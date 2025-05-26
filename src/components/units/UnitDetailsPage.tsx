@@ -7,6 +7,7 @@ import { UnitServicesCard } from "./UnitServicesCard";
 import { UnitAmenitiesCard } from "./UnitAmenitiesCard";
 import { UnitHistoryTabs } from "./UnitHistoryTabs";
 import { EditUnitDialog } from "./EditUnitDialog";
+import { AssignTenantDialog } from "./AssignTenantDialog";
 
 interface Unit {
   id: string;
@@ -27,8 +28,19 @@ interface UnitDetailsPageProps {
 
 export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAssignTenantDialogOpen, setIsAssignTenantDialogOpen] = useState(false);
 
   const handleUnitUpdate = (updatedUnit: Unit) => {
+    onUnitUpdate?.(updatedUnit);
+  };
+
+  const handleTenantAssignment = (tenantId: string, tenantName: string) => {
+    const updatedUnit = {
+      ...unit,
+      tenant: tenantName,
+      tenantId: tenantId,
+      status: "occupied" as const
+    };
     onUnitUpdate?.(updatedUnit);
   };
 
@@ -37,7 +49,8 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageP
       <UnitHeader 
         unit={unit} 
         onBack={onBack} 
-        onEdit={() => setIsEditDialogOpen(true)} 
+        onEdit={() => setIsEditDialogOpen(true)}
+        onAssignTenant={() => setIsAssignTenantDialogOpen(true)}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -61,6 +74,13 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageP
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
         onSave={handleUnitUpdate}
+      />
+
+      <AssignTenantDialog
+        unit={unit}
+        isOpen={isAssignTenantDialogOpen}
+        onClose={() => setIsAssignTenantDialogOpen(false)}
+        onAssign={handleTenantAssignment}
       />
     </div>
   );

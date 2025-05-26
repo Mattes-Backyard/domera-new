@@ -141,6 +141,15 @@ const Index = () => {
     setShowAddUnitDialog(true);
   };
 
+  // Enhanced navigation handler that clears any detail views
+  const handleNavigationChange = (view: string) => {
+    setActiveView(view);
+    setViewingUnitDetails(null);
+    setViewingTenantDetails(null);
+    setSelectedUnitId(null);
+    setSelectedCustomerId(null);
+  };
+
   const renderContent = () => {
     if (viewingUnitDetails) {
       return (
@@ -232,7 +241,7 @@ const Index = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <DashboardSidebar activeView={activeView} setActiveView={setActiveView} />
+        <DashboardSidebar activeView={activeView} setActiveView={handleNavigationChange} />
         <div className="flex-1 flex flex-col overflow-hidden">
           <DashboardHeader 
             searchQuery={searchQuery} 

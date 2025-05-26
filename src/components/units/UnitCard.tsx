@@ -1,7 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Package, MapPin, Thermometer, Lock } from "lucide-react";
 
 interface Unit {
@@ -38,14 +37,24 @@ export const UnitCard = ({ unit, isSelected, onTenantClick, onViewDetails }: Uni
     }
   };
 
-  const handleTenantClick = () => {
+  const handleTenantClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (unit.tenantId) {
       onTenantClick(unit.tenantId);
     }
   };
 
+  const handleCardClick = () => {
+    onViewDetails(unit);
+  };
+
   return (
-    <Card className={`hover:shadow-lg transition-shadow duration-200 ${isSelected ? 'ring-2 ring-blue-500' : ''} flex flex-col h-full`}>
+    <Card 
+      className={`hover:shadow-lg hover:bg-gray-50 transition-all duration-200 cursor-pointer ${
+        isSelected ? 'ring-2 ring-blue-500' : ''
+      } flex flex-col h-full`}
+      onClick={handleCardClick}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-gray-900">
@@ -98,14 +107,6 @@ export const UnitCard = ({ unit, isSelected, onTenantClick, onViewDetails }: Uni
             </Badge>
           </div>
         </div>
-        
-        <Button 
-          variant="outline" 
-          className="w-full mt-3"
-          onClick={() => onViewDetails(unit)}
-        >
-          View Details
-        </Button>
       </CardContent>
     </Card>
   );

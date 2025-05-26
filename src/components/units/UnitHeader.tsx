@@ -1,7 +1,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, Edit, ArrowLeft } from "lucide-react";
+import { Package, Edit, ArrowLeft, UserPlus } from "lucide-react";
 
 interface Unit {
   id: string;
@@ -18,9 +18,10 @@ interface UnitHeaderProps {
   unit: Unit;
   onBack: () => void;
   onEdit: () => void;
+  onAssignTenant?: () => void;
 }
 
-export const UnitHeader = ({ unit, onBack, onEdit }: UnitHeaderProps) => {
+export const UnitHeader = ({ unit, onBack, onEdit, onAssignTenant }: UnitHeaderProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
@@ -59,6 +60,12 @@ export const UnitHeader = ({ unit, onBack, onEdit }: UnitHeaderProps) => {
         </div>
         
         <div className="flex items-center gap-2">
+          {onAssignTenant && unit.status === "available" && (
+            <Button variant="outline" onClick={onAssignTenant} className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Assign Tenant
+            </Button>
+          )}
           <Button onClick={onEdit} className="flex items-center gap-2">
             <Edit className="h-4 w-4" />
             Edit Unit
