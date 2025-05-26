@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -10,7 +11,7 @@ import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { OperationsView } from "@/components/operations/OperationsView";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
-import { TenantDetailsPage } from "@/components/customers/TenantDetailsPage";
+import { TenantDetailsPage } from "@/components/tenants/TenantDetailsPage";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 interface Unit {

@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,9 +22,16 @@ interface CustomerListProps {
   onClearSelection?: () => void;
   customers?: Customer[];
   onAddCustomer?: (customer: Customer) => void;
+  onViewDetails?: (customer: Customer) => void;
 }
 
-export const CustomerList = ({ selectedCustomerId, onClearSelection, customers = [], onAddCustomer }: CustomerListProps) => {
+export const CustomerList = ({ 
+  selectedCustomerId, 
+  onClearSelection, 
+  customers = [], 
+  onAddCustomer, 
+  onViewDetails 
+}: CustomerListProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -127,7 +135,12 @@ export const CustomerList = ({ selectedCustomerId, onClearSelection, customers =
                 </div>
                 
                 <div className="flex space-x-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => onViewDetails?.(customer)}
+                  >
                     View Profile
                   </Button>
                   <Button variant="outline" size="sm" className="flex-1">
