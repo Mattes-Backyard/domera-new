@@ -1,8 +1,9 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Package, MapPin, Thermometer, Shield, Key, User, Calendar, DollarSign, Info } from "lucide-react";
+import { ArrowLeft, Package, MapPin, Thermometer, Shield, Key, User, Calendar, DollarSign, Info, Edit } from "lucide-react";
 import { useState } from "react";
 import { AddCommentForm } from "./AddCommentForm";
 import { EditUnitDialog } from "./EditUnitDialog";
@@ -138,7 +139,7 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageP
           </div>
           
           <Button onClick={() => setIsEditDialogOpen(true)} className="flex items-center gap-2">
-            <edit className="h-4 w-4" />
+            <Edit className="h-4 w-4" />
             Edit Unit
           </Button>
         </div>
