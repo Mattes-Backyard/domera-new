@@ -26,7 +26,7 @@ export const SiteSelector = () => {
         <SelectTrigger className="w-auto min-w-[200px] border-0 shadow-none focus:ring-0 bg-transparent">
           <SelectValue>
             <div className="flex flex-col text-left">
-              <span className="font-medium text-slate-800">{truncateName(currentSite.name)}</span>
+              <span className="font-medium text-slate-800">{currentSite.name}</span>
               <span className="text-xs text-slate-500">{currentSite.location}</span>
             </div>
           </SelectValue>
@@ -35,7 +35,7 @@ export const SiteSelector = () => {
           {sites.map((site) => (
             <SelectItem key={site.id} value={site.id} className="hover:bg-blue-50 focus:bg-blue-50">
               <div className="flex flex-col">
-                <span className="font-medium text-slate-800">{truncateName(site.name)}</span>
+                <span className="font-medium text-slate-800">{site.name}</span>
                 <span className="text-xs text-slate-500">{site.location}</span>
               </div>
             </SelectItem>
