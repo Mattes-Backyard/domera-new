@@ -10,6 +10,7 @@ import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { OperationsView } from "@/components/operations/OperationsView";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
+import { TenantDetailsPage } from "@/components/customers/TenantDetailsPage";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 interface Unit {
@@ -92,6 +93,7 @@ const Index = () => {
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [viewingUnitDetails, setViewingUnitDetails] = useState<Unit | null>(null);
+  const [viewingTenantDetails, setViewingTenantDetails] = useState<Customer | null>(null);
   const [units, setUnits] = useState<Unit[]>(initialUnits);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
 
@@ -136,6 +138,33 @@ const Index = () => {
       );
     }
 
+    if (viewingTenantDetails) {
+      // Convert customer to tenant format
+      const tenant = {
+        ...viewingTenantDetails,
+        address: "Orkestergatan 7, Tomelilla, Sweden, 27397",
+        ssn: "195210043912",
+        units: viewingTenantDetails.units.map(unitId => {
+          const unit = units.find(u => u.id === unitId);
+          return {
+            unitId,
+            unitNumber: unitId,
+            status: viewingTenantDetails.balance > 0 ? "overdue" as const : "good" as const,
+            monthlyRate: unit?.rate || 678,
+            leaseStart: "2024-11-01",
+            balance: viewingTenantDetails.balance
+          };
+        })
+      };
+
+      return (
+        <TenantDetailsPage 
+          tenant={tenant} 
+          onBack={() => setViewingTenantDetails(null)}
+        />
+      );
+    }
+
     switch (activeView) {
       case "units":
         return (
@@ -149,7 +178,15 @@ const Index = () => {
           />
         );
       case "customers":
-        return <CustomerList selectedCustomerId={selectedCustomerId} onClearSelection={() => setSelectedCustomerId(null)} customers={customers} onAddCustomer={handleAddCustomer} />;
+        return (
+          <CustomerList 
+            selectedCustomerId={selectedCustomerId} 
+            onClearSelection={() => setSelectedCustomerId(null)} 
+            customers={customers} 
+            onAddCustomer={handleAddCustomer}
+            onViewDetails={(customer) => setViewingTenantDetails(customer)}
+          />
+        );
       case "operations":
         return <OperationsView />;
       case "dashboard":
