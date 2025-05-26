@@ -212,6 +212,7 @@ const Index = () => {
             <div className="lg:col-span-4 space-y-6">
               <QuickActions 
                 onAddUnit={handleQuickAddUnit}
+                onAddCustomer={handleAddCustomer}
               />
               <AIInsights />
             </div>

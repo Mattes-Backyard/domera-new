@@ -26,12 +26,12 @@ interface Customer {
 }
 
 interface AddCustomerDialogProps {
-  onAddCustomer?: (customer: Customer) => void;
-  triggerOpen?: boolean;
+  onSave?: (customer: Customer) => void;
+  isOpen?: boolean;
   onClose?: () => void;
 }
 
-export const AddCustomerDialog = ({ onAddCustomer, triggerOpen = false, onClose }: AddCustomerDialogProps) => {
+export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustomerDialogProps) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -48,10 +48,10 @@ export const AddCustomerDialog = ({ onAddCustomer, triggerOpen = false, onClose 
   });
 
   useEffect(() => {
-    if (triggerOpen) {
-      setOpen(true);
+    if (isOpen !== undefined) {
+      setOpen(isOpen);
     }
-  }, [triggerOpen]);
+  }, [isOpen]);
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
@@ -86,8 +86,8 @@ export const AddCustomerDialog = ({ onAddCustomer, triggerOpen = false, onClose 
     };
 
     // Call the callback to add customer to the system
-    if (onAddCustomer) {
-      onAddCustomer(newCustomer);
+    if (onSave) {
+      onSave(newCustomer);
     }
 
     console.log("New customer data:", {
@@ -132,12 +132,14 @@ export const AddCustomerDialog = ({ onAddCustomer, triggerOpen = false, onClose 
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button className="flex items-center space-x-2">
-          <UserPlus className="h-4 w-4" />
-          <span>Add New Customer</span>
-        </Button>
-      </DialogTrigger>
+      {!isOpen && (
+        <DialogTrigger asChild>
+          <Button className="flex items-center space-x-2">
+            <UserPlus className="h-4 w-4" />
+            <span>Add New Customer</span>
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Customer</DialogTitle>
