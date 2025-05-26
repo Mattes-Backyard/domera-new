@@ -12,17 +12,23 @@ const actions = [
     id: "add-unit",
     title: "Add Unit",
     icon: Package,
-    color: "bg-green-500 hover:bg-green-600",
+    gradient: "from-emerald-500 to-teal-600",
+    hoverGradient: "from-emerald-600 to-teal-700",
+    shadow: "shadow-emerald-200",
   },
   {
     title: "Create Invoice",
     icon: FileText,
-    color: "bg-purple-500 hover:bg-purple-600",
+    gradient: "from-purple-500 to-violet-600",
+    hoverGradient: "from-purple-600 to-violet-700",
+    shadow: "shadow-purple-200",
   },
   {
     title: "Report Issue",
     icon: AlertTriangle,
-    color: "bg-orange-500 hover:bg-orange-600",
+    gradient: "from-orange-500 to-amber-600",
+    hoverGradient: "from-orange-600 to-amber-700",
+    shadow: "shadow-orange-200",
   },
 ];
 
@@ -33,15 +39,14 @@ export const QuickActions = ({ onAddUnit }: QuickActionsProps) => {
         onAddUnit?.();
         break;
       default:
-        // Handle other actions if needed
         break;
     }
   };
 
   return (
-    <Card>
+    <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-0 shadow-lg">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900">
+        <CardTitle className="text-lg font-semibold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
           Quick Actions
         </CardTitle>
       </CardHeader>
@@ -51,7 +56,7 @@ export const QuickActions = ({ onAddUnit }: QuickActionsProps) => {
             <Button
               key={index}
               variant="outline"
-              className={`h-20 flex flex-col items-center justify-center space-y-2 ${action.color} text-white border-none hover:scale-105 transition-transform`}
+              className={`h-20 flex flex-col items-center justify-center space-y-2 bg-gradient-to-r ${action.gradient} text-white border-none hover:bg-gradient-to-r hover:${action.hoverGradient} hover:scale-105 transition-all duration-300 shadow-lg ${action.shadow}`}
               onClick={() => handleActionClick(action.id || "")}
             >
               <action.icon className="h-6 w-6" />

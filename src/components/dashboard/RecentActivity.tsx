@@ -42,29 +42,39 @@ export const RecentActivity = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 border-emerald-200";
       case "received":
-        return "bg-blue-100 text-blue-800";
+        return "bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-blue-200";
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border-yellow-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border-gray-200";
     }
   };
 
+  const getAvatarGradient = (name: string) => {
+    const gradients = [
+      "from-blue-400 to-purple-500",
+      "from-emerald-400 to-teal-500", 
+      "from-orange-400 to-red-500",
+      "from-purple-400 to-pink-500",
+    ];
+    return gradients[name.length % gradients.length];
+  };
+
   return (
-    <Card>
+    <Card className="bg-gradient-to-br from-white to-slate-50 border-0 shadow-lg">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900">
+        <CardTitle className="text-lg font-semibold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
           Recent Activity
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {activities.map((activity) => (
-            <div key={activity.id} className="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-              <Avatar>
-                <AvatarFallback>
+            <div key={activity.id} className="flex items-center space-x-4 p-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded-lg transition-all duration-300 hover:scale-102 hover:shadow-md">
+              <Avatar className="ring-2 ring-white shadow-lg">
+                <AvatarFallback className={`bg-gradient-to-r ${getAvatarGradient(activity.customer)} text-white font-medium`}>
                   {activity.customer.split(" ").map(n => n[0]).join("")}
                 </AvatarFallback>
               </Avatar>
@@ -72,12 +82,12 @@ export const RecentActivity = () => {
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {activity.customer}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-600">
                   {activity.type} - Unit {activity.unit}
                 </p>
               </div>
               <div className="flex items-center space-x-2">
-                <Badge className={getStatusColor(activity.status)}>
+                <Badge className={`${getStatusColor(activity.status)} border shadow-sm`}>
                   {activity.status}
                 </Badge>
                 <span className="text-xs text-gray-500">{activity.time}</span>

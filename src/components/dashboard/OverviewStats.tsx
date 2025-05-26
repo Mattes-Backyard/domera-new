@@ -1,127 +1,70 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, TrendingUp, TrendingDown, DollarSign, AlertCircle, Settings } from "lucide-react";
+import { CreditCard, TrendingUp, AlertTriangle } from "lucide-react";
 
 const stats = [
   {
-    title: "Credit Card",
-    subtitle: "All",
-    sections: [
-      { label: "Current Month", value: "No Data", icon: null },
-      { label: "Last Month", value: "Count: 30", link: true }
-    ],
-    color: "bg-cyan-500",
+    title: "Monthly Revenue",
+    value: "$24,580",
+    change: "+12.5%",
+    changeType: "positive",
     icon: CreditCard,
+    description: "From 847 active units",
+    gradient: "from-emerald-500 to-teal-600",
+    bgGradient: "from-emerald-50 to-teal-50",
   },
   {
-    title: "Revenue",
-    subtitle: "All", 
-    sections: [
-      { label: "Last Month", value: "408 784,72 kr", icon: null },
-      { label: "Current Month", value: "396 421,60 kr", icon: null },
-      { label: "Next Month", value: "402 769,00 kr", icon: null }
-    ],
-    color: "bg-green-500",
-    icon: DollarSign,
+    title: "Collections Rate",
+    value: "96.2%",
+    change: "+2.1%",
+    changeType: "positive", 
+    icon: TrendingUp,
+    description: "Above industry average",
+    gradient: "from-blue-500 to-indigo-600",
+    bgGradient: "from-blue-50 to-indigo-50",
   },
   {
-    title: "Total Overdue",
-    subtitle: "",
-    sections: [
-      { label: "Last 7 days", value: "1 108,28 kr", icon: null },
-      { label: "Last 30 days", value: "78 662,94 kr", icon: null },
-      { label: "> 30 days", value: "31 821,11 kr", icon: null }
-    ],
-    color: "bg-pink-500",
-    icon: AlertCircle,
+    title: "Outstanding Balance",
+    value: "$3,240",
+    change: "-15.3%",
+    changeType: "negative",
+    icon: AlertTriangle,
+    description: "Across 23 units",
+    gradient: "from-orange-500 to-red-600",
+    bgGradient: "from-orange-50 to-red-50",
   },
-];
-
-const moveStats = [
-  {
-    title: "Move Ins",
-    subtitle: "(Today)",
-    value: "3",
-    details: ["Admin Move Ins: 0", "Online Move Ins: 3"],
-    color: "border-l-green-400",
-    bgColor: "bg-green-50",
-  },
-  {
-    title: "Move Outs", 
-    subtitle: "(Today)",
-    value: "0",
-    details: [],
-    color: "border-l-red-400",
-    bgColor: "bg-red-50",
-  },
-  {
-    title: "Scheduled Move Outs",
-    subtitle: "(Today)", 
-    value: "0",
-    details: ["Admin Scheduled Move Outs: 0", "Online Scheduled"],
-    color: "border-l-blue-400",
-    bgColor: "bg-blue-50",
-  }
 ];
 
 export const OverviewStats = () => {
   return (
-    <div className="space-y-6">
-      {/* Financial Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {stats.map((stat, index) => (
-          <Card key={index} className="relative overflow-hidden">
-            <CardHeader className={`${stat.color} text-white p-4`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg font-semibold">
-                    {stat.title} <span className="text-sm font-normal">{stat.subtitle}</span>
-                  </CardTitle>
-                </div>
-                <div className="flex space-x-2">
-                  <Settings className="h-4 w-4" />
-                  <stat.icon className="h-5 w-5" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4 space-y-3">
-              {stat.sections.map((section, sectionIndex) => (
-                <div key={sectionIndex} className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    {section.icon && <section.icon className="h-4 w-4 text-gray-500" />}
-                    <span className="text-sm text-gray-600">{section.label}</span>
-                  </div>
-                  <span className={`text-sm font-medium ${section.link ? 'text-cyan-500 cursor-pointer hover:underline' : 'text-gray-900'}`}>
-                    {section.value}
-                  </span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Move Statistics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {moveStats.map((stat, index) => (
-          <Card key={index} className={`border-l-4 ${stat.color} ${stat.bgColor}`}>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600">
-                  {stat.title} <span className="text-xs">{stat.subtitle}</span>
-                </CardTitle>
-                <Settings className="h-4 w-4 text-gray-400" />
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
-              {stat.details.map((detail, detailIndex) => (
-                <div key={detailIndex} className="text-xs text-gray-500">{detail}</div>
-              ))}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {stats.map((stat, index) => (
+        <Card key={index} className={`bg-gradient-to-br ${stat.bgGradient} border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700">
+              {stat.title}
+            </CardTitle>
+            <div className={`p-2 rounded-lg bg-gradient-to-r ${stat.gradient} shadow-lg`}>
+              <stat.icon className="h-5 w-5 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-gray-900 mb-1">
+              {stat.value}
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className={`text-sm font-medium ${
+                stat.changeType === 'positive' ? 'text-emerald-600' : 'text-red-600'
+              }`}>
+                {stat.change}
+              </span>
+              <span className="text-sm text-gray-600">
+                {stat.description}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };

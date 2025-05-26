@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -202,7 +203,7 @@ const Index = () => {
       case "dashboard":
       default:
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-full">
             <div className="lg:col-span-8 space-y-6">
               <OverviewStats />
               <OccupancyChart />
@@ -221,7 +222,7 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <DashboardSidebar activeView={activeView} setActiveView={setActiveView} />
         <div className="flex-1 flex flex-col overflow-hidden">
           <DashboardHeader 
