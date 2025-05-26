@@ -1,9 +1,11 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Package, MapPin, Thermometer, Lock, X } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { ClientCard } from "@/components/clients/ClientCard";
+import { UnitDetailsPage } from "./UnitDetailsPage";
 
 interface Unit {
   id: string;
@@ -25,6 +27,7 @@ interface UnitGridProps {
 
 export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection, units = [] }: UnitGridProps) => {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [viewingUnitDetails, setViewingUnitDetails] = useState<Unit | null>(null);
 
   const filteredUnits = useMemo(() => {
     if (selectedUnitId) {
@@ -67,6 +70,23 @@ export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection, u
   const handleTenantClick = (tenantId: string) => {
     setSelectedClientId(tenantId);
   };
+
+  const handleViewDetails = (unit: Unit) => {
+    setViewingUnitDetails(unit);
+  };
+
+  const handleBackFromDetails = () => {
+    setViewingUnitDetails(null);
+  };
+
+  if (viewingUnitDetails) {
+    return (
+      <UnitDetailsPage 
+        unit={viewingUnitDetails} 
+        onBack={handleBackFromDetails}
+      />
+    );
+  }
 
   return (
     <div className="p-6">
@@ -159,7 +179,11 @@ export const UnitGrid = ({ searchQuery = "", selectedUnitId, onClearSelection, u
                     </Badge>
                   </div>
                   
-                  <Button variant="outline" className="w-full mt-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-3"
+                    onClick={() => handleViewDetails(unit)}
+                  >
                     View Details
                   </Button>
                 </div>
