@@ -59,6 +59,15 @@ export const QuickActions = ({ onAddUnit, onAddCustomer }: QuickActionsProps) =>
     }
   };
 
+  const handleCustomerDialogClose = () => {
+    setShowAddCustomerDialog(false);
+  };
+
+  const handleCustomerSave = (customer: any) => {
+    onAddCustomer?.(customer);
+    setShowAddCustomerDialog(false);
+  };
+
   return (
     <>
       <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-0 shadow-lg">
@@ -86,8 +95,8 @@ export const QuickActions = ({ onAddUnit, onAddCustomer }: QuickActionsProps) =>
 
       <AddCustomerDialog
         isOpen={showAddCustomerDialog}
-        onClose={() => setShowAddCustomerDialog(false)}
-        onSave={onAddCustomer}
+        onClose={handleCustomerDialogClose}
+        onSave={handleCustomerSave}
       />
     </>
   );
