@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -128,6 +127,16 @@ const Index = () => {
     setViewingUnitDetails(updatedUnit);
   };
 
+  const handleQuickAddCustomer = () => {
+    setActiveView("customers");
+    // The AddCustomerDialog will be triggered in the CustomerList component
+  };
+
+  const handleQuickAddUnit = () => {
+    setActiveView("units");
+    // The AddUnitDialog will be triggered in the UnitGrid component
+  };
+
   const renderContent = () => {
     if (viewingUnitDetails) {
       return (
@@ -200,7 +209,10 @@ const Index = () => {
               <RecentActivity />
             </div>
             <div className="lg:col-span-4 space-y-6">
-              <QuickActions />
+              <QuickActions 
+                onAddCustomer={handleQuickAddCustomer}
+                onAddUnit={handleQuickAddUnit}
+              />
               <AIInsights />
             </div>
           </div>
