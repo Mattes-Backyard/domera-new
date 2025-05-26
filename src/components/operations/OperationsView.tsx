@@ -23,9 +23,9 @@ export const OperationsView = () => {
   const { toast } = useToast();
   const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
   const [filters, setFilters] = useState({
-    status: "",
-    type: "",
-    size: "",
+    status: "all",
+    type: "all",
+    size: "all",
   });
   const [bulkChanges, setBulkChanges] = useState({
     status: "",
@@ -35,9 +35,9 @@ export const OperationsView = () => {
 
   const filteredUnits = units.filter(unit => {
     return (
-      (!filters.status || unit.status === filters.status) &&
-      (!filters.type || unit.type === filters.type) &&
-      (!filters.size || unit.size === filters.size)
+      (filters.status === "all" || unit.status === filters.status) &&
+      (filters.type === "all" || unit.type === filters.type) &&
+      (filters.size === "all" || unit.size === filters.size)
     );
   });
 
@@ -118,7 +118,7 @@ export const OperationsView = () => {
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All statuses</SelectItem>
+                <SelectItem value="all">All statuses</SelectItem>
                 <SelectItem value="available">Available</SelectItem>
                 <SelectItem value="occupied">Occupied</SelectItem>
                 <SelectItem value="reserved">Reserved</SelectItem>
@@ -134,7 +134,7 @@ export const OperationsView = () => {
                 <SelectValue placeholder="All types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All types</SelectItem>
+                <SelectItem value="all">All types</SelectItem>
                 <SelectItem value="Standard">Standard</SelectItem>
                 <SelectItem value="Premium">Premium</SelectItem>
                 <SelectItem value="Large">Large</SelectItem>
@@ -149,7 +149,7 @@ export const OperationsView = () => {
                 <SelectValue placeholder="All sizes" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All sizes</SelectItem>
+                <SelectItem value="all">All sizes</SelectItem>
                 <SelectItem value="5x5">5x5</SelectItem>
                 <SelectItem value="5x10">5x10</SelectItem>
                 <SelectItem value="10x10">10x10</SelectItem>
