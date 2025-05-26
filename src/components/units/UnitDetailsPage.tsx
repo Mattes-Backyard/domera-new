@@ -1,9 +1,10 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Package, MapPin, Thermometer, Shield, Key, User, Calendar, DollarSign, Info } from "lucide-react";
+import { useState } from "react";
+import { AddCommentForm } from "./AddCommentForm";
 
 interface Unit {
   id: string;
@@ -19,6 +20,13 @@ interface Unit {
 interface UnitDetailsPageProps {
   unit: Unit;
   onBack: () => void;
+}
+
+interface Comment {
+  id: string;
+  text: string;
+  author: string;
+  date: string;
 }
 
 const unitHistory = [
@@ -49,6 +57,29 @@ const unitHistory = [
 ];
 
 export const UnitDetailsPage = ({ unit, onBack }: UnitDetailsPageProps) => {
+  const [comments, setComments] = useState<Comment[]>([
+    {
+      id: "1",
+      text: "Unit was cleaned and inspected after last tenant moved out. Everything looks good.",
+      author: "John Manager",
+      date: "2024-01-15"
+    },
+    {
+      id: "2",
+      text: "Customer reported slight moisture issue. Maintenance team checked and resolved - no ongoing concerns.",
+      author: "Sarah Maintenance",
+      date: "2024-02-03"
+    }
+  ]);
+
+  const handleAddComment = (newComment: Omit<Comment, 'id'>) => {
+    const comment: Comment = {
+      ...newComment,
+      id: Date.now().toString()
+    };
+    setComments(prev => [comment, ...prev]);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
@@ -293,9 +324,32 @@ export const UnitDetailsPage = ({ unit, onBack }: UnitDetailsPageProps) => {
                 </div>
               </TabsContent>
               
-              <TabsContent value="comments">
-                <div className="text-center py-8 text-gray-500">
-                  No comments or remarks
+              <TabsContent value="comments" className="mt-6">
+                <div className="space-y-4">
+                  <AddCommentForm onAddComment={handleAddComment} />
+                  
+                  {comments.length > 0 ? (
+                    <div className="space-y-3">
+                      {comments.map((comment) => (
+                        <Card key={comment.id}>
+                          <CardContent className="pt-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <User className="h-4 w-4" />
+                                <span className="font-medium">{comment.author}</span>
+                              </div>
+                              <span className="text-sm text-gray-500">{comment.date}</span>
+                            </div>
+                            <p className="text-gray-900">{comment.text}</p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      No comments or remarks yet
+                    </div>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
