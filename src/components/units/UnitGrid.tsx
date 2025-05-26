@@ -3,15 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Package, MapPin, Thermometer, Lock } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { ClientCard } from "@/components/clients/ClientCard";
 
 const units = [
-  { id: "A-101", size: "5x5", type: "Standard", status: "occupied", tenant: "John Smith", rate: 85, climate: true },
-  { id: "A-102", size: "5x5", type: "Standard", status: "available", tenant: null, rate: 85, climate: true },
-  { id: "A-103", size: "5x10", type: "Standard", status: "reserved", tenant: "Sarah Johnson", rate: 120, climate: true },
-  { id: "B-201", size: "10x10", type: "Premium", status: "occupied", tenant: "Mike Wilson", rate: 180, climate: true },
-  { id: "B-202", size: "10x10", type: "Premium", status: "maintenance", tenant: null, rate: 180, climate: true },
-  { id: "C-301", size: "10x20", type: "Large", status: "available", tenant: null, rate: 280, climate: false },
+  { id: "A-101", size: "5x5", type: "Standard", status: "occupied", tenant: "John Smith", tenantId: "john-smith", rate: 85, climate: true },
+  { id: "A-102", size: "5x5", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 85, climate: true },
+  { id: "A-103", size: "5x10", type: "Standard", status: "reserved", tenant: "Sarah Johnson", tenantId: "sarah-johnson", rate: 120, climate: true },
+  { id: "B-201", size: "10x10", type: "Premium", status: "occupied", tenant: "Mike Wilson", tenantId: "mike-wilson", rate: 180, climate: true },
+  { id: "B-202", size: "10x10", type: "Premium", status: "maintenance", tenant: null, tenantId: null, rate: 180, climate: true },
+  { id: "C-301", size: "10x20", type: "Large", status: "available", tenant: null, tenantId: null, rate: 280, climate: false },
 ];
 
 interface UnitGridProps {
@@ -19,6 +20,8 @@ interface UnitGridProps {
 }
 
 export const UnitGrid = ({ searchQuery = "" }: UnitGridProps) => {
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+
   const filteredUnits = useMemo(() => {
     if (!searchQuery.trim()) return units;
     
@@ -45,6 +48,10 @@ export const UnitGrid = ({ searchQuery = "" }: UnitGridProps) => {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const handleTenantClick = (tenantId: string) => {
+    setSelectedClientId(tenantId);
   };
 
   return (
@@ -98,10 +105,15 @@ export const UnitGrid = ({ searchQuery = "" }: UnitGridProps) => {
                     <span className="font-semibold text-gray-900">${unit.rate}</span>
                   </div>
                   
-                  {unit.tenant && (
+                  {unit.tenant && unit.tenantId && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Tenant:</span>
-                      <span className="text-sm font-medium text-gray-900">{unit.tenant}</span>
+                      <button
+                        onClick={() => handleTenantClick(unit.tenantId!)}
+                        className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                      >
+                        {unit.tenant}
+                      </button>
                     </div>
                   )}
                   
@@ -126,6 +138,13 @@ export const UnitGrid = ({ searchQuery = "" }: UnitGridProps) => {
             </Card>
           ))}
         </div>
+      )}
+
+      {selectedClientId && (
+        <ClientCard
+          clientId={selectedClientId}
+          onClose={() => setSelectedClientId(null)}
+        />
       )}
     </div>
   );
