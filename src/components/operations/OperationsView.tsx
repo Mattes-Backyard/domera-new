@@ -63,7 +63,7 @@ export const OperationsView = () => {
         const updatedUnit = { ...unit };
         
         if (bulkChanges.status) {
-          updatedUnit.status = bulkChanges.status;
+          updatedUnit.status = bulkChanges.status as "available" | "occupied" | "reserved" | "maintenance";
           if (bulkChanges.status === "available" || bulkChanges.status === "maintenance") {
             updatedUnit.tenant = null;
             updatedUnit.tenantId = null;
