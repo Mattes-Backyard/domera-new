@@ -1,16 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface Unit {
-  id: string;
-  size: string;
-  type: string;
-  status: string;
-  tenant: string | null;
-  tenantId: string | null;
-  rate: number;
-  climate: boolean;
-}
+import { Unit } from "@/hooks/useUnits";
 
 interface UnitDetailsCardProps {
   unit: Unit;
@@ -59,7 +49,7 @@ export const UnitDetailsCard = ({ unit }: UnitDetailsCardProps) => {
             
             <div>
               <label className="text-sm font-medium text-gray-600">Conditions</label>
-              <p className="text-gray-900">{unit.climate ? "Climate Controlled" : "Standard"}</p>
+              <p className="text-gray-900">{unit.climate_controlled ? "Climate Controlled" : "Standard"}</p>
             </div>
             
             <div>

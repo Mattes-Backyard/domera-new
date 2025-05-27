@@ -9,7 +9,92 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      customers: {
+        Row: {
+          address: string | null
+          balance: number
+          created_at: string
+          email: string
+          id: string
+          join_date: string
+          name: string
+          phone: string
+          ssn: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          balance?: number
+          created_at?: string
+          email: string
+          id?: string
+          join_date?: string
+          name: string
+          phone: string
+          ssn?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          balance?: number
+          created_at?: string
+          email?: string
+          id?: string
+          join_date?: string
+          name?: string
+          phone?: string
+          ssn?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      units: {
+        Row: {
+          climate_controlled: boolean
+          created_at: string
+          id: string
+          rate: number
+          size: string
+          status: string
+          tenant_id: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          climate_controlled?: boolean
+          created_at?: string
+          id: string
+          rate: number
+          size: string
+          status?: string
+          tenant_id?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          climate_controlled?: boolean
+          created_at?: string
+          id?: string
+          rate?: number
+          size?: string
+          status?: string
+          tenant_id?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "units_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +103,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      customer_status: "active" | "reserved" | "former"
+      unit_status: "available" | "occupied" | "reserved" | "maintenance"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +219,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      customer_status: ["active", "reserved", "former"],
+      unit_status: ["available", "occupied", "reserved", "maintenance"],
+    },
   },
 } as const

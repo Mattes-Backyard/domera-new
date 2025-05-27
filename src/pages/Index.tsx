@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -13,80 +14,8 @@ import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
 import { TenantDetailsPage } from "@/components/tenants/TenantDetailsPage";
 import { AddUnitDialog } from "@/components/units/AddUnitDialog";
 import { SidebarProvider } from "@/components/ui/sidebar";
-
-interface Unit {
-  id: string;
-  size: string;
-  type: string;
-  status: string;
-  tenant: string | null;
-  tenantId: string | null;
-  rate: number;
-  climate: boolean;
-}
-
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  units: string[];
-  status: string;
-  joinDate: string;
-  balance: number;
-}
-
-const initialUnits: Unit[] = [
-  { id: "A-101", size: "5x5", type: "Standard", status: "occupied", tenant: "John Smith", tenantId: "john-smith", rate: 85, climate: true },
-  { id: "A-102", size: "5x5", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 85, climate: true },
-  { id: "A-103", size: "5x10", type: "Standard", status: "reserved", tenant: "Sarah Johnson", tenantId: "sarah-johnson", rate: 120, climate: true },
-  { id: "B-201", size: "10x10", type: "Premium", status: "occupied", tenant: "Mike Wilson", tenantId: "mike-wilson", rate: 180, climate: true },
-  { id: "B-202", size: "10x10", type: "Premium", status: "maintenance", tenant: null, tenantId: null, rate: 180, climate: true },
-  { id: "C-301", size: "10x20", type: "Large", status: "available", tenant: null, tenantId: null, rate: 280, climate: false },
-];
-
-const initialCustomers: Customer[] = [
-  {
-    id: "john-smith",
-    name: "John Smith",
-    email: "john.smith@email.com",
-    phone: "(555) 123-4567",
-    units: ["A-101"],
-    status: "active",
-    joinDate: "2024-01-15",
-    balance: 0,
-  },
-  {
-    id: "sarah-johnson",
-    name: "Sarah Johnson",
-    email: "sarah.j@email.com",
-    phone: "(555) 234-5678",
-    units: ["A-103"],
-    status: "reserved",
-    joinDate: "2024-05-20",
-    balance: 120,
-  },
-  {
-    id: "mike-wilson",
-    name: "Mike Wilson",
-    email: "mike.wilson@email.com",
-    phone: "(555) 345-6789",
-    units: ["B-201"],
-    status: "active",
-    joinDate: "2023-11-08",
-    balance: -85,
-  },
-  {
-    id: "emily-davis",
-    name: "Emily Davis",
-    email: "emily.davis@email.com",
-    phone: "(555) 456-7890",
-    units: [],
-    status: "former",
-    joinDate: "2023-06-12",
-    balance: 0,
-  },
-];
+import { useUnits, Unit } from "@/hooks/useUnits";
+import { useCustomers, Customer } from "@/hooks/useCustomers";
 
 const Index = () => {
   const [activeView, setActiveView] = useState("dashboard");
@@ -95,40 +24,10 @@ const Index = () => {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [viewingUnitDetails, setViewingUnitDetails] = useState<Unit | null>(null);
   const [viewingTenantDetails, setViewingTenantDetails] = useState<Customer | null>(null);
-  const [units, setUnits] = useState<Unit[]>(initialUnits);
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [showAddUnitDialog, setShowAddUnitDialog] = useState(false);
 
-  // Function to sync customer units with actual unit assignments
-  const syncCustomerUnits = (updatedUnits: Unit[], updatedCustomers: Customer[]) => {
-    const syncedCustomers = updatedCustomers.map(customer => {
-      const customerUnits = updatedUnits
-        .filter(unit => unit.tenantId === customer.id)
-        .map(unit => unit.id);
-      
-      return {
-        ...customer,
-        units: customerUnits,
-        status: customerUnits.length > 0 ? "active" : customer.status === "active" ? "former" : customer.status
-      };
-    });
-    
-    setCustomers(syncedCustomers);
-    
-    // Update viewing tenant details if currently viewing one
-    if (viewingTenantDetails) {
-      const updatedTenant = syncedCustomers.find(c => c.id === viewingTenantDetails.id);
-      if (updatedTenant) {
-        setViewingTenantDetails(updatedTenant);
-      }
-    }
-  };
-
-  const handleAddUnit = (newUnit: Unit) => {
-    const updatedUnits = [...units, newUnit];
-    setUnits(updatedUnits);
-    syncCustomerUnits(updatedUnits, customers);
-  };
+  const { units, loading: unitsLoading, addUnit, updateUnit } = useUnits();
+  const { customers, loading: customersLoading, addCustomer } = useCustomers();
 
   const handleTenantClick = (tenantId: string) => {
     const customer = customers.find(c => c.id === tenantId);
@@ -154,28 +53,19 @@ const Index = () => {
     }
   };
 
-  const handleAddCustomer = (newCustomer: Customer) => {
-    const updatedCustomers = [...customers, newCustomer];
-    setCustomers(updatedCustomers);
-    syncCustomerUnits(units, updatedCustomers);
-  };
-
-  const handleUnitUpdate = (updatedUnit: Unit) => {
-    const updatedUnits = units.map(unit => 
-      unit.id === updatedUnit.id ? updatedUnit : unit
-    );
-    setUnits(updatedUnits);
-    setViewingUnitDetails(updatedUnit);
-    
-    // Sync customer units after unit update
-    syncCustomerUnits(updatedUnits, customers);
+  const handleUnitUpdate = async (updatedUnit: Unit) => {
+    try {
+      const updated = await updateUnit(updatedUnit);
+      setViewingUnitDetails(updated);
+    } catch (error) {
+      console.error('Error updating unit:', error);
+    }
   };
 
   const handleQuickAddUnit = () => {
     setShowAddUnitDialog(true);
   };
 
-  // Enhanced navigation handler that clears any detail views
   const handleNavigationChange = (view: string) => {
     setActiveView(view);
     setViewingUnitDetails(null);
@@ -196,19 +86,18 @@ const Index = () => {
     }
 
     if (viewingTenantDetails) {
-      // Convert customer to tenant format with synced units
       const tenant = {
         ...viewingTenantDetails,
-        address: "Orkestergatan 7, Tomelilla, Sweden, 27397",
-        ssn: "195210043912",
-        units: viewingTenantDetails.units.map(unitId => {
+        address: viewingTenantDetails.address || "No address provided",
+        ssn: viewingTenantDetails.ssn || "Not provided",
+        units: (viewingTenantDetails.units || []).map(unitId => {
           const unit = units.find(u => u.id === unitId);
           return {
             unitId,
             unitNumber: unitId,
             status: viewingTenantDetails.balance > 0 ? "overdue" as const : "good" as const,
-            monthlyRate: unit?.rate || 678,
-            leaseStart: "2024-11-01",
+            monthlyRate: unit?.rate || 0,
+            leaseStart: viewingTenantDetails.join_date,
             balance: viewingTenantDetails.balance
           };
         })
@@ -231,7 +120,7 @@ const Index = () => {
             onClearSelection={() => setSelectedUnitId(null)} 
             units={units}
             onUnitSelect={(unit) => setViewingUnitDetails(unit)}
-            onUnitAdd={handleAddUnit}
+            onUnitAdd={addUnit}
             triggerAddDialog={false}
             onAddDialogClose={() => {}}
             onTenantClick={handleTenantClick}
@@ -243,7 +132,7 @@ const Index = () => {
             selectedCustomerId={selectedCustomerId} 
             onClearSelection={() => setSelectedCustomerId(null)} 
             customers={customers} 
-            onAddCustomer={handleAddCustomer}
+            onAddCustomer={addCustomer}
             onViewDetails={(customer) => setViewingTenantDetails(customer)}
             triggerAddDialog={false}
             onAddDialogClose={() => {}}
@@ -263,7 +152,7 @@ const Index = () => {
             <div className="lg:col-span-4 space-y-6">
               <QuickActions 
                 onAddUnit={handleQuickAddUnit}
-                onAddCustomer={handleAddCustomer}
+                onAddCustomer={addCustomer}
               />
               <AIInsights />
             </div>
@@ -271,6 +160,14 @@ const Index = () => {
         );
     }
   };
+
+  if (unitsLoading || customersLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -289,11 +186,10 @@ const Index = () => {
           </main>
         </div>
         
-        {/* Global Add Unit Dialog */}
         <AddUnitDialog
           isOpen={showAddUnitDialog}
           onClose={() => setShowAddUnitDialog(false)}
-          onSave={handleAddUnit}
+          onSave={addUnit}
         />
       </div>
     </SidebarProvider>

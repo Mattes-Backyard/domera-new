@@ -6,34 +6,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-
-interface Unit {
-  id: string;
-  size: string;
-  type: string;
-  status: string;
-  tenant: string | null;
-  tenantId: string | null;
-  rate: number;
-  climate: boolean;
-}
+import { Unit } from "@/hooks/useUnits";
 
 interface AddUnitDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (newUnit: Unit) => void;
+  onSave: (newUnit: Omit<Unit, "tenant" | "tenantId">) => void;
 }
 
 export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) => {
-  const [formData, setFormData] = useState<Unit>({
+  const [formData, setFormData] = useState<Omit<Unit, "tenant" | "tenantId">>({
     id: "",
     size: "",
     type: "Standard",
     status: "available",
-    tenant: null,
-    tenantId: null,
+    tenant_id: null,
     rate: 0,
-    climate: false,
+    climate_controlled: false,
   });
 
   const handleSave = () => {
@@ -50,10 +39,9 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
       size: "",
       type: "Standard",
       status: "available",
-      tenant: null,
-      tenantId: null,
+      tenant_id: null,
       rate: 0,
-      climate: false,
+      climate_controlled: false,
     });
   };
 
@@ -63,10 +51,9 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
       size: "",
       type: "Standard",
       status: "available",
-      tenant: null,
-      tenantId: null,
+      tenant_id: null,
       rate: 0,
-      climate: false,
+      climate_controlled: false,
     });
     onClose();
   };
@@ -143,31 +130,11 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
               />
             </div>
             
-            <div>
-              <Label htmlFor="tenant">Tenant Name</Label>
-              <Input
-                id="tenant"
-                value={formData.tenant || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, tenant: e.target.value || null }))}
-                placeholder="Leave empty if no tenant"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="tenantId">Tenant ID</Label>
-              <Input
-                id="tenantId"
-                value={formData.tenantId || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, tenantId: e.target.value || null }))}
-                placeholder="Leave empty if no tenant"
-              />
-            </div>
-            
             <div className="flex items-center space-x-2">
               <Switch
                 id="climate"
-                checked={formData.climate}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, climate: checked }))}
+                checked={formData.climate_controlled}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, climate_controlled: checked }))}
               />
               <Label htmlFor="climate">Climate Controlled</Label>
             </div>
