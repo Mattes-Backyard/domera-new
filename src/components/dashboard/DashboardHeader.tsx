@@ -2,6 +2,7 @@
 import { Bell, Search, Settings, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SearchResults } from "./SearchResults";
 import { useState, useRef, useEffect } from "react";
@@ -42,6 +43,7 @@ export const DashboardHeader = ({
   customers = []
 }: DashboardHeaderProps) => {
   const [showResults, setShowResults] = useState(false);
+  const [selectedSite, setSelectedSite] = useState("helsingborg");
   const searchRef = useRef<HTMLDivElement>(null);
 
   const searchResults = searchQuery.trim() ? {
@@ -92,6 +94,17 @@ export const DashboardHeader = ({
     <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
       <div className="flex items-center space-x-6">
         <SidebarTrigger />
+        
+        <Select value={selectedSite} onValueChange={setSelectedSite}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Select site" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="helsingborg">Helsingborg</SelectItem>
+            <SelectItem value="lund">Lund</SelectItem>
+          </SelectContent>
+        </Select>
+
         <div className="relative" ref={searchRef}>
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
