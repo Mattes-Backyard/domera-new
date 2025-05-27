@@ -6,17 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-
-interface Unit {
-  id: string;
-  size: string;
-  type: string;
-  status: string;
-  tenant: string | null;
-  tenantId: string | null;
-  rate: number;
-  climate: boolean;
-}
+import { type Unit } from "@/hooks/useUnits";
 
 interface AddUnitDialogProps {
   isOpen: boolean;
@@ -25,13 +15,11 @@ interface AddUnitDialogProps {
 }
 
 export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) => {
-  const [formData, setFormData] = useState<Unit>({
+  const [formData, setFormData] = useState<Omit<Unit, 'tenant' | 'tenantId'>>({
     id: "",
     size: "",
     type: "Standard",
     status: "available",
-    tenant: null,
-    tenantId: null,
     rate: 0,
     climate: false,
   });
@@ -41,7 +29,11 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
       return; // Basic validation
     }
     
-    onSave(formData);
+    onSave({
+      ...formData,
+      tenant: null,
+      tenantId: null,
+    });
     onClose();
     
     // Reset form
@@ -50,8 +42,6 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
       size: "",
       type: "Standard",
       status: "available",
-      tenant: null,
-      tenantId: null,
       rate: 0,
       climate: false,
     });
@@ -63,8 +53,6 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
       size: "",
       type: "Standard",
       status: "available",
-      tenant: null,
-      tenantId: null,
       rate: 0,
       climate: false,
     });
@@ -140,26 +128,6 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
                 value={formData.rate}
                 onChange={(e) => setFormData(prev => ({ ...prev, rate: Number(e.target.value) }))}
                 placeholder="0"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="tenant">Tenant Name</Label>
-              <Input
-                id="tenant"
-                value={formData.tenant || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, tenant: e.target.value || null }))}
-                placeholder="Leave empty if no tenant"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="tenantId">Tenant ID</Label>
-              <Input
-                id="tenantId"
-                value={formData.tenantId || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, tenantId: e.target.value || null }))}
-                placeholder="Leave empty if no tenant"
               />
             </div>
             
