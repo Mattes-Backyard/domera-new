@@ -2,7 +2,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Thermometer, Shield } from "lucide-react";
-import { Unit } from "@/hooks/useUnits";
+
+interface Unit {
+  id: string;
+  size: string;
+  type: string;
+  status: string;
+  tenant: string | null;
+  tenantId: string | null;
+  rate: number;
+  climate: boolean;
+}
 
 interface UnitQuickInfoProps {
   unit: Unit;
@@ -28,7 +38,7 @@ export const UnitQuickInfo = ({ unit }: UnitQuickInfoProps) => {
         )}
         
         <div className="flex items-center space-x-2">
-          {unit.climate_controlled && (
+          {unit.climate && (
             <Badge variant="outline" className="text-xs">
               <Thermometer className="h-3 w-3 mr-1" />
               Climate

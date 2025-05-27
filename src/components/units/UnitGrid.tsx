@@ -6,7 +6,17 @@ import { EmptyUnitsState } from "./EmptyUnitsState";
 import { ClientCard } from "@/components/clients/ClientCard";
 import { UnitDetailsPage } from "./UnitDetailsPage";
 import { AddUnitDialog } from "./AddUnitDialog";
-import { Unit } from "@/hooks/useUnits";
+
+interface Unit {
+  id: string;
+  size: string;
+  type: string;
+  status: string;
+  tenant: string | null;
+  tenantId: string | null;
+  rate: number;
+  climate: boolean;
+}
 
 interface UnitGridProps {
   searchQuery?: string;
@@ -14,7 +24,7 @@ interface UnitGridProps {
   onClearSelection?: () => void;
   units?: Unit[];
   onUnitSelect?: (unit: Unit) => void;
-  onUnitAdd?: (newUnit: Omit<Unit, "tenant" | "tenantId">) => void;
+  onUnitAdd?: (newUnit: Unit) => void;
   triggerAddDialog?: boolean;
   onAddDialogClose?: () => void;
   onTenantClick?: (tenantId: string) => void;
@@ -80,7 +90,7 @@ export const UnitGrid = ({
     setViewingUnitDetails(null);
   };
 
-  const handleUnitAdd = (newUnit: Omit<Unit, "tenant" | "tenantId">) => {
+  const handleUnitAdd = (newUnit: Unit) => {
     onUnitAdd?.(newUnit);
   };
 

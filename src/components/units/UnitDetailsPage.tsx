@@ -8,7 +8,17 @@ import { UnitAmenitiesCard } from "./UnitAmenitiesCard";
 import { UnitHistoryTabs } from "./UnitHistoryTabs";
 import { EditUnitDialog } from "./EditUnitDialog";
 import { AssignTenantDialog } from "./AssignTenantDialog";
-import { Unit } from "@/hooks/useUnits";
+
+interface Unit {
+  id: string;
+  size: string;
+  type: string;
+  status: string;
+  tenant: string | null;
+  tenantId: string | null;
+  rate: number;
+  climate: boolean;
+}
 
 interface UnitDetailsPageProps {
   unit: Unit;
@@ -29,7 +39,6 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageP
       ...unit,
       tenant: tenantName,
       tenantId: tenantId,
-      tenant_id: tenantId,
       status: "occupied" as const
     };
     onUnitUpdate?.(updatedUnit);
