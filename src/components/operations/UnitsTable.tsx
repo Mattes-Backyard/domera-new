@@ -12,7 +12,7 @@ interface Unit {
   tenant: string | null;
   tenantId?: string | null;
   rate: number;
-  climate: boolean;
+  climate_controlled: boolean;
 }
 
 interface UnitsTableProps {
@@ -87,7 +87,7 @@ export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, on
               </div>
               <div className="flex items-center space-x-4">
                 <div className="font-semibold">${unit.rate}/month</div>
-                {unit.climate && (
+                {unit.climate_controlled && (
                   <Badge variant="outline" className="text-xs">Climate</Badge>
                 )}
               </div>

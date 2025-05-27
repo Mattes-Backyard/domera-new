@@ -21,7 +21,7 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
     type: "Standard",
     status: "available",
     rate: 0,
-    climate: false,
+    climate_controlled: false,
   });
 
   const handleSave = () => {
@@ -43,7 +43,7 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
       type: "Standard",
       status: "available",
       rate: 0,
-      climate: false,
+      climate_controlled: false,
     });
   };
 
@@ -54,7 +54,7 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
       type: "Standard",
       status: "available",
       rate: 0,
-      climate: false,
+      climate_controlled: false,
     });
     onClose();
   };
@@ -134,8 +134,8 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
             <div className="flex items-center space-x-2">
               <Switch
                 id="climate"
-                checked={formData.climate}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, climate: checked }))}
+                checked={formData.climate_controlled}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, climate_controlled: checked }))}
               />
               <Label htmlFor="climate">Climate Controlled</Label>
             </div>

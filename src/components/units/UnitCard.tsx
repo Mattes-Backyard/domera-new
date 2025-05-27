@@ -11,7 +11,7 @@ interface Unit {
   tenant: string | null;
   tenantId: string | null;
   rate: number;
-  climate: boolean;
+  climate_controlled: boolean;
 }
 
 interface UnitCardProps {
@@ -95,7 +95,7 @@ export const UnitCard = ({ unit, isSelected, onTenantClick, onViewDetails }: Uni
           )}
           
           <div className="flex items-center space-x-2">
-            {unit.climate && (
+            {unit.climate_controlled && (
               <Badge variant="outline" className="text-xs">
                 <Thermometer className="h-3 w-3 mr-1" />
                 Climate

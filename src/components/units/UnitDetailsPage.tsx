@@ -17,7 +17,7 @@ interface Unit {
   tenant: string | null;
   tenantId: string | null;
   rate: number;
-  climate: boolean;
+  climate_controlled: boolean;
 }
 
 interface UnitDetailsPageProps {

@@ -16,7 +16,7 @@ interface Unit {
   tenant: string | null;
   tenantId: string | null;
   rate: number;
-  climate: boolean;
+  climate_controlled: boolean;
 }
 
 interface EditUnitDialogProps {
@@ -131,8 +131,8 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave }: EditUnitDialog
             <div className="flex items-center space-x-2">
               <Switch
                 id="climate"
-                checked={formData.climate}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, climate: checked }))}
+                checked={formData.climate_controlled}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, climate_controlled: checked }))}
               />
               <Label htmlFor="climate">Climate Controlled</Label>
             </div>

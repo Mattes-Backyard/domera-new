@@ -79,7 +79,7 @@ export const useAddCustomer = () => {
           name: newCustomer.name,
           email: newCustomer.email,
           phone: newCustomer.phone,
-          status: newCustomer.status,
+          status: newCustomer.status as "active" | "reserved" | "former",
           join_date: newCustomer.joinDate,
           balance: newCustomer.balance,
           address: newCustomer.address,
