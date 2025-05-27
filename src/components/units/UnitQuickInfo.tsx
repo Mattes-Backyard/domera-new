@@ -2,17 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Thermometer, Shield } from "lucide-react";
-
-interface Unit {
-  id: string;
-  size: string;
-  type: string;
-  status: string;
-  tenant: string | null;
-  tenantId: string | null;
-  rate: number;
-  climate_controlled: boolean;
-}
+import { Unit } from "@/hooks/useUnits";
 
 interface UnitQuickInfoProps {
   unit: Unit;
