@@ -6,7 +6,17 @@ import { EmptyUnitsState } from "./EmptyUnitsState";
 import { ClientCard } from "@/components/clients/ClientCard";
 import { UnitDetailsPage } from "./UnitDetailsPage";
 import { AddUnitDialog } from "./AddUnitDialog";
-import { Unit } from "@/hooks/useUnits";
+
+interface Unit {
+  id: string;
+  size: string;
+  type: string;
+  status: string;
+  tenant: string | null;
+  tenantId: string | null;
+  rate: number;
+  climate: boolean;
+}
 
 interface UnitGridProps {
   searchQuery?: string;

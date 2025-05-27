@@ -52,7 +52,7 @@ export const useUnits = () => {
           type: unit.type,
           status: unit.status,
           rate: Number(unit.rate),
-          climate_controlled: unit.climate_controlled,
+          climate: unit.climate_controlled,
           tenant: assignment?.customers?.name || null,
           tenantId: assignment?.customer_id || null,
         };
@@ -77,9 +77,9 @@ export const useAddUnit = () => {
           id: newUnit.id,
           size: newUnit.size,
           type: newUnit.type,
-          status: newUnit.status as "available" | "occupied" | "reserved" | "maintenance",
+          status: newUnit.status,
           rate: newUnit.rate,
-          climate_controlled: newUnit.climate_controlled,
+          climate_controlled: newUnit.climate,
         })
         .select()
         .single();
@@ -109,9 +109,9 @@ export const useUpdateUnit = () => {
         .update({
           size: updatedUnit.size,
           type: updatedUnit.type,
-          status: updatedUnit.status as "available" | "occupied" | "reserved" | "maintenance",
+          status: updatedUnit.status,
           rate: updatedUnit.rate,
-          climate_controlled: updatedUnit.climate_controlled,
+          climate_controlled: updatedUnit.climate,
         })
         .eq('id', updatedUnit.id)
         .select()
