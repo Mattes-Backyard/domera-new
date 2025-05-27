@@ -9,129 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      customers: {
-        Row: {
-          address: string | null
-          balance: number
-          created_at: string | null
-          email: string
-          id: string
-          join_date: string
-          name: string
-          phone: string
-          ssn: string | null
-          status: Database["public"]["Enums"]["customer_status"]
-          updated_at: string | null
-        }
-        Insert: {
-          address?: string | null
-          balance?: number
-          created_at?: string | null
-          email: string
-          id: string
-          join_date?: string
-          name: string
-          phone: string
-          ssn?: string | null
-          status?: Database["public"]["Enums"]["customer_status"]
-          updated_at?: string | null
-        }
-        Update: {
-          address?: string | null
-          balance?: number
-          created_at?: string | null
-          email?: string
-          id?: string
-          join_date?: string
-          name?: string
-          phone?: string
-          ssn?: string | null
-          status?: Database["public"]["Enums"]["customer_status"]
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      unit_assignments: {
-        Row: {
-          created_at: string | null
-          customer_id: string | null
-          id: string
-          lease_end: string | null
-          lease_start: string
-          monthly_rate: number
-          unit_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          customer_id?: string | null
-          id?: string
-          lease_end?: string | null
-          lease_start?: string
-          monthly_rate: number
-          unit_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          customer_id?: string | null
-          id?: string
-          lease_end?: string | null
-          lease_start?: string
-          monthly_rate?: number
-          unit_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "unit_assignments_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "unit_assignments_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "units"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      units: {
-        Row: {
-          climate_controlled: boolean
-          created_at: string | null
-          id: string
-          rate: number
-          size: string
-          status: Database["public"]["Enums"]["unit_status"]
-          type: string
-          updated_at: string | null
-        }
-        Insert: {
-          climate_controlled?: boolean
-          created_at?: string | null
-          id: string
-          rate: number
-          size: string
-          status?: Database["public"]["Enums"]["unit_status"]
-          type: string
-          updated_at?: string | null
-        }
-        Update: {
-          climate_controlled?: boolean
-          created_at?: string | null
-          id?: string
-          rate?: number
-          size?: string
-          status?: Database["public"]["Enums"]["unit_status"]
-          type?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
@@ -140,8 +18,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      customer_status: "active" | "reserved" | "former"
-      unit_status: "available" | "occupied" | "reserved" | "maintenance"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -256,9 +133,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      customer_status: ["active", "reserved", "former"],
-      unit_status: ["available", "occupied", "reserved", "maintenance"],
-    },
+    Enums: {},
   },
 } as const
