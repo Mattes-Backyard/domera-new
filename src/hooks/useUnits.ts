@@ -8,7 +8,7 @@ export interface Unit {
   type: string;
   status: string;
   rate: number;
-  climate_controlled: boolean;
+  climate: boolean;
   tenant?: string | null;
   tenantId?: string | null;
 }
@@ -77,7 +77,7 @@ export const useAddUnit = () => {
           id: newUnit.id,
           size: newUnit.size,
           type: newUnit.type,
-          status: newUnit.status,
+          status: newUnit.status as 'available' | 'occupied' | 'reserved' | 'maintenance',
           rate: newUnit.rate,
           climate_controlled: newUnit.climate,
         })
@@ -109,7 +109,7 @@ export const useUpdateUnit = () => {
         .update({
           size: updatedUnit.size,
           type: updatedUnit.type,
-          status: updatedUnit.status,
+          status: updatedUnit.status as 'available' | 'occupied' | 'reserved' | 'maintenance',
           rate: updatedUnit.rate,
           climate_controlled: updatedUnit.climate,
         })

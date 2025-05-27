@@ -1,16 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface Unit {
-  id: string;
-  size: string;
-  type: string;
-  status: string;
-  tenant: string | null;
-  tenantId: string | null;
-  rate: number;
-  climate: boolean;
-}
+import type { Unit } from "@/hooks/useUnits";
 
 interface UnitDetailsCardProps {
   unit: Unit;
