@@ -69,7 +69,7 @@ export const useAddCustomer = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (newCustomer: Omit<Customer, 'units'>) => {
+    mutationFn: async (newCustomer: Customer) => {
       console.log('Adding customer to Supabase:', newCustomer);
       
       const { data, error } = await supabase
@@ -93,10 +93,30 @@ export const useAddCustomer = () => {
         throw error;
       }
 
+      // If customer has a unit assigned, create unit assignment
+      if (newCustomer.units.length > 0) {
+        const assignmentData = {
+          customer_id: newCustomer.id,
+          unit_id: newCustomer.units[0],
+          lease_start: new Date().toISOString().split('T')[0],
+          monthly_rate: 0 // This should be set based on the unit rate
+        };
+
+        const { error: assignmentError } = await supabase
+          .from('unit_assignments')
+          .insert(assignmentData);
+
+        if (assignmentError) {
+          console.error('Error creating unit assignment:', assignmentError);
+          throw assignmentError;
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['units'] });
     },
   });
 };

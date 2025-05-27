@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useCustomers } from "@/hooks/useCustomers";
 
 interface Unit {
   id: string;
@@ -23,20 +24,18 @@ interface AssignTenantDialogProps {
   onAssign: (tenantId: string, tenantName: string) => void;
 }
 
-// Mock customers data - in a real app this would come from props or API
-const mockCustomers = [
-  { id: "john-smith", name: "John Smith" },
-  { id: "sarah-johnson", name: "Sarah Johnson" },
-  { id: "mike-wilson", name: "Mike Wilson" },
-  { id: "emily-davis", name: "Emily Davis" },
-];
-
 export const AssignTenantDialog = ({ unit, isOpen, onClose, onAssign }: AssignTenantDialogProps) => {
   const [selectedTenantId, setSelectedTenantId] = useState<string>("");
+  const { data: customers = [] } = useCustomers();
+
+  // Filter customers who don't already have units assigned or have status "former"
+  const availableCustomers = customers.filter(customer => 
+    customer.units.length === 0 || customer.status === "former"
+  );
 
   const handleAssign = () => {
     if (selectedTenantId) {
-      const selectedCustomer = mockCustomers.find(c => c.id === selectedTenantId);
+      const selectedCustomer = availableCustomers.find(c => c.id === selectedTenantId);
       if (selectedCustomer) {
         onAssign(selectedTenantId, selectedCustomer.name);
         setSelectedTenantId("");
@@ -64,20 +63,23 @@ export const AssignTenantDialog = ({ unit, isOpen, onClose, onAssign }: AssignTe
                 <SelectValue placeholder="Choose a tenant..." />
               </SelectTrigger>
               <SelectContent>
-                {mockCustomers.map((customer) => (
+                {availableCustomers.map((customer) => (
                   <SelectItem key={customer.id} value={customer.id}>
-                    {customer.name}
+                    {customer.name} - {customer.email}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {availableCustomers.length === 0 && (
+              <p className="text-sm text-gray-500">No available customers. All customers are already assigned to units.</p>
+            )}
           </div>
         </div>
         <div className="flex justify-end space-x-2">
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button onClick={handleAssign} disabled={!selectedTenantId}>
+          <Button onClick={handleAssign} disabled={!selectedTenantId || availableCustomers.length === 0}>
             Assign Tenant
           </Button>
         </div>

@@ -8,11 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { UserPlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-
-const availableUnits = [
-  { id: "A-102", size: "5x5", rate: 85 },
-  { id: "C-301", size: "10x20", rate: 280 },
-];
+import { useUnits } from "@/hooks/useUnits";
 
 interface Customer {
   id: string;
@@ -23,6 +19,8 @@ interface Customer {
   status: string;
   joinDate: string;
   balance: number;
+  address?: string;
+  ssn?: string;
 }
 
 interface AddCustomerDialogProps {
@@ -33,17 +31,14 @@ interface AddCustomerDialogProps {
 
 export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustomerDialogProps) => {
   const [open, setOpen] = useState(false);
+  const { data: units = [] } = useUnits();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     address: "",
-    personalId: "",
-    taxId: "",
+    ssn: "",
     assignedUnit: "",
-    emergencyContactName: "",
-    emergencyContactPhone: "",
-    emergencyContactRelationship: "",
     notes: "",
   });
 
@@ -60,6 +55,9 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
     }
   };
 
+  // Get available units (not occupied)
+  const availableUnits = units.filter(unit => unit.status === 'available');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -73,9 +71,12 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
       return;
     }
 
-    // Create new customer object
+    // Generate ID based on name
+    const customerId = formData.name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
+
+    // Create new customer object matching database schema
     const newCustomer: Customer = {
-      id: formData.name.toLowerCase().replace(/\s+/g, '-'),
+      id: customerId,
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
@@ -83,6 +84,8 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
       status: formData.assignedUnit ? "active" : "former",
       joinDate: new Date().toISOString().split('T')[0],
       balance: 0,
+      address: formData.address || null,
+      ssn: formData.ssn || null,
     };
 
     // Call the callback to add customer to the system
@@ -92,17 +95,7 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
 
     console.log("New customer data:", {
       customer: newCustomer,
-      additionalInfo: {
-        address: formData.address,
-        personalId: formData.personalId,
-        taxId: formData.taxId,
-        emergencyContact: {
-          name: formData.emergencyContactName,
-          phone: formData.emergencyContactPhone,
-          relationship: formData.emergencyContactRelationship,
-        },
-        notes: formData.notes,
-      }
+      notes: formData.notes,
     });
     
     toast({
@@ -116,12 +109,8 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
       email: "",
       phone: "",
       address: "",
-      personalId: "",
-      taxId: "",
+      ssn: "",
       assignedUnit: "",
-      emergencyContactName: "",
-      emergencyContactPhone: "",
-      emergencyContactRelationship: "",
       notes: "",
     });
     setOpen(false);
@@ -186,20 +175,12 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 />
               </div>
-              <div>
-                <Label htmlFor="personalId">Personal ID</Label>
+              <div className="col-span-2">
+                <Label htmlFor="ssn">SSN</Label>
                 <Input
-                  id="personalId"
-                  value={formData.personalId}
-                  onChange={(e) => setFormData({ ...formData, personalId: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="taxId">Tax ID</Label>
-                <Input
-                  id="taxId"
-                  value={formData.taxId}
-                  onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
+                  id="ssn"
+                  value={formData.ssn}
+                  onChange={(e) => setFormData({ ...formData, ssn: e.target.value })}
                 />
               </div>
             </div>
@@ -222,38 +203,6 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-
-          {/* Emergency Contact */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Emergency Contact</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="emergencyContactName">Contact Name</Label>
-                <Input
-                  id="emergencyContactName"
-                  value={formData.emergencyContactName}
-                  onChange={(e) => setFormData({ ...formData, emergencyContactName: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="emergencyContactPhone">Contact Phone</Label>
-                <Input
-                  id="emergencyContactPhone"
-                  value={formData.emergencyContactPhone}
-                  onChange={(e) => setFormData({ ...formData, emergencyContactPhone: e.target.value })}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label htmlFor="emergencyContactRelationship">Relationship</Label>
-                <Input
-                  id="emergencyContactRelationship"
-                  value={formData.emergencyContactRelationship}
-                  onChange={(e) => setFormData({ ...formData, emergencyContactRelationship: e.target.value })}
-                  placeholder="e.g., Spouse, Parent, Sibling"
-                />
-              </div>
             </div>
           </div>
 

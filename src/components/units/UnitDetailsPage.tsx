@@ -8,17 +8,7 @@ import { UnitAmenitiesCard } from "./UnitAmenitiesCard";
 import { UnitHistoryTabs } from "./UnitHistoryTabs";
 import { EditUnitDialog } from "./EditUnitDialog";
 import { AssignTenantDialog } from "./AssignTenantDialog";
-
-interface Unit {
-  id: string;
-  size: string;
-  type: string;
-  status: string;
-  tenant: string | null;
-  tenantId: string | null;
-  rate: number;
-  climate: boolean;
-}
+import type { Unit } from "@/hooks/useUnits";
 
 interface UnitDetailsPageProps {
   unit: Unit;
@@ -35,19 +25,31 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageP
   };
 
   const handleTenantAssignment = (tenantId: string, tenantName: string) => {
-    const updatedUnit = {
+    const updatedUnit: Unit = {
       ...unit,
       tenant: tenantName,
       tenantId: tenantId,
-      status: "occupied" as const
+      status: "occupied"
     };
     onUnitUpdate?.(updatedUnit);
+  };
+
+  // Convert Unit from useUnits to local Unit interface for components
+  const localUnit = {
+    id: unit.id,
+    size: unit.size,
+    type: unit.type,
+    status: unit.status,
+    tenant: unit.tenant || null,
+    tenantId: unit.tenantId || null,
+    rate: unit.rate,
+    climate: unit.climate
   };
 
   return (
     <div className="p-6">
       <UnitHeader 
-        unit={unit} 
+        unit={localUnit} 
         onBack={onBack} 
         onEdit={() => setIsEditDialogOpen(true)}
         onAssignTenant={() => setIsAssignTenantDialogOpen(true)}
@@ -55,11 +57,11 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageP
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <UnitDetailsCard unit={unit} />
+          <UnitDetailsCard unit={localUnit} />
         </div>
 
         <div className="space-y-6">
-          <UnitQuickInfo unit={unit} />
+          <UnitQuickInfo unit={localUnit} />
           <UnitServicesCard />
           <UnitAmenitiesCard />
         </div>
@@ -70,14 +72,14 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageP
       </div>
 
       <EditUnitDialog
-        unit={unit}
+        unit={localUnit}
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
         onSave={handleUnitUpdate}
       />
 
       <AssignTenantDialog
-        unit={unit}
+        unit={localUnit}
         isOpen={isAssignTenantDialogOpen}
         onClose={() => setIsAssignTenantDialogOpen(false)}
         onAssign={handleTenantAssignment}

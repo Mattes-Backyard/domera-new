@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -65,9 +64,24 @@ const Index = () => {
     addCustomerMutation.mutate(newCustomer);
   };
 
-  const handleUnitUpdate = (updatedUnit: Unit) => {
-    updateUnitMutation.mutate(updatedUnit);
-    setViewingUnitDetails(updatedUnit);
+  const handleUnitUpdate = (updatedUnit: any) => {
+    // Convert from local unit interface to useUnits Unit interface
+    const dbUnit = {
+      id: updatedUnit.id,
+      size: updatedUnit.size,
+      type: updatedUnit.type,
+      status: updatedUnit.status,
+      rate: updatedUnit.rate,
+      climate_controlled: updatedUnit.climate,
+      tenant: updatedUnit.tenant,
+      tenantId: updatedUnit.tenantId,
+    };
+    updateUnitMutation.mutate(dbUnit);
+    
+    // Update the viewing details with the updated unit
+    if (viewingUnitDetails) {
+      setViewingUnitDetails(updatedUnit);
+    }
   };
 
   const handleQuickAddUnit = () => {
