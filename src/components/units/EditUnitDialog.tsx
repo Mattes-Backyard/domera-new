@@ -6,18 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-
-interface Unit {
-  id: string;
-  size: string;
-  type: string;
-  status: string;
-  tenant: string | null;
-  tenantId: string | null;
-  rate: number;
-  climate: boolean;
-}
+import { Unit } from "@/hooks/useUnits";
 
 interface EditUnitDialogProps {
   unit: Unit;
@@ -123,7 +112,7 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave }: EditUnitDialog
               <Input
                 id="tenantId"
                 value={formData.tenantId || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, tenantId: e.target.value || null }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, tenantId: e.target.value || null, tenant_id: e.target.value || null }))}
                 placeholder="Leave empty if no tenant"
               />
             </div>
@@ -131,8 +120,8 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave }: EditUnitDialog
             <div className="flex items-center space-x-2">
               <Switch
                 id="climate"
-                checked={formData.climate}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, climate: checked }))}
+                checked={formData.climate_controlled}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, climate_controlled: checked }))}
               />
               <Label htmlFor="climate">Climate Controlled</Label>
             </div>

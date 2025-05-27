@@ -90,6 +90,7 @@ const Index = () => {
         ...viewingTenantDetails,
         address: viewingTenantDetails.address || "No address provided",
         ssn: viewingTenantDetails.ssn || "Not provided",
+        joinDate: viewingTenantDetails.join_date,
         units: (viewingTenantDetails.units || []).map(unitId => {
           const unit = units.find(u => u.id === unitId);
           return {

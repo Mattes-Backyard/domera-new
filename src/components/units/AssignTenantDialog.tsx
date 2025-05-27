@@ -4,17 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-
-interface Unit {
-  id: string;
-  size: string;
-  type: string;
-  status: string;
-  tenant: string | null;
-  tenantId: string | null;
-  rate: number;
-  climate: boolean;
-}
+import { Unit } from "@/hooks/useUnits";
 
 interface AssignTenantDialogProps {
   unit: Unit;
