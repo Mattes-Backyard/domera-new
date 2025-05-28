@@ -31,6 +31,7 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageP
   const [isAssignTenantDialogOpen, setIsAssignTenantDialogOpen] = useState(false);
 
   const handleUnitUpdate = (updatedUnit: Unit) => {
+    console.log("Unit updated:", updatedUnit);
     onUnitUpdate?.(updatedUnit);
   };
 
@@ -41,6 +42,7 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageP
       tenantId: tenantId,
       status: "occupied" as const
     };
+    console.log("Tenant assigned to unit:", updatedUnit);
     onUnitUpdate?.(updatedUnit);
   };
 

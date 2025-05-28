@@ -4,7 +4,7 @@ import { ContentRenderer } from "@/components/dashboard/ContentRenderer";
 import { AddUnitDialog } from "@/components/units/AddUnitDialog";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useAppState } from "@/hooks/useAppState";
-import { syncCustomerUnits } from "@/utils/customerSync";
+import { updateUnitWithSync } from "@/utils/customerSync";
 import type { Unit, Customer } from "@/hooks/useAppState";
 
 const Index = () => {
@@ -33,13 +33,15 @@ const Index = () => {
   } = useAppState();
 
   const handleAddUnit = (newUnit: Unit) => {
+    console.log("Adding new unit:", newUnit);
     addUnit(newUnit);
-    syncCustomerUnits(units, customers, setCustomers, viewingTenantDetails, setViewingTenantDetails);
+    // Sync happens automatically in addUnit via useAppState
   };
 
   const handleTenantClick = (tenantId: string) => {
     const customer = customers.find(c => c.id === tenantId);
     if (customer) {
+      console.log("Viewing tenant details:", customer.id);
       setViewingTenantDetails(customer);
       setActiveView("customers");
     }
@@ -62,17 +64,23 @@ const Index = () => {
   };
 
   const handleAddCustomer = (newCustomer: Customer) => {
+    console.log("Adding new customer:", newCustomer);
     const updatedCustomers = [...customers, newCustomer];
     setCustomers(updatedCustomers);
-    syncCustomerUnits(units, updatedCustomers, setCustomers, viewingTenantDetails, setViewingTenantDetails);
   };
 
   const handleUnitUpdate = (updatedUnit: Unit) => {
-    setUnits(updatedUnit);
+    console.log("Handling unit update with sync:", updatedUnit);
+    updateUnitWithSync(
+      updatedUnit,
+      units,
+      customers,
+      setUnits,
+      setCustomers,
+      viewingTenantDetails,
+      setViewingTenantDetails
+    );
     setViewingUnitDetails(updatedUnit);
-    
-    // Sync customer units after unit update
-    syncCustomerUnits(units, customers, setCustomers, viewingTenantDetails, setViewingTenantDetails);
   };
 
   const handleQuickAddUnit = () => {

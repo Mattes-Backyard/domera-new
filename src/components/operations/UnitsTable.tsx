@@ -40,6 +40,7 @@ export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, on
   };
 
   const handleTenantClick = (tenantId: string) => {
+    console.log("Tenant clicked from operations table:", tenantId);
     if (onTenantClick) {
       onTenantClick(tenantId);
     }
