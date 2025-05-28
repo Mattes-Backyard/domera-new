@@ -11,6 +11,7 @@ import { CustomerList } from "@/components/customers/CustomerList";
 import { OperationsView } from "@/components/operations/OperationsView";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
 import { TenantDetailsPage } from "@/components/tenants/TenantDetailsPage";
+import { FloorPlanView } from "@/components/floor-plan/FloorPlanView";
 import { AddUnitDialog } from "@/components/units/AddUnitDialog";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -95,6 +96,7 @@ const Index = () => {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [viewingUnitDetails, setViewingUnitDetails] = useState<Unit | null>(null);
   const [viewingTenantDetails, setViewingTenantDetails] = useState<Customer | null>(null);
+  const [showFloorPlan, setShowFloorPlan] = useState(false);
   const [units, setUnits] = useState<Unit[]>(initialUnits);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [showAddUnitDialog, setShowAddUnitDialog] = useState(false);
@@ -175,6 +177,16 @@ const Index = () => {
     setShowAddUnitDialog(true);
   };
 
+  const handleFloorPlanClick = () => {
+    setShowFloorPlan(true);
+    setActiveView("floor-plan");
+  };
+
+  const handleBackFromFloorPlan = () => {
+    setShowFloorPlan(false);
+    setActiveView("dashboard");
+  };
+
   // Enhanced navigation handler that clears any detail views
   const handleNavigationChange = (view: string) => {
     setActiveView(view);
@@ -182,9 +194,20 @@ const Index = () => {
     setViewingTenantDetails(null);
     setSelectedUnitId(null);
     setSelectedCustomerId(null);
+    setShowFloorPlan(false);
   };
 
   const renderContent = () => {
+    if (showFloorPlan) {
+      return (
+        <FloorPlanView 
+          units={units} 
+          onBack={handleBackFromFloorPlan}
+          onUnitUpdate={handleUnitUpdate}
+        />
+      );
+    }
+
     if (viewingUnitDetails) {
       return (
         <UnitDetailsPage 
@@ -283,6 +306,7 @@ const Index = () => {
             onSearchResultClick={handleSearchResultClick}
             units={units}
             customers={customers}
+            onFloorPlanClick={handleFloorPlanClick}
           />
           <main className="flex-1 overflow-y-auto">
             {renderContent()}

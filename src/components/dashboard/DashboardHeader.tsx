@@ -1,5 +1,5 @@
 
-import { Bell, Search, Settings, User, X } from "lucide-react";
+import { Bell, Search, Settings, User, X, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -33,6 +33,7 @@ interface DashboardHeaderProps {
   onSearchResultClick?: (type: 'unit' | 'customer', id: string) => void;
   units?: Unit[];
   customers?: Customer[];
+  onFloorPlanClick?: () => void;
 }
 
 export const DashboardHeader = ({ 
@@ -40,7 +41,8 @@ export const DashboardHeader = ({
   onSearchChange, 
   onSearchResultClick,
   units = [],
-  customers = []
+  customers = [],
+  onFloorPlanClick
 }: DashboardHeaderProps) => {
   const [showResults, setShowResults] = useState(false);
   const [selectedSite, setSelectedSite] = useState("helsingborg");
@@ -104,6 +106,16 @@ export const DashboardHeader = ({
             <SelectItem value="lund">Lund</SelectItem>
           </SelectContent>
         </Select>
+
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={onFloorPlanClick}
+          className="hover:bg-blue-50"
+          title="Floor Plan View"
+        >
+          <LayoutGrid className="h-5 w-5" />
+        </Button>
 
         <div className="relative" ref={searchRef}>
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
