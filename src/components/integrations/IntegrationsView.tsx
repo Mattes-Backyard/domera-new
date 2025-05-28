@@ -2,6 +2,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Calculator, CreditCard, Phone, Key, BarChart3 } from "lucide-react";
+import { useState } from "react";
+import { SmartEntryConfigDialog } from "./dialogs/SmartEntryConfigDialog";
+import { AccountingConfigDialog } from "./dialogs/AccountingConfigDialog";
+import { ChatbotConfigDialog } from "./dialogs/ChatbotConfigDialog";
+import { SpaceCalculatorConfigDialog } from "./dialogs/SpaceCalculatorConfigDialog";
+import { PaymentConfigDialog } from "./dialogs/PaymentConfigDialog";
+import { LiveChatConfigDialog } from "./dialogs/LiveChatConfigDialog";
 
 const integrations = [
   {
@@ -142,9 +149,66 @@ const integrations = [
 ];
 
 export const IntegrationsView = () => {
+  const [openDialog, setOpenDialog] = useState<string | null>(null);
+
   const handleConfigure = (integrationName: string) => {
-    console.log(`Configuring ${integrationName} integration`);
-    // TODO: Implement integration configuration logic
+    console.log(`Opening configuration for ${integrationName}`);
+    setOpenDialog(integrationName);
+  };
+
+  const closeDialog = () => {
+    setOpenDialog(null);
+  };
+
+  const getDialogComponent = () => {
+    if (!openDialog) return null;
+
+    // Smart Entry integrations
+    const smartEntryIntegrations = ["BearBox", "Nokē Smart Entry", "OpenTech Alliance", "Paxton Net2", "PTI Security Systems", "sedisto", "Sensorberg", "SpiderDoor"];
+    if (smartEntryIntegrations.includes(openDialog)) {
+      return (
+        <SmartEntryConfigDialog
+          open={true}
+          onOpenChange={closeDialog}
+          integrationName={openDialog}
+        />
+      );
+    }
+
+    // AI Chatbot integrations
+    const chatbotIntegrations = ["Chatbase", "Intercom"];
+    if (chatbotIntegrations.includes(openDialog)) {
+      return (
+        <ChatbotConfigDialog
+          open={true}
+          onOpenChange={closeDialog}
+          integrationName={openDialog}
+        />
+      );
+    }
+
+    // Live Chat integrations (HubSpot and Intercom for live chat)
+    const liveChatIntegrations = ["HubSpot"];
+    if (liveChatIntegrations.includes(openDialog) || (openDialog === "Intercom" && openDialog.includes("Live"))) {
+      return (
+        <LiveChatConfigDialog
+          open={true}
+          onOpenChange={closeDialog}
+          integrationName={openDialog}
+        />
+      );
+    }
+
+    switch (openDialog) {
+      case "Fortnox":
+        return <AccountingConfigDialog open={true} onOpenChange={closeDialog} />;
+      case "Calcumate":
+        return <SpaceCalculatorConfigDialog open={true} onOpenChange={closeDialog} />;
+      case "Stripe":
+        return <PaymentConfigDialog open={true} onOpenChange={closeDialog} />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -195,6 +259,8 @@ export const IntegrationsView = () => {
           </div>
         ))}
       </div>
+
+      {getDialogComponent()}
     </div>
   );
 };
