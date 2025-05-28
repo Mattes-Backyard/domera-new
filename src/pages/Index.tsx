@@ -1,4 +1,3 @@
-
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { ContentRenderer } from "@/components/dashboard/ContentRenderer";
@@ -30,12 +29,12 @@ const Index = () => {
     setCustomers,
     showAddUnitDialog,
     setShowAddUnitDialog,
+    addUnit,
   } = useAppState();
 
   const handleAddUnit = (newUnit: Unit) => {
-    const updatedUnits = [...units, newUnit];
-    setUnits(updatedUnits);
-    syncCustomerUnits(updatedUnits, customers, setCustomers, viewingTenantDetails, setViewingTenantDetails);
+    addUnit(newUnit);
+    syncCustomerUnits(units, customers, setCustomers, viewingTenantDetails, setViewingTenantDetails);
   };
 
   const handleTenantClick = (tenantId: string) => {
@@ -69,14 +68,11 @@ const Index = () => {
   };
 
   const handleUnitUpdate = (updatedUnit: Unit) => {
-    const updatedUnits = units.map(unit => 
-      unit.id === updatedUnit.id ? updatedUnit : unit
-    );
-    setUnits(updatedUnits);
+    setUnits(updatedUnit);
     setViewingUnitDetails(updatedUnit);
     
     // Sync customer units after unit update
-    syncCustomerUnits(updatedUnits, customers, setCustomers, viewingTenantDetails, setViewingTenantDetails);
+    syncCustomerUnits(units, customers, setCustomers, viewingTenantDetails, setViewingTenantDetails);
   };
 
   const handleQuickAddUnit = () => {
