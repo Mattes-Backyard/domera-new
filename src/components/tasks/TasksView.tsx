@@ -16,7 +16,7 @@ interface TasksViewProps {
 
 export const TasksView = ({ units = [], customers = [] }: TasksViewProps) => {
   const { tasks } = useTasks();
-  const [selectedAssignee, setSelectedAssignee] = useState<string>('');
+  const [selectedAssignee, setSelectedAssignee] = useState<string>('all');
 
   const teamMembers = [
     { id: 'john-doe', name: 'John Doe' },
@@ -88,7 +88,7 @@ export const TasksView = ({ units = [], customers = [] }: TasksViewProps) => {
             <SelectValue placeholder="Filter by assignee" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All assignees</SelectItem>
+            <SelectItem value="all">All assignees</SelectItem>
             {teamMembers.map((member) => (
               <SelectItem key={member.id} value={member.id}>
                 {member.name}
@@ -137,7 +137,7 @@ export const TasksView = ({ units = [], customers = [] }: TasksViewProps) => {
 
         <TabsContent value="all">
           <TaskList 
-            filterBy={{ assignedTo: selectedAssignee || undefined }}
+            filterBy={{ assignedTo: selectedAssignee === 'all' ? undefined : selectedAssignee }}
             units={units}
             customers={customers}
           />
@@ -147,7 +147,7 @@ export const TasksView = ({ units = [], customers = [] }: TasksViewProps) => {
           <TaskList 
             filterBy={{ 
               status: 'todo', 
-              assignedTo: selectedAssignee || undefined 
+              assignedTo: selectedAssignee === 'all' ? undefined : selectedAssignee 
             }}
             units={units}
             customers={customers}
@@ -158,7 +158,7 @@ export const TasksView = ({ units = [], customers = [] }: TasksViewProps) => {
           <TaskList 
             filterBy={{ 
               status: 'in-progress', 
-              assignedTo: selectedAssignee || undefined 
+              assignedTo: selectedAssignee === 'all' ? undefined : selectedAssignee 
             }}
             units={units}
             customers={customers}
@@ -169,7 +169,7 @@ export const TasksView = ({ units = [], customers = [] }: TasksViewProps) => {
           <TaskList 
             filterBy={{ 
               status: 'completed', 
-              assignedTo: selectedAssignee || undefined 
+              assignedTo: selectedAssignee === 'all' ? undefined : selectedAssignee 
             }}
             units={units}
             customers={customers}
