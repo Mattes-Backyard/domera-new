@@ -1,10 +1,11 @@
+
 import { Bell, Search, Settings, User, X, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SearchResults } from "./SearchResults";
 import { NotificationDropdown } from "./NotificationDropdown";
+import { MultiSiteSelector } from "./MultiSiteSelector";
 import { useState, useRef, useEffect } from "react";
 
 interface Unit {
@@ -16,6 +17,7 @@ interface Unit {
   tenantId: string | null;
   rate: number;
   climate: boolean;
+  site: string;
 }
 
 interface Customer {
@@ -34,6 +36,8 @@ interface DashboardHeaderProps {
   units?: Unit[];
   customers?: Customer[];
   onFloorPlanClick?: () => void;
+  selectedSites?: string[];
+  onSitesChange?: (sites: string[]) => void;
 }
 
 export const DashboardHeader = ({ 
@@ -42,10 +46,11 @@ export const DashboardHeader = ({
   onSearchResultClick,
   units = [],
   customers = [],
-  onFloorPlanClick
+  onFloorPlanClick,
+  selectedSites = ["helsingborg"],
+  onSitesChange
 }: DashboardHeaderProps) => {
   const [showResults, setShowResults] = useState(false);
-  const [selectedSite, setSelectedSite] = useState("helsingborg");
   const searchRef = useRef<HTMLDivElement>(null);
 
   const searchResults = searchQuery.trim() ? {
@@ -54,6 +59,7 @@ export const DashboardHeader = ({
       unit.size.toLowerCase().includes(searchQuery.toLowerCase()) ||
       unit.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
       unit.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      unit.site.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (unit.tenant && unit.tenant.toLowerCase().includes(searchQuery.toLowerCase()))
     ),
     customers: customers.filter(customer =>
@@ -97,15 +103,10 @@ export const DashboardHeader = ({
       <div className="flex items-center space-x-6">
         <SidebarTrigger />
         
-        <Select value={selectedSite} onValueChange={setSelectedSite}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Select site" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="helsingborg">Helsingborg</SelectItem>
-            <SelectItem value="lund">Lund</SelectItem>
-          </SelectContent>
-        </Select>
+        <MultiSiteSelector 
+          selectedSites={selectedSites}
+          onSitesChange={onSitesChange}
+        />
 
         <Button 
           variant="outline" 

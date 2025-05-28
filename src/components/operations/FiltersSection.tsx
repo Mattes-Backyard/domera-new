@@ -9,8 +9,9 @@ interface FiltersSectionProps {
     status: string;
     type: string;
     size: string;
+    site: string;
   };
-  onFiltersChange: (filters: { status: string; type: string; size: string }) => void;
+  onFiltersChange: (filters: { status: string; type: string; size: string; site: string }) => void;
 }
 
 export const FiltersSection = ({ filters, onFiltersChange }: FiltersSectionProps) => {
@@ -26,7 +27,7 @@ export const FiltersSection = ({ filters, onFiltersChange }: FiltersSectionProps
           Filters
         </CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="space-y-2">
           <Label>Status</Label>
           <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
@@ -54,6 +55,7 @@ export const FiltersSection = ({ filters, onFiltersChange }: FiltersSectionProps
               <SelectItem value="Standard">Standard</SelectItem>
               <SelectItem value="Premium">Premium</SelectItem>
               <SelectItem value="Large">Large</SelectItem>
+              <SelectItem value="Extra Large">Extra Large</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -68,8 +70,32 @@ export const FiltersSection = ({ filters, onFiltersChange }: FiltersSectionProps
               <SelectItem value="all">All sizes</SelectItem>
               <SelectItem value="5x5">5x5</SelectItem>
               <SelectItem value="5x10">5x10</SelectItem>
+              <SelectItem value="8x8">8x8</SelectItem>
+              <SelectItem value="8x10">8x10</SelectItem>
               <SelectItem value="10x10">10x10</SelectItem>
+              <SelectItem value="10x15">10x15</SelectItem>
               <SelectItem value="10x20">10x20</SelectItem>
+              <SelectItem value="12x12">12x12</SelectItem>
+              <SelectItem value="12x15">12x15</SelectItem>
+              <SelectItem value="12x20">12x20</SelectItem>
+              <SelectItem value="15x20">15x20</SelectItem>
+              <SelectItem value="15x25">15x25</SelectItem>
+              <SelectItem value="20x20">20x20</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Site</Label>
+          <Select value={filters.site} onValueChange={(value) => handleFilterChange('site', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="All sites" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All sites</SelectItem>
+              <SelectItem value="helsingborg">Helsingborg</SelectItem>
+              <SelectItem value="lund">Lund</SelectItem>
+              <SelectItem value="malmö">Malmö</SelectItem>
             </SelectContent>
           </Select>
         </div>

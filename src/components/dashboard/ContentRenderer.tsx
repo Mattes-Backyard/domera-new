@@ -1,3 +1,4 @@
+
 import { OverviewStats } from "@/components/dashboard/OverviewStats";
 import { OccupancyChart } from "@/components/dashboard/OccupancyChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -35,6 +36,7 @@ interface ContentRendererProps {
   onBackFromTenant: () => void;
   onBackFromFloorPlan: () => void;
   onQuickAddUnit: () => void;
+  selectedSites?: string[];
 }
 
 export const ContentRenderer = ({
@@ -58,6 +60,7 @@ export const ContentRenderer = ({
   onBackFromTenant,
   onBackFromFloorPlan,
   onQuickAddUnit,
+  selectedSites = ["helsingborg"],
 }: ContentRendererProps) => {
   const handleUnitsUpdate = (updatedUnits: Unit[]) => {
     // Apply each unit update individually to maintain proper state sync
@@ -150,7 +153,12 @@ export const ContentRenderer = ({
     case "tasks":
       return <TasksView units={units} customers={customers} />;
     case "operations":
-      return <OperationsView units={units} onTenantClick={onTenantClick} onUnitsUpdate={handleUnitsUpdate} />;
+      return <OperationsView 
+        units={units} 
+        onTenantClick={onTenantClick} 
+        onUnitsUpdate={handleUnitsUpdate}
+        selectedSites={selectedSites}
+      />;
     case "dashboard":
     default:
       return (

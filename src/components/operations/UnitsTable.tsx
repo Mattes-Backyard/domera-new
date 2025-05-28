@@ -13,6 +13,7 @@ interface Unit {
   tenantId?: string | null;
   rate: number;
   climate: boolean;
+  site: string;
 }
 
 interface UnitsTableProps {
@@ -34,6 +35,19 @@ export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, on
         return "bg-yellow-100 text-yellow-800";
       case "maintenance":
         return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getSiteColor = (site: string) => {
+    switch (site) {
+      case "helsingborg":
+        return "bg-blue-100 text-blue-800";
+      case "lund":
+        return "bg-green-100 text-green-800";
+      case "malmö":
+        return "bg-purple-100 text-purple-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -72,6 +86,9 @@ export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, on
                 <div className="flex items-center space-x-4">
                   <div className="font-semibold">{unit.id}</div>
                   <Badge className={getStatusColor(unit.status)}>{unit.status}</Badge>
+                  <Badge className={getSiteColor(unit.site)} variant="outline">
+                    {unit.site.charAt(0).toUpperCase() + unit.site.slice(1)}
+                  </Badge>
                   <div className="text-sm text-gray-600">{unit.size} • {unit.type}</div>
                   {unit.tenant && unit.tenantId && (
                     <button

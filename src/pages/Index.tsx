@@ -1,3 +1,4 @@
+
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { ContentRenderer } from "@/components/dashboard/ContentRenderer";
@@ -29,8 +30,13 @@ const Index = () => {
     setCustomers,
     showAddUnitDialog,
     setShowAddUnitDialog,
+    selectedSites,
+    setSelectedSites,
     addUnit,
   } = useAppState();
+
+  // Filter units based on selected sites
+  const filteredUnits = units.filter(unit => selectedSites.includes(unit.site));
 
   const handleAddUnit = (newUnit: Unit) => {
     console.log("Adding new unit:", newUnit);
@@ -119,6 +125,8 @@ const Index = () => {
             units={units}
             customers={customers}
             onFloorPlanClick={handleFloorPlanClick}
+            selectedSites={selectedSites}
+            onSitesChange={setSelectedSites}
           />
           <main className="flex-1 overflow-y-auto">
             <ContentRenderer
@@ -129,7 +137,7 @@ const Index = () => {
               viewingUnitDetails={viewingUnitDetails}
               viewingTenantDetails={viewingTenantDetails}
               showFloorPlan={showFloorPlan}
-              units={units}
+              units={filteredUnits}
               customers={customers}
               onUnitSelect={setViewingUnitDetails}
               onUnitUpdate={handleUnitUpdate}
@@ -142,6 +150,7 @@ const Index = () => {
               onBackFromTenant={() => setViewingTenantDetails(null)}
               onBackFromFloorPlan={handleBackFromFloorPlan}
               onQuickAddUnit={handleQuickAddUnit}
+              selectedSites={selectedSites}
             />
           </main>
         </div>

@@ -10,6 +10,7 @@ interface Unit {
   tenantId: string | null;
   rate: number;
   climate: boolean;
+  site: string;
 }
 
 interface Customer {
@@ -24,40 +25,65 @@ interface Customer {
 }
 
 const initialUnits: Unit[] = [
-  { id: "A-101", size: "5x5", type: "Standard", status: "occupied", tenant: "John Smith", tenantId: "john-smith", rate: 85, climate: true },
-  { id: "A-102", size: "5x5", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 85, climate: true },
-  { id: "A-103", size: "5x10", type: "Standard", status: "reserved", tenant: "Sarah Johnson", tenantId: "sarah-johnson", rate: 120, climate: true },
-  { id: "B-201", size: "10x10", type: "Premium", status: "occupied", tenant: "Mike Wilson", tenantId: "mike-wilson", rate: 180, climate: true },
-  { id: "B-202", size: "10x10", type: "Premium", status: "maintenance", tenant: null, tenantId: null, rate: 180, climate: true },
-  { id: "C-301", size: "10x20", type: "Large", status: "available", tenant: null, tenantId: null, rate: 280, climate: false },
+  // Helsingborg units
+  { id: "A-101", size: "5x5", type: "Standard", status: "occupied", tenant: "John Smith", tenantId: "john-smith", rate: 85, climate: true, site: "helsingborg" },
+  { id: "A-102", size: "5x5", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 85, climate: true, site: "helsingborg" },
+  { id: "A-103", size: "5x10", type: "Standard", status: "reserved", tenant: "Sarah Johnson", tenantId: "sarah-johnson", rate: 120, climate: true, site: "helsingborg" },
+  { id: "B-201", size: "10x10", type: "Premium", status: "occupied", tenant: "Mike Wilson", tenantId: "mike-wilson", rate: 180, climate: true, site: "helsingborg" },
+  { id: "B-202", size: "10x10", type: "Premium", status: "maintenance", tenant: null, tenantId: null, rate: 180, climate: true, site: "helsingborg" },
+  { id: "C-301", size: "10x20", type: "Large", status: "available", tenant: null, tenantId: null, rate: 280, climate: false, site: "helsingborg" },
   
-  // Building A - Additional units
-  { id: "A-104", size: "5x5", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 85, climate: true },
-  { id: "A-105", size: "5x5", type: "Standard", status: "occupied", tenant: "Lisa Brown", tenantId: "lisa-brown", rate: 85, climate: true },
-  { id: "A-106", size: "5x10", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 120, climate: true },
-  { id: "A-107", size: "5x10", type: "Standard", status: "reserved", tenant: "David Chen", tenantId: "david-chen", rate: 120, climate: true },
-  { id: "A-108", size: "8x10", type: "Premium", status: "available", tenant: null, tenantId: null, rate: 150, climate: true },
+  // Building A - Additional Helsingborg units
+  { id: "A-104", size: "5x5", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 85, climate: true, site: "helsingborg" },
+  { id: "A-105", size: "5x5", type: "Standard", status: "occupied", tenant: "Lisa Brown", tenantId: "lisa-brown", rate: 85, climate: true, site: "helsingborg" },
+  { id: "A-106", size: "5x10", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 120, climate: true, site: "helsingborg" },
+  { id: "A-107", size: "5x10", type: "Standard", status: "reserved", tenant: "David Chen", tenantId: "david-chen", rate: 120, climate: true, site: "helsingborg" },
+  { id: "A-108", size: "8x10", type: "Premium", status: "available", tenant: null, tenantId: null, rate: 150, climate: true, site: "helsingborg" },
   
-  // Building B - Additional units
-  { id: "B-203", size: "10x10", type: "Premium", status: "occupied", tenant: "Maria Garcia", tenantId: "maria-garcia", rate: 180, climate: true },
-  { id: "B-204", size: "10x10", type: "Premium", status: "available", tenant: null, tenantId: null, rate: 180, climate: true },
-  { id: "B-205", size: "10x15", type: "Premium", status: "maintenance", tenant: null, tenantId: null, rate: 220, climate: true },
-  { id: "B-206", size: "12x12", type: "Large", status: "occupied", tenant: "Robert Taylor", tenantId: "robert-taylor", rate: 250, climate: true },
-  { id: "B-207", size: "8x8", type: "Premium", status: "available", tenant: null, tenantId: null, rate: 140, climate: true },
+  // Building B - Additional Helsingborg units
+  { id: "B-203", size: "10x10", type: "Premium", status: "occupied", tenant: "Maria Garcia", tenantId: "maria-garcia", rate: 180, climate: true, site: "helsingborg" },
+  { id: "B-204", size: "10x10", type: "Premium", status: "available", tenant: null, tenantId: null, rate: 180, climate: true, site: "helsingborg" },
+  { id: "B-205", size: "10x15", type: "Premium", status: "maintenance", tenant: null, tenantId: null, rate: 220, climate: true, site: "helsingborg" },
+  { id: "B-206", size: "12x12", type: "Large", status: "occupied", tenant: "Robert Taylor", tenantId: "robert-taylor", rate: 250, climate: true, site: "helsingborg" },
+  { id: "B-207", size: "8x8", type: "Premium", status: "available", tenant: null, tenantId: null, rate: 140, climate: true, site: "helsingborg" },
   
-  // Building C - Additional units
-  { id: "C-302", size: "10x20", type: "Large", status: "occupied", tenant: "Jennifer White", tenantId: "jennifer-white", rate: 280, climate: false },
-  { id: "C-303", size: "15x20", type: "Extra Large", status: "available", tenant: null, tenantId: null, rate: 380, climate: false },
-  { id: "C-304", size: "12x15", type: "Large", status: "reserved", tenant: "Thomas Anderson", tenantId: "thomas-anderson", rate: 300, climate: false },
-  { id: "C-305", size: "10x20", type: "Large", status: "available", tenant: null, tenantId: null, rate: 280, climate: false },
+  // Building C - Additional Helsingborg units
+  { id: "C-302", size: "10x20", type: "Large", status: "occupied", tenant: "Jennifer White", tenantId: "jennifer-white", rate: 280, climate: false, site: "helsingborg" },
+  { id: "C-303", size: "15x20", type: "Extra Large", status: "available", tenant: null, tenantId: null, rate: 380, climate: false, site: "helsingborg" },
+  { id: "C-304", size: "12x15", type: "Large", status: "reserved", tenant: "Thomas Anderson", tenantId: "thomas-anderson", rate: 300, climate: false, site: "helsingborg" },
+  { id: "C-305", size: "10x20", type: "Large", status: "available", tenant: null, tenantId: null, rate: 280, climate: false, site: "helsingborg" },
   
-  // Building D - New building
-  { id: "D-401", size: "5x5", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 85, climate: true },
-  { id: "D-402", size: "5x5", type: "Standard", status: "occupied", tenant: "Amanda Rodriguez", tenantId: "amanda-rodriguez", rate: 85, climate: true },
-  { id: "D-403", size: "8x10", type: "Premium", status: "available", tenant: null, tenantId: null, rate: 150, climate: true },
-  { id: "D-404", size: "10x10", type: "Premium", status: "maintenance", tenant: null, tenantId: null, rate: 180, climate: true },
-  { id: "D-405", size: "12x20", type: "Large", status: "occupied", tenant: "Kevin O'Connor", tenantId: "kevin-oconnor", rate: 320, climate: false },
-  { id: "D-406", size: "15x25", type: "Extra Large", status: "available", tenant: null, tenantId: null, rate: 450, climate: false },
+  // Building D - Helsingborg units
+  { id: "D-401", size: "5x5", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 85, climate: true, site: "helsingborg" },
+  { id: "D-402", size: "5x5", type: "Standard", status: "occupied", tenant: "Amanda Rodriguez", tenantId: "amanda-rodriguez", rate: 85, climate: true, site: "helsingborg" },
+  { id: "D-403", size: "8x10", type: "Premium", status: "available", tenant: null, tenantId: null, rate: 150, climate: true, site: "helsingborg" },
+  { id: "D-404", size: "10x10", type: "Premium", status: "maintenance", tenant: null, tenantId: null, rate: 180, climate: true, site: "helsingborg" },
+  { id: "D-405", size: "12x20", type: "Large", status: "occupied", tenant: "Kevin O'Connor", tenantId: "kevin-oconnor", rate: 320, climate: false, site: "helsingborg" },
+  { id: "D-406", size: "15x25", type: "Extra Large", status: "available", tenant: null, tenantId: null, rate: 450, climate: false, site: "helsingborg" },
+
+  // Lund units
+  { id: "L-A101", size: "5x5", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 90, climate: true, site: "lund" },
+  { id: "L-A102", size: "5x5", type: "Standard", status: "occupied", tenant: "Erik Svensson", tenantId: "erik-svensson", rate: 90, climate: true, site: "lund" },
+  { id: "L-A103", size: "5x10", type: "Standard", status: "reserved", tenant: "Anna Lindberg", tenantId: "anna-lindberg", rate: 125, climate: true, site: "lund" },
+  { id: "L-B201", size: "10x10", type: "Premium", status: "occupied", tenant: "Lars Johansson", tenantId: "lars-johansson", rate: 185, climate: true, site: "lund" },
+  { id: "L-B202", size: "10x10", type: "Premium", status: "available", tenant: null, tenantId: null, rate: 185, climate: true, site: "lund" },
+  { id: "L-C301", size: "10x20", type: "Large", status: "maintenance", tenant: null, tenantId: null, rate: 285, climate: false, site: "lund" },
+  { id: "L-A104", size: "5x5", type: "Standard", status: "occupied", tenant: "Astrid Bergman", tenantId: "astrid-bergman", rate: 90, climate: true, site: "lund" },
+  { id: "L-A105", size: "8x10", type: "Premium", status: "available", tenant: null, tenantId: null, rate: 155, climate: true, site: "lund" },
+  { id: "L-B203", size: "12x12", type: "Large", status: "occupied", tenant: "Nils Andersson", tenantId: "nils-andersson", rate: 255, climate: true, site: "lund" },
+  { id: "L-C302", size: "15x20", type: "Extra Large", status: "available", tenant: null, tenantId: null, rate: 385, climate: false, site: "lund" },
+
+  // Malmö units
+  { id: "M-A101", size: "5x5", type: "Standard", status: "occupied", tenant: "Sofia Karlsson", tenantId: "sofia-karlsson", rate: 95, climate: true, site: "malmö" },
+  { id: "M-A102", size: "5x5", type: "Standard", status: "available", tenant: null, tenantId: null, rate: 95, climate: true, site: "malmö" },
+  { id: "M-A103", size: "5x10", type: "Standard", status: "reserved", tenant: "Gustav Nilsson", tenantId: "gustav-nilsson", rate: 130, climate: true, site: "malmö" },
+  { id: "M-B201", size: "10x10", type: "Premium", status: "occupied", tenant: "Helena Persson", tenantId: "helena-persson", rate: 190, climate: true, site: "malmö" },
+  { id: "M-B202", size: "10x15", type: "Premium", status: "available", tenant: null, tenantId: null, rate: 225, climate: true, site: "malmö" },
+  { id: "M-C301", size: "10x20", type: "Large", status: "maintenance", tenant: null, tenantId: null, rate: 290, climate: false, site: "malmö" },
+  { id: "M-A104", size: "8x8", type: "Premium", status: "occupied", tenant: "Björn Olsson", tenantId: "björn-olsson", rate: 145, climate: true, site: "malmö" },
+  { id: "M-B203", size: "12x15", type: "Large", status: "available", tenant: null, tenantId: null, rate: 305, climate: false, site: "malmö" },
+  { id: "M-C302", size: "15x25", type: "Extra Large", status: "occupied", tenant: "Margareta Holm", tenantId: "margareta-holm", rate: 455, climate: false, site: "malmö" },
+  { id: "M-D401", size: "20x20", type: "Extra Large", status: "available", tenant: null, tenantId: null, rate: 500, climate: false, site: "malmö" },
 ];
 
 const initialCustomers: Customer[] = [
@@ -194,6 +220,7 @@ export const useAppState = () => {
   const [units, setUnits] = useState<Unit[]>(initialUnits);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [showAddUnitDialog, setShowAddUnitDialog] = useState(false);
+  const [selectedSites, setSelectedSites] = useState<string[]>(["helsingborg"]);
 
   const { notifyUnitStatusChange, notifyNewLead, notifyPaymentOverdue } = useNotificationEvents();
 
@@ -254,6 +281,8 @@ export const useAppState = () => {
     setCustomers,
     showAddUnitDialog,
     setShowAddUnitDialog,
+    selectedSites,
+    setSelectedSites,
     addCustomer,
     addUnit,
   };
