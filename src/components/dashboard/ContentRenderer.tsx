@@ -1,4 +1,3 @@
-
 import { OverviewStats } from "@/components/dashboard/OverviewStats";
 import { OccupancyChart } from "@/components/dashboard/OccupancyChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -60,6 +59,16 @@ export const ContentRenderer = ({
   onBackFromFloorPlan,
   onQuickAddUnit,
 }: ContentRendererProps) => {
+  const handleUnitsUpdate = (updatedUnits: Unit[]) => {
+    // Apply each unit update individually to maintain proper state sync
+    updatedUnits.forEach(unit => {
+      const originalUnit = units.find(u => u.id === unit.id);
+      if (originalUnit && JSON.stringify(originalUnit) !== JSON.stringify(unit)) {
+        onUnitUpdate(unit);
+      }
+    });
+  };
+
   if (showFloorPlan) {
     return (
       <FloorPlanView 
@@ -141,7 +150,7 @@ export const ContentRenderer = ({
     case "tasks":
       return <TasksView units={units} customers={customers} />;
     case "operations":
-      return <OperationsView units={units} onTenantClick={onTenantClick} />;
+      return <OperationsView units={units} onTenantClick={onTenantClick} onUnitsUpdate={handleUnitsUpdate} />;
     case "dashboard":
     default:
       return (

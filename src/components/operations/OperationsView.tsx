@@ -19,9 +19,10 @@ interface Unit {
 interface OperationsViewProps {
   units?: Unit[];
   onTenantClick?: (tenantId: string) => void;
+  onUnitsUpdate?: (units: Unit[]) => void;
 }
 
-export const OperationsView = ({ units = [], onTenantClick }: OperationsViewProps) => {
+export const OperationsView = ({ units = [], onTenantClick, onUnitsUpdate }: OperationsViewProps) => {
   const { toast } = useToast();
   const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
   const [filters, setFilters] = useState({
@@ -67,6 +68,35 @@ export const OperationsView = ({ units = [], onTenantClick }: OperationsViewProp
         variant: "destructive",
       });
       return;
+    }
+
+    if (onUnitsUpdate) {
+      const updatedUnits = units.map(unit => {
+        if (selectedUnits.includes(unit.id)) {
+          const updatedUnit = { ...unit };
+          
+          if (bulkChanges.status) {
+            updatedUnit.status = bulkChanges.status as "available" | "occupied" | "reserved" | "maintenance";
+            if (bulkChanges.status === "available" || bulkChanges.status === "maintenance") {
+              updatedUnit.tenant = null;
+              updatedUnit.tenantId = null;
+            }
+          }
+          
+          if (bulkChanges.rate) {
+            updatedUnit.rate = parseInt(bulkChanges.rate);
+          }
+          
+          if (bulkChanges.type) {
+            updatedUnit.type = bulkChanges.type as "Standard" | "Premium" | "Large";
+          }
+          
+          return updatedUnit;
+        }
+        return unit;
+      });
+      
+      onUnitsUpdate(updatedUnits);
     }
 
     console.log("Applied bulk changes to units:", selectedUnits, bulkChanges);
