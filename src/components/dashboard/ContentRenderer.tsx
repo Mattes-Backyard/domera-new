@@ -141,7 +141,7 @@ export const ContentRenderer = ({
     case "tasks":
       return <TasksView units={units} customers={customers} />;
     case "operations":
-      return <OperationsView />;
+      return <OperationsView units={units} onTenantClick={onTenantClick} />;
     case "dashboard":
     default:
       return (
