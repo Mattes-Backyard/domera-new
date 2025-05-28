@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { useNotificationEvents } from "./useNotificationEvents";
 
 interface Unit {
   id: string;
@@ -87,6 +87,44 @@ export const useAppState = () => {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [showAddUnitDialog, setShowAddUnitDialog] = useState(false);
 
+  const { notifyUnitStatusChange, notifyNewLead, notifyPaymentOverdue } = useNotificationEvents();
+
+  const updateUnit = (updatedUnit: Unit) => {
+    setUnits(prev => {
+      const previousUnit = prev.find(u => u.id === updatedUnit.id);
+      const updatedUnits = prev.map(unit => 
+        unit.id === updatedUnit.id ? updatedUnit : unit
+      );
+      
+      // Trigger notification if status changed
+      if (previousUnit && previousUnit.status !== updatedUnit.status) {
+        notifyUnitStatusChange(updatedUnit, previousUnit.status);
+      }
+      
+      return updatedUnits;
+    });
+  };
+
+  const addCustomer = (newCustomer: Customer) => {
+    setCustomers(prev => {
+      const updatedCustomers = [...prev, newCustomer];
+      
+      // Trigger notification for new lead
+      notifyNewLead(newCustomer);
+      
+      // Check for overdue payments
+      if (newCustomer.balance > 0) {
+        notifyPaymentOverdue(newCustomer);
+      }
+      
+      return updatedCustomers;
+    });
+  };
+
+  const addUnit = (newUnit: Unit) => {
+    setUnits(prev => [...prev, newUnit]);
+  };
+
   return {
     activeView,
     setActiveView,
@@ -103,11 +141,13 @@ export const useAppState = () => {
     showFloorPlan,
     setShowFloorPlan,
     units,
-    setUnits,
+    setUnits: updateUnit,
     customers,
     setCustomers,
     showAddUnitDialog,
     setShowAddUnitDialog,
+    addCustomer,
+    addUnit,
   };
 };
 

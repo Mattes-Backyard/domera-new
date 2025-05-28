@@ -1,10 +1,10 @@
-
 import { Bell, Search, Settings, User, X, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SearchResults } from "./SearchResults";
+import { NotificationDropdown } from "./NotificationDropdown";
 import { useState, useRef, useEffect } from "react";
 
 interface Unit {
@@ -148,12 +148,7 @@ export const DashboardHeader = ({
       </div>
       
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-            3
-          </span>
-        </Button>
+        <NotificationDropdown />
         <Button variant="ghost" size="icon">
           <Settings className="h-5 w-5" />
         </Button>
