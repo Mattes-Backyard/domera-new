@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { Unit } from "@/hooks/useAppState";
@@ -30,13 +29,10 @@ const getUnitSizeInSqMeters = (size: string): number => {
 };
 
 export const OccupancyChart = ({ units }: OccupancyChartProps) => {
-  // Generate monthly data based on current units (simulating historical data)
+  // Generate monthly data based on current units (simulating historical data for past months)
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
   
   const data = months.map((month, index) => {
-    // Simulate slight variations for historical data
-    const variation = (Math.random() - 0.5) * 0.1; // ±10% variation
-    
     const statusCounts = {
       occupied: 0,
       available: 0,
@@ -51,16 +47,29 @@ export const OccupancyChart = ({ units }: OccupancyChartProps) => {
       maintenance: 0
     };
 
-    units.forEach(unit => {
-      const sqMeters = getUnitSizeInSqMeters(unit.size);
-      // Add some historical variation
-      const adjustedStatus = Math.random() > 0.8 ? 'available' : unit.status;
-      
-      if (statusCounts.hasOwnProperty(adjustedStatus)) {
-        statusCounts[adjustedStatus as keyof typeof statusCounts]++;
-        statusSqMeters[adjustedStatus as keyof typeof statusSqMeters] += sqMeters;
-      }
-    });
+    // For current month (June), use actual unit data
+    if (index === months.length - 1) {
+      units.forEach(unit => {
+        const sqMeters = getUnitSizeInSqMeters(unit.size);
+        if (statusCounts.hasOwnProperty(unit.status)) {
+          statusCounts[unit.status as keyof typeof statusCounts]++;
+          statusSqMeters[unit.status as keyof typeof statusSqMeters] += sqMeters;
+        }
+      });
+    } else {
+      // For historical months, simulate slight variations
+      units.forEach(unit => {
+        const sqMeters = getUnitSizeInSqMeters(unit.size);
+        // Add some historical variation but keep it realistic
+        const variations = ['occupied', 'available', 'reserved', 'maintenance'];
+        const randomStatus = Math.random() > 0.7 ? variations[Math.floor(Math.random() * variations.length)] : unit.status;
+        
+        if (statusCounts.hasOwnProperty(randomStatus)) {
+          statusCounts[randomStatus as keyof typeof statusCounts]++;
+          statusSqMeters[randomStatus as keyof typeof statusSqMeters] += sqMeters;
+        }
+      });
+    }
 
     const totalUnits = units.length;
     const totalSqMeters = units.reduce((sum, unit) => sum + getUnitSizeInSqMeters(unit.size), 0);
