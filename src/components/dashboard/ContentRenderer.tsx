@@ -127,7 +127,7 @@ export const ContentRenderer = ({
           onClearSelection={onClearCustomerSelection} 
           customers={customers} 
           onAddCustomer={onCustomerAdd}
-          onViewDetails={(customer) => onBackFromTenant()}
+          onViewDetails={onTenantClick}
           triggerAddDialog={false}
           onAddDialogClose={() => {}}
         />

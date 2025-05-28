@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,7 @@ interface CustomerListProps {
   onClearSelection?: () => void;
   customers?: Customer[];
   onAddCustomer?: (customer: Customer) => void;
-  onViewDetails?: (customer: Customer) => void;
+  onViewDetails?: (customerId: string) => void;
   triggerAddDialog?: boolean;
   onAddDialogClose?: () => void;
 }
@@ -79,7 +78,8 @@ export const CustomerList = ({
   });
 
   const handleCustomerClick = (customer: Customer) => {
-    onViewDetails?.(customer);
+    console.log("Customer clicked:", customer.id);
+    onViewDetails?.(customer.id);
   };
 
   return (
