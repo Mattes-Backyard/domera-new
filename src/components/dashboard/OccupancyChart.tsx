@@ -1,51 +1,136 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import type { Unit } from "@/hooks/useAppState";
 
-const data = [
-  { month: "Jan", occupancy: 78, rented: 78, available: 22 },
-  { month: "Feb", occupancy: 82, rented: 82, available: 18 },
-  { month: "Mar", occupancy: 85, rented: 85, available: 15 },
-  { month: "Apr", occupancy: 83, rented: 83, available: 17 },
-  { month: "May", occupancy: 87, rented: 87, available: 13 },
-  { month: "Jun", occupancy: 89, rented: 89, available: 11 },
-];
+interface OccupancyChartProps {
+  units: Unit[];
+}
 
-export const OccupancyChart = () => {
+// Convert unit sizes to square meters
+const getSizeInSqM = (size: string): number => {
+  const [width, height] = size.split('x').map(Number);
+  return width * height;
+};
+
+// Generate monthly data based on current unit status
+const generateMonthlyData = (units: Unit[]) => {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+  
+  const totalSqM = units.reduce((total, unit) => total + getSizeInSqM(unit.size), 0);
+  const rentedSqM = units
+    .filter(unit => unit.status === "occupied")
+    .reduce((total, unit) => total + getSizeInSqM(unit.size), 0);
+  const availableSqM = units
+    .filter(unit => unit.status === "available")
+    .reduce((total, unit) => total + getSizeInSqM(unit.size), 0);
+  const maintenanceSqM = units
+    .filter(unit => unit.status === "maintenance")
+    .reduce((total, unit) => total + getSizeInSqM(unit.size), 0);
+  const reservedSqM = units
+    .filter(unit => unit.status === "reserved")
+    .reduce((total, unit) => total + getSizeInSqM(unit.size), 0);
+
+  // Generate trend data showing gradual growth to current state
+  return months.map((month, index) => {
+    const progress = (index + 1) / months.length;
+    return {
+      month,
+      rented: Math.round(rentedSqM * (0.7 + 0.3 * progress)),
+      available: Math.round(availableSqM * (1.3 - 0.3 * progress)),
+      maintenance: Math.round(maintenanceSqM * progress),
+      reserved: Math.round(reservedSqM * progress),
+      total: totalSqM,
+    };
+  });
+};
+
+export const OccupancyChart = ({ units }: OccupancyChartProps) => {
+  const data = generateMonthlyData(units);
+  const currentData = data[data.length - 1];
+  
+  const occupancyRate = Math.round((currentData.rented / currentData.total) * 100);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-gray-900">
-          Occupancy Trends (Rented vs Available Units)
+          Storage Occupancy Trends (Square Meters)
         </CardTitle>
+        <div className="text-sm text-gray-600">
+          Current Occupancy: {occupancyRate}% • Total: {currentData.total} m²
+        </div>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
+          <AreaChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
-            <YAxis domain={[0, 100]} />
+            <YAxis label={{ value: 'Square Meters', angle: -90, position: 'insideLeft' }} />
             <Tooltip 
               formatter={(value, name) => [
-                `${value}%`, 
-                name === 'occupancy' ? 'Occupancy Rate' : 
-                name === 'rented' ? 'Rented Units' : 'Available Units'
+                `${value} m²`, 
+                name === 'rented' ? 'Rented Storage' : 
+                name === 'available' ? 'Available Storage' :
+                name === 'maintenance' ? 'Under Maintenance' :
+                name === 'reserved' ? 'Reserved Storage' : name
               ]}
             />
-            <Line
+            <Legend />
+            <Area
               type="monotone"
-              dataKey="occupancy"
-              stroke="#3b82f6"
-              strokeWidth={3}
-              name="occupancy"
-              dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+              dataKey="rented"
+              stackId="1"
+              stroke="#22c55e"
+              fill="#22c55e"
+              fillOpacity={0.7}
+              name="rented"
             />
-          </LineChart>
+            <Area
+              type="monotone"
+              dataKey="reserved"
+              stackId="1"
+              stroke="#f59e0b"
+              fill="#f59e0b"
+              fillOpacity={0.7}
+              name="reserved"
+            />
+            <Area
+              type="monotone"
+              dataKey="maintenance"
+              stackId="1"
+              stroke="#ef4444"
+              fill="#ef4444"
+              fillOpacity={0.7}
+              name="maintenance"
+            />
+            <Area
+              type="monotone"
+              dataKey="available"
+              stackId="1"
+              stroke="#6b7280"
+              fill="#6b7280"
+              fillOpacity={0.7}
+              name="available"
+            />
+          </AreaChart>
         </ResponsiveContainer>
-        <div className="mt-4 flex justify-center space-x-6 text-sm">
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span className="text-gray-600">Occupancy Rate</span>
+            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            <span className="text-gray-600">Rented: {currentData.rented} m²</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+            <span className="text-gray-600">Available: {currentData.available} m²</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+            <span className="text-gray-600">Reserved: {currentData.reserved} m²</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <span className="text-gray-600">Maintenance: {currentData.maintenance} m²</span>
           </div>
         </div>
       </CardContent>

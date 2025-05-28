@@ -148,7 +148,7 @@ export const ContentRenderer = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-full">
           <div className="lg:col-span-8 space-y-6">
             <OverviewStats />
-            <OccupancyChart />
+            <OccupancyChart units={units} />
             <RecentActivity />
           </div>
           <div className="lg:col-span-4 space-y-6">
