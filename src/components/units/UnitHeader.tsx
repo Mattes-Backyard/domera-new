@@ -60,7 +60,7 @@ export const UnitHeader = ({ unit, onBack, onEdit, onAssignTenant }: UnitHeaderP
         </div>
         
         <div className="flex items-center gap-2">
-          {onAssignTenant && unit.status === "available" && (
+          {onAssignTenant && unit.status !== "occupied" && (
             <Button variant="outline" onClick={onAssignTenant} className="flex items-center gap-2">
               <UserPlus className="h-4 w-4" />
               Assign Tenant
