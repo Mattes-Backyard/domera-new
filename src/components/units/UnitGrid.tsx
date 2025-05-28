@@ -18,6 +18,7 @@ interface Unit {
   tenantId: string | null;
   rate: number;
   climate: boolean;
+  site: string;
 }
 
 interface UnitGridProps {
@@ -47,6 +48,7 @@ export const UnitGrid = ({
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [sizeFilter, setSizeFilter] = useState("all");
+  const [siteFilter, setSiteFilter] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -70,6 +72,19 @@ export const UnitGrid = ({
     }
   };
 
+  const getSiteColor = (site: string) => {
+    switch (site) {
+      case "helsingborg":
+        return "bg-blue-100 text-blue-800";
+      case "lund":
+        return "bg-green-100 text-green-800";
+      case "malmö":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   const filteredUnits = useMemo(() => {
     if (selectedUnitId) {
       return units.filter(unit => unit.id === selectedUnitId);
@@ -82,15 +97,17 @@ export const UnitGrid = ({
         unit.size.toLowerCase().includes(query) ||
         unit.type.toLowerCase().includes(query) ||
         unit.status.toLowerCase().includes(query) ||
+        unit.site.toLowerCase().includes(query) ||
         (unit.tenant && unit.tenant.toLowerCase().includes(query));
       
       const matchesStatus = statusFilter === "all" || unit.status === statusFilter;
       const matchesType = typeFilter === "all" || unit.type === typeFilter;
       const matchesSize = sizeFilter === "all" || unit.size === sizeFilter;
+      const matchesSite = siteFilter === "all" || unit.site === siteFilter;
       
-      return matchesSearch && matchesStatus && matchesType && matchesSize;
+      return matchesSearch && matchesStatus && matchesType && matchesSize && matchesSite;
     });
-  }, [searchQuery, localSearchQuery, selectedUnitId, units, statusFilter, typeFilter, sizeFilter]);
+  }, [searchQuery, localSearchQuery, selectedUnitId, units, statusFilter, typeFilter, sizeFilter, siteFilter]);
 
   useEffect(() => {
     if (selectedUnitId && filteredUnits.length === 0) {
@@ -117,6 +134,12 @@ export const UnitGrid = ({
     setIsAddDialogOpen(false);
     onAddDialogClose?.();
   };
+
+  // Get unique sites for the filter dropdown
+  const availableSites = useMemo(() => {
+    const sites = [...new Set(units.map(unit => unit.site))];
+    return sites.sort();
+  }, [units]);
 
   return (
     <div className="p-6">
@@ -157,7 +180,7 @@ export const UnitGrid = ({
             Filters & Search
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <CardContent className="grid grid-cols-1 md:grid-cols-6 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
@@ -190,6 +213,7 @@ export const UnitGrid = ({
               <SelectItem value="Standard">Standard</SelectItem>
               <SelectItem value="Premium">Premium</SelectItem>
               <SelectItem value="Large">Large</SelectItem>
+              <SelectItem value="Extra Large">Extra Large</SelectItem>
             </SelectContent>
           </Select>
 
@@ -201,8 +225,31 @@ export const UnitGrid = ({
               <SelectItem value="all">All sizes</SelectItem>
               <SelectItem value="5x5">5x5</SelectItem>
               <SelectItem value="5x10">5x10</SelectItem>
+              <SelectItem value="8x8">8x8</SelectItem>
+              <SelectItem value="8x10">8x10</SelectItem>
               <SelectItem value="10x10">10x10</SelectItem>
+              <SelectItem value="10x15">10x15</SelectItem>
               <SelectItem value="10x20">10x20</SelectItem>
+              <SelectItem value="12x12">12x12</SelectItem>
+              <SelectItem value="12x15">12x15</SelectItem>
+              <SelectItem value="12x20">12x20</SelectItem>
+              <SelectItem value="15x20">15x20</SelectItem>
+              <SelectItem value="15x25">15x25</SelectItem>
+              <SelectItem value="20x20">20x20</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={siteFilter} onValueChange={setSiteFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="All sites" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All sites</SelectItem>
+              {availableSites.map((site) => (
+                <SelectItem key={site} value={site}>
+                  {site.charAt(0).toUpperCase() + site.slice(1)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -213,6 +260,7 @@ export const UnitGrid = ({
               setStatusFilter("all");
               setTypeFilter("all");
               setSizeFilter("all");
+              setSiteFilter("all");
             }}
           >
             Clear Filters
@@ -227,6 +275,7 @@ export const UnitGrid = ({
             <TableRow>
               <TableHead>Unit</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Site</TableHead>
               <TableHead>Details</TableHead>
               <TableHead>Tenant</TableHead>
               <TableHead>Rate</TableHead>
@@ -256,6 +305,12 @@ export const UnitGrid = ({
                 <TableCell>
                   <Badge className={getStatusColor(unit.status)}>
                     {unit.status}
+                  </Badge>
+                </TableCell>
+
+                <TableCell>
+                  <Badge className={getSiteColor(unit.site)} variant="outline">
+                    {unit.site.charAt(0).toUpperCase() + unit.site.slice(1)}
                   </Badge>
                 </TableCell>
                 
