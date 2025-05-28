@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogOverlay, DialogPortal } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -91,122 +91,125 @@ export const QuickTaskDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create New Task</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Input
-              placeholder="Task title *"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="font-medium"
-              required
-            />
-          </div>
-
-          <div>
-            <Textarea
-              placeholder="Description (optional)"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
+      <DialogPortal>
+        <DialogOverlay className="bg-black/30" />
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Task</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Select value={priority} onValueChange={(value: 'low' | 'medium' | 'high') => setPriority(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                placeholder="Task title *"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="font-medium"
+                required
+              />
             </div>
 
             <div>
-              <Select value={assignedTo} onValueChange={setAssignedTo}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Assign to" />
-                </SelectTrigger>
-                <SelectContent>
-                  {teamMembers.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Textarea
+                placeholder="Description (optional)"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+              />
             </div>
-          </div>
 
-          {!preselectedResource && (
-            <div>
-              <Select
-                value={relatedResource ? `${relatedResource.type}:${relatedResource.id}` : ''}
-                onValueChange={(value) => {
-                  if (!value) {
-                    setRelatedResource(null);
-                    return;
-                  }
-                  const [type, id] = value.split(':');
-                  const resource = allResources.find(r => r.type === type && r.id === id);
-                  if (resource) {
-                    setRelatedResource(resource);
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Relate to resource (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {allResources.map((resource) => (
-                    <SelectItem key={`${resource.type}:${resource.id}`} value={`${resource.type}:${resource.id}`}>
-                      {resource.type === 'customer' ? '👤' : '📦'} {resource.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Select value={priority} onValueChange={(value: 'low' | 'medium' | 'high') => setPriority(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Select value={assignedTo} onValueChange={setAssignedTo}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Assign to" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teamMembers.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        {member.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          )}
 
-          <div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
+            {!preselectedResource && (
+              <div>
+                <Select
+                  value={relatedResource ? `${relatedResource.type}:${relatedResource.id}` : ''}
+                  onValueChange={(value) => {
+                    if (!value) {
+                      setRelatedResource(null);
+                      return;
+                    }
+                    const [type, id] = value.split(':');
+                    const resource = allResources.find(r => r.type === type && r.id === id);
+                    if (resource) {
+                      setRelatedResource(resource);
+                    }
+                  }}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dueDate ? format(dueDate, 'PPP') : 'Set due date (optional)'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dueDate}
-                  onSelect={setDueDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Relate to resource (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allResources.map((resource) => (
+                      <SelectItem key={`${resource.type}:${resource.id}`} value={`${resource.type}:${resource.id}`}>
+                        {resource.type === 'customer' ? '👤' : '📦'} {resource.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-          <div className="flex gap-2 pt-2">
-            <Button type="submit" className="flex-1">
-              Create Task
-            </Button>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
+            <div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dueDate ? format(dueDate, 'PPP') : 'Set due date (optional)'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={setDueDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button type="submit" className="flex-1">
+                Create Task
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </DialogPortal>
     </Dialog>
   );
 };
