@@ -1,3 +1,4 @@
+
 import { OverviewStats } from "@/components/dashboard/OverviewStats";
 import { OccupancyChart } from "@/components/dashboard/OccupancyChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -11,6 +12,7 @@ import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
 import { TenantDetailsPage } from "@/components/tenants/TenantDetailsPage";
 import { FloorPlanView } from "@/components/floor-plan/FloorPlanView";
 import { IntegrationsView } from "@/components/integrations/IntegrationsView";
+import { BillingView } from "@/components/billing/BillingView";
 import type { Unit, Customer } from "@/hooks/useAppState";
 
 interface ContentRendererProps {
@@ -106,6 +108,8 @@ export const ContentRenderer = ({
   }
 
   switch (activeView) {
+    case "billing":
+      return <BillingView />;
     case "integrations":
       return <IntegrationsView />;
     case "units":
