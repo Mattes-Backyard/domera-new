@@ -173,7 +173,7 @@ export const IntegrationsView = () => {
             <h2 className="text-xl font-semibold text-gray-800 mb-4">{category.category}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {category.items.map((integration) => (
-                <Card key={integration.name} className="hover:shadow-md transition-shadow">
+                <Card key={integration.name} className="hover:shadow-md transition-shadow h-full flex flex-col">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
@@ -189,14 +189,14 @@ export const IntegrationsView = () => {
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-0">
-                    <CardDescription className="text-sm text-gray-600 mb-4 leading-relaxed">
+                  <CardContent className="pt-0 flex-1 flex flex-col">
+                    <CardDescription className="text-sm text-gray-600 mb-4 leading-relaxed flex-1">
                       {integration.description}
                     </CardDescription>
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="w-full"
+                      className="w-full mt-auto"
                       onClick={() => handleConfigure(integration.name)}
                     >
                       Configure
