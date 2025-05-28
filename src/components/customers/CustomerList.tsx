@@ -2,10 +2,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Mail, Phone, MapPin, Calendar, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Mail, Phone, MapPin, Calendar, X, Search, Filter } from "lucide-react";
 import { AddCustomerDialog } from "./AddCustomerDialog";
-import { useEffect } from "react";
+import { useState } from "react";
 
 interface Customer {
   id: string;
@@ -37,6 +39,10 @@ export const CustomerList = ({
   triggerAddDialog = false,
   onAddDialogClose
 }: CustomerListProps) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [balanceFilter, setBalanceFilter] = useState("all");
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -56,9 +62,25 @@ export const CustomerList = ({
     return "text-gray-600";
   };
 
-  const filteredCustomers = selectedCustomerId 
-    ? customers.filter(customer => customer.id === selectedCustomerId)
-    : customers;
+  const filteredCustomers = customers.filter(customer => {
+    const matchesSearch = customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         customer.phone.includes(searchQuery) ||
+                         customer.units.some(unit => unit.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesStatus = statusFilter === "all" || customer.status === statusFilter;
+    
+    const matchesBalance = balanceFilter === "all" || 
+                          (balanceFilter === "positive" && customer.balance > 0) ||
+                          (balanceFilter === "negative" && customer.balance < 0) ||
+                          (balanceFilter === "zero" && customer.balance === 0);
+    
+    return matchesSearch && matchesStatus && matchesBalance;
+  });
+
+  const handleCustomerClick = (customer: Customer) => {
+    onViewDetails?.(customer);
+  };
 
   return (
     <div className="p-6">
@@ -66,12 +88,7 @@ export const CustomerList = ({
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Customer Management</h1>
           <p className="text-gray-600">
-            Manage customer profiles and rental history
-            {selectedCustomerId && (
-              <span className="ml-2 text-sm text-blue-600">
-                • Showing customer {filteredCustomers[0]?.name}
-              </span>
-            )}
+            Browse and manage customer profiles ({filteredCustomers.length} of {customers.length} customers)
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -84,79 +101,153 @@ export const CustomerList = ({
           <AddCustomerDialog onSave={onAddCustomer} />
         </div>
       </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredCustomers.map((customer) => (
-          <Card key={customer.id} className={`hover:shadow-lg transition-shadow duration-200 ${selectedCustomerId === customer.id ? 'ring-2 ring-blue-500' : ''}`}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Avatar>
-                    <AvatarFallback>
-                      {customer.name.split(" ").map(n => n[0]).join("")}
-                    </AvatarFallback>
-                  </Avatar>
+
+      {/* Filters */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filters & Search
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search customers..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="reserved">Reserved</SelectItem>
+              <SelectItem value="former">Former</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={balanceFilter} onValueChange={setBalanceFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="All balances" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All balances</SelectItem>
+              <SelectItem value="positive">Credit balance</SelectItem>
+              <SelectItem value="negative">Overdue</SelectItem>
+              <SelectItem value="zero">Zero balance</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setSearchQuery("");
+              setStatusFilter("all");
+              setBalanceFilter("all");
+            }}
+          >
+            Clear Filters
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Customer Table */}
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Customer</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Units</TableHead>
+              <TableHead>Balance</TableHead>
+              <TableHead>Join Date</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredCustomers.map((customer) => (
+              <TableRow 
+                key={customer.id} 
+                className={`cursor-pointer hover:bg-gray-50 ${selectedCustomerId === customer.id ? 'bg-blue-50' : ''}`}
+                onClick={() => handleCustomerClick(customer)}
+              >
+                <TableCell>
                   <div>
-                    <CardTitle className="text-lg font-semibold text-gray-900">
-                      {customer.name}
-                    </CardTitle>
-                    <p className="text-sm text-gray-600">Customer ID: {customer.id}</p>
+                    <div className="font-medium text-gray-900">{customer.name}</div>
+                    <div className="text-sm text-gray-500">ID: {customer.id}</div>
                   </div>
-                </div>
-                <Badge className={getStatusColor(customer.status)}>
-                  {customer.status}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Mail className="h-4 w-4" />
-                  <span>{customer.email}</span>
-                </div>
+                </TableCell>
                 
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Phone className="h-4 w-4" />
-                  <span>{customer.phone}</span>
-                </div>
-                
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Calendar className="h-4 w-4" />
-                  <span>Joined: {customer.joinDate}</span>
-                </div>
-                
-                {customer.units.length > 0 && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <MapPin className="h-4 w-4" />
-                    <span>Units: {customer.units.join(", ")}</span>
+                <TableCell>
+                  <div className="space-y-1">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Mail className="h-3 w-3 mr-1" />
+                      {customer.email}
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Phone className="h-3 w-3 mr-1" />
+                      {customer.phone}
+                    </div>
                   </div>
-                )}
+                </TableCell>
                 
-                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                  <span className="text-sm text-gray-600">Account Balance:</span>
+                <TableCell>
+                  <Badge className={getStatusColor(customer.status)}>
+                    {customer.status}
+                  </Badge>
+                </TableCell>
+                
+                <TableCell>
+                  <div className="flex items-center text-sm">
+                    <MapPin className="h-3 w-3 mr-1 text-gray-400" />
+                    {customer.units.length > 0 ? customer.units.join(", ") : "None"}
+                  </div>
+                </TableCell>
+                
+                <TableCell>
                   <span className={`font-semibold ${getBalanceColor(customer.balance)}`}>
                     ${Math.abs(customer.balance)} {customer.balance < 0 ? "overdue" : customer.balance > 0 ? "credit" : ""}
                   </span>
-                </div>
+                </TableCell>
                 
-                <div className="flex space-x-2 pt-2">
+                <TableCell>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    {customer.joinDate}
+                  </div>
+                </TableCell>
+                
+                <TableCell>
                   <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => onViewDetails?.(customer)}
+                    variant="ghost" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCustomerClick(customer);
+                    }}
                   >
-                    View Profile
+                    View
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    Send Message
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        
+        {filteredCustomers.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            No customers found matching your criteria.
+          </div>
+        )}
+      </Card>
     </div>
   );
 };
