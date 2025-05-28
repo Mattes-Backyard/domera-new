@@ -8,6 +8,7 @@ import { UnitAmenitiesCard } from "./UnitAmenitiesCard";
 import { UnitHistoryTabs } from "./UnitHistoryTabs";
 import { EditUnitDialog } from "./EditUnitDialog";
 import { AssignTenantDialog } from "./AssignTenantDialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Unit {
   id: string;
@@ -27,6 +28,7 @@ interface UnitDetailsPageProps {
 }
 
 export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageProps) => {
+  const isMobile = useIsMobile();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAssignTenantDialogOpen, setIsAssignTenantDialogOpen] = useState(false);
 
@@ -47,7 +49,7 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageP
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <UnitHeader 
         unit={unit} 
         onBack={onBack} 
@@ -55,19 +57,19 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageP
         onAssignTenant={() => setIsAssignTenantDialogOpen(true)}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'lg:grid-cols-3 gap-6'}`}>
+        <div className={isMobile ? '' : 'lg:col-span-2'}>
           <UnitDetailsCard unit={unit} />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <UnitQuickInfo unit={unit} />
           <UnitServicesCard />
           <UnitAmenitiesCard />
         </div>
       </div>
 
-      <div className="mt-8">
+      <div className="mt-6 sm:mt-8">
         <UnitHistoryTabs />
       </div>
 

@@ -1,12 +1,20 @@
-
-import { Bell, Search, Settings, User, X, LayoutGrid } from "lucide-react";
+import { Bell, Search, Settings, User, X, LayoutGrid, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SearchResults } from "./SearchResults";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { MultiSiteSelector } from "./MultiSiteSelector";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useRef, useEffect } from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 interface Unit {
   id: string;
@@ -50,7 +58,9 @@ export const DashboardHeader = ({
   selectedSites = ["helsingborg"],
   onSitesChange
 }: DashboardHeaderProps) => {
+  const isMobile = useIsMobile();
   const [showResults, setShowResults] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const searchResults = searchQuery.trim() ? {
@@ -97,6 +107,96 @@ export const DashboardHeader = ({
     onSearchChange?.("");
     setShowResults(false);
   };
+
+  const MobileMenuContent = () => (
+    <div className="space-y-4">
+      <MultiSiteSelector 
+        selectedSites={selectedSites}
+        onSitesChange={onSitesChange}
+      />
+      
+      <Button 
+        variant="outline" 
+        onClick={onFloorPlanClick}
+        className="w-full justify-start"
+      >
+        <LayoutGrid className="h-5 w-5 mr-2" />
+        Floor Plan View
+      </Button>
+
+      <div className="flex flex-col space-y-2">
+        <Button variant="ghost" className="justify-start">
+          <Settings className="h-5 w-5 mr-2" />
+          Settings
+        </Button>
+        <Button variant="ghost" className="justify-start">
+          <User className="h-5 w-5 mr-2" />
+          Profile
+        </Button>
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm">
+        <div className="flex items-center space-x-3">
+          <SidebarTrigger />
+          
+          <div className="relative flex-1 max-w-xs" ref={searchRef}>
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search..."
+              className="pl-10 pr-8 text-sm"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={() => searchQuery.trim() && setShowResults(true)}
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6"
+                onClick={clearSearch}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+            
+            {showResults && (searchQuery.trim() || hasResults) && (
+              <SearchResults
+                searchQuery={searchQuery}
+                searchResults={searchResults}
+                onResultClick={handleResultClick}
+              />
+            )}
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <NotificationDropdown />
+          <Sheet open={showMobileMenu} onOpenChange={setShowMobileMenu}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+                <SheetDescription>
+                  Access your tools and settings
+                </SheetDescription>
+              </SheetHeader>
+              <div className="mt-6">
+                <MobileMenuContent />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
