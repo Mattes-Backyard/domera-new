@@ -1,5 +1,5 @@
 
-import { Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap, Wrench } from "lucide-react";
+import { Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap, Wrench, CheckSquare } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -27,6 +27,11 @@ const menuItems = [
     id: "customers",
     title: "Customers",
     icon: Users,
+  },
+  {
+    id: "tasks",
+    title: "Tasks",
+    icon: CheckSquare,
   },
   {
     id: "operations",

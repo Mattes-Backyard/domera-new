@@ -7,6 +7,7 @@ import { AIInsights } from "@/components/dashboard/AIInsights";
 import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { OperationsView } from "@/components/operations/OperationsView";
+import { TasksView } from "@/components/tasks/TasksView";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
 import { TenantDetailsPage } from "@/components/tenants/TenantDetailsPage";
 import { FloorPlanView } from "@/components/floor-plan/FloorPlanView";
@@ -131,6 +132,8 @@ export const ContentRenderer = ({
           onAddDialogClose={() => {}}
         />
       );
+    case "tasks":
+      return <TasksView units={units} customers={customers} />;
     case "operations":
       return <OperationsView />;
     case "dashboard":
