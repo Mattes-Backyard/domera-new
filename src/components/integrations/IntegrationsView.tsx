@@ -1,65 +1,9 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Calculator, CreditCard, Shield, Phone, Key, BarChart3 } from "lucide-react";
+import { MessageSquare, Calculator, CreditCard, Phone, Key, BarChart3 } from "lucide-react";
 
 const integrations = [
-  {
-    category: "AI Chatbot",
-    items: [
-      {
-        name: "Chatbase",
-        description: "Easily create and embed a custom AI chatbot on your self storage website.",
-        icon: MessageSquare,
-        status: "available",
-        color: "bg-gray-900"
-      },
-      {
-        name: "Intercom",
-        description: "A highly customisable, integrated live chat and AI chatbot that can be used to respond on your website.",
-        icon: MessageSquare,
-        status: "available",
-        color: "bg-blue-600"
-      }
-    ]
-  },
-  {
-    category: "Space Calculator",
-    items: [
-      {
-        name: "Calcumate",
-        description: "Show your customers how much storage space they need with Calcumate's 3D tool.",
-        icon: Calculator,
-        status: "available",
-        color: "bg-blue-500"
-      }
-    ]
-  },
-  {
-    category: "Payment Processing",
-    items: [
-      {
-        name: "Stripe",
-        description: "Streamline your payment process with secure online transactions through Stripe.",
-        icon: CreditCard,
-        status: "available",
-        color: "bg-purple-600"
-      }
-    ]
-  },
-  {
-    category: "Identity Verification",
-    items: [
-      {
-        name: "Stripe Identity",
-        description: "Verify tenant identities securely with Stripe Identity's instant verification tools.",
-        icon: Shield,
-        status: "available",
-        color: "bg-purple-500"
-      }
-    ]
-  },
   {
     category: "Smart Entry",
     items: [
@@ -122,6 +66,61 @@ const integrations = [
     ]
   },
   {
+    category: "Accounting",
+    items: [
+      {
+        name: "Fortnox",
+        description: "Simplify bookkeeping and financial reporting with Fortnox's cloud-based accounting.",
+        icon: BarChart3,
+        status: "available",
+        color: "bg-green-500"
+      }
+    ]
+  },
+  {
+    category: "AI Chatbot",
+    items: [
+      {
+        name: "Chatbase",
+        description: "Easily create and embed a custom AI chatbot on your self storage website.",
+        icon: MessageSquare,
+        status: "available",
+        color: "bg-gray-900"
+      },
+      {
+        name: "Intercom",
+        description: "A highly customisable, integrated live chat and AI chatbot that can be used to respond on your website.",
+        icon: MessageSquare,
+        status: "available",
+        color: "bg-blue-600"
+      }
+    ]
+  },
+  {
+    category: "Space Calculator",
+    items: [
+      {
+        name: "Calcumate",
+        description: "Show your customers how much storage space they need with Calcumate's 3D tool.",
+        icon: Calculator,
+        status: "available",
+        color: "bg-blue-500"
+      }
+    ]
+  },
+  {
+    category: "Payment Processing",
+    items: [
+      {
+        name: "Stripe",
+        description: "Streamline your payment process with secure online transactions through Stripe.",
+        icon: CreditCard,
+        status: "available",
+        color: "bg-purple-600"
+      }
+    ]
+  },
+  {
     category: "Live Chat",
     items: [
       {
@@ -137,18 +136,6 @@ const integrations = [
         icon: Phone,
         status: "available",
         color: "bg-blue-600"
-      }
-    ]
-  },
-  {
-    category: "Accounting",
-    items: [
-      {
-        name: "Xero",
-        description: "Simplify bookkeeping and financial reporting with Xero's cloud-based accounting.",
-        icon: BarChart3,
-        status: "available",
-        color: "bg-teal-500"
       }
     ]
   }
