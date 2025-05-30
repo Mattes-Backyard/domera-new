@@ -58,19 +58,19 @@ const menuItems = [
   },
   {
     id: "reservations",
-    label: "Reservations",
+    title: "Reservations",
     icon: Calendar,
     description: "Online unit booking"
   },
   {
     id: "access-control", 
-    label: "Access Control",
+    title: "Access Control",
     icon: Shield,
     description: "Entry management"
   },
   {
     id: "reports",
-    label: "Reports",
+    title: "Reports",
     icon: BarChart3,
     description: "Analytics & KPIs"
   }
