@@ -1,4 +1,4 @@
-import { Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap, Wrench, CheckSquare, ChevronDown, Plug, Calendar, Shield, BarChart3 } from "lucide-react";
+import { Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap, Wrench, CheckSquare, ChevronDown, Plug, Calendar, Shield } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
