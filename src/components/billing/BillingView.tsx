@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, Download, Eye, DollarSign, FileText, Calendar } from "lucide-react";
+import { Search, Filter, Download, Eye, DollarSign, FileText, Calendar, CreditCard } from "lucide-react";
+import { PaymentProcessor } from "@/components/payments/PaymentProcessor";
 
 interface Invoice {
   id: string;
@@ -90,6 +90,8 @@ export const BillingView = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [amountFilter, setAmountFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
+  const [showPaymentProcessor, setShowPaymentProcessor] = useState(false);
+  const [selectedInvoiceAmount, setSelectedInvoiceAmount] = useState(0);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -132,235 +134,265 @@ export const BillingView = () => {
   const pendingAmount = filteredInvoices.filter(inv => inv.status === "pending").reduce((sum, invoice) => sum + invoice.amount, 0);
   const overdueAmount = filteredInvoices.filter(inv => inv.status === "overdue").reduce((sum, invoice) => sum + invoice.amount, 0);
 
+  const handlePayInvoice = (amount: number) => {
+    setSelectedInvoiceAmount(amount);
+    setShowPaymentProcessor(true);
+  };
+
+  const handlePaymentComplete = (paymentData: any) => {
+    console.log("Payment completed for invoice:", paymentData);
+    setShowPaymentProcessor(false);
+    // Update invoice status to paid
+  };
+
   return (
     <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Billing & Invoices</h1>
-          <p className="text-gray-600">
-            Manage invoices and billing ({filteredInvoices.length} of {invoices.length} invoices)
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-          <Button className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            New Invoice
-          </Button>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Amount</p>
-                <p className="text-2xl font-bold">${totalAmount.toFixed(2)}</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-gray-400" />
+      {showPaymentProcessor ? (
+        <PaymentProcessor
+          amount={selectedInvoiceAmount}
+          onPaymentComplete={handlePaymentComplete}
+          onCancel={() => setShowPaymentProcessor(false)}
+        />
+      ) : (
+        <>
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Billing & Invoices</h1>
+              <p className="text-gray-600">
+                Manage invoices and billing ({filteredInvoices.length} of {invoices.length} invoices)
+              </p>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Paid</p>
-                <p className="text-2xl font-bold text-green-600">${paidAmount.toFixed(2)}</p>
-              </div>
-              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                <DollarSign className="h-4 w-4 text-green-600" />
-              </div>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Export
+              </Button>
+              <Button className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                New Invoice
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">${pendingAmount.toFixed(2)}</p>
-              </div>
-              <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                <DollarSign className="h-4 w-4 text-yellow-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Overdue</p>
-                <p className="text-2xl font-bold text-red-600">${overdueAmount.toFixed(2)}</p>
-              </div>
-              <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
-                <DollarSign className="h-4 w-4 text-red-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters & Search
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search invoices..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
           </div>
-          
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="All statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="overdue">Overdue</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-            </SelectContent>
-          </Select>
 
-          <Select value={amountFilter} onValueChange={setAmountFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="All amounts" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All amounts</SelectItem>
-              <SelectItem value="under100">Under $100</SelectItem>
-              <SelectItem value="100to300">$100 - $300</SelectItem>
-              <SelectItem value="over300">Over $300</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={dateFilter} onValueChange={setDateFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="All dates" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All dates</SelectItem>
-              <SelectItem value="thisMonth">This month</SelectItem>
-              <SelectItem value="lastMonth">Last month</SelectItem>
-              <SelectItem value="overdue">Overdue</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              setSearchQuery("");
-              setStatusFilter("all");
-              setAmountFilter("all");
-              setDateFilter("all");
-            }}
-          >
-            Clear Filters
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Invoices Table */}
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Invoice</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Issue Date</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Units</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredInvoices.map((invoice) => (
-              <TableRow key={invoice.id} className="hover:bg-gray-50">
-                <TableCell>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-medium text-gray-900">{invoice.invoiceNumber}</div>
-                    <div className="text-sm text-gray-500">{invoice.description}</div>
+                    <p className="text-sm text-gray-600">Total Amount</p>
+                    <p className="text-2xl font-bold">${totalAmount.toFixed(2)}</p>
                   </div>
-                </TableCell>
-                
-                <TableCell>
-                  <div className="font-medium text-gray-900">{invoice.customerName}</div>
-                  <div className="text-sm text-gray-500">ID: {invoice.customerId}</div>
-                </TableCell>
-                
-                <TableCell>
-                  <span className="font-semibold text-gray-900">${invoice.amount.toFixed(2)}</span>
-                </TableCell>
-                
-                <TableCell>
-                  <Badge className={getStatusColor(invoice.status)}>
-                    {invoice.status}
-                  </Badge>
-                </TableCell>
-                
-                <TableCell>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    {invoice.issueDate}
+                  <DollarSign className="h-8 w-8 text-gray-400" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Paid</p>
+                    <p className="text-2xl font-bold text-green-600">${paidAmount.toFixed(2)}</p>
                   </div>
-                </TableCell>
-                
-                <TableCell>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    {invoice.dueDate}
+                  <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                    <DollarSign className="h-4 w-4 text-green-600" />
                   </div>
-                </TableCell>
-                
-                <TableCell>
-                  <div className="text-sm text-gray-600">
-                    {invoice.unitIds.join(", ")}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Pending</p>
+                    <p className="text-2xl font-bold text-yellow-600">${pendingAmount.toFixed(2)}</p>
                   </div>
-                </TableCell>
-                
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <Download className="h-4 w-4" />
-                    </Button>
+                  <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                    <DollarSign className="h-4 w-4 text-yellow-600" />
                   </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        
-        {filteredInvoices.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No invoices found matching your criteria.
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Overdue</p>
+                    <p className="text-2xl font-bold text-red-600">${overdueAmount.toFixed(2)}</p>
+                  </div>
+                  <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
+                    <DollarSign className="h-4 w-4 text-red-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        )}
-      </Card>
+
+          {/* Filters */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filters & Search
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search invoices..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={amountFilter} onValueChange={setAmountFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All amounts" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All amounts</SelectItem>
+                  <SelectItem value="under100">Under $100</SelectItem>
+                  <SelectItem value="100to300">$100 - $300</SelectItem>
+                  <SelectItem value="over300">Over $300</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All dates" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All dates</SelectItem>
+                  <SelectItem value="thisMonth">This month</SelectItem>
+                  <SelectItem value="lastMonth">Last month</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                  setAmountFilter("all");
+                  setDateFilter("all");
+                }}
+              >
+                Clear Filters
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Invoices Table */}
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Invoice</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Issue Date</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Units</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices.map((invoice) => (
+                  <TableRow key={invoice.id} className="hover:bg-gray-50">
+                    <TableCell>
+                      <div>
+                        <div className="font-medium text-gray-900">{invoice.invoiceNumber}</div>
+                        <div className="text-sm text-gray-500">{invoice.description}</div>
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <div className="font-medium text-gray-900">{invoice.customerName}</div>
+                      <div className="text-sm text-gray-500">ID: {invoice.customerId}</div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <span className="font-semibold text-gray-900">${invoice.amount.toFixed(2)}</span>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <Badge className={getStatusColor(invoice.status)}>
+                        {invoice.status}
+                      </Badge>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {invoice.issueDate}
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {invoice.dueDate}
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <div className="text-sm text-gray-600">
+                        {invoice.unitIds.join(", ")}
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        {invoice.status === "pending" && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handlePayInvoice(invoice.amount)}
+                          >
+                            <CreditCard className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            
+            {filteredInvoices.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                No invoices found matching your criteria.
+              </div>
+            )}
+          </Card>
+        </>
+      )}
     </div>
   );
 };

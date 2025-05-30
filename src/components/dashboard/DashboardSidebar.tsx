@@ -1,5 +1,4 @@
-
-import { Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap, Wrench, CheckSquare, ChevronDown, Plug } from "lucide-react";
+import { Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap, Wrench, CheckSquare, ChevronDown, Plug, Calendar, Shield, BarChart3 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -57,6 +56,24 @@ const menuItems = [
     title: "AI Automation",
     icon: Zap,
   },
+  {
+    id: "reservations",
+    label: "Reservations",
+    icon: Calendar,
+    description: "Online unit booking"
+  },
+  {
+    id: "access-control", 
+    label: "Access Control",
+    icon: Shield,
+    description: "Entry management"
+  },
+  {
+    id: "reports",
+    label: "Reports",
+    icon: BarChart3,
+    description: "Analytics & KPIs"
+  }
 ];
 
 interface DashboardSidebarProps {

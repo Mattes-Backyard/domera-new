@@ -1,4 +1,3 @@
-
 import { OverviewStats } from "@/components/dashboard/OverviewStats";
 import { OccupancyChart } from "@/components/dashboard/OccupancyChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -13,6 +12,10 @@ import { TenantDetailsPage } from "@/components/tenants/TenantDetailsPage";
 import { FloorPlanView } from "@/components/floor-plan/FloorPlanView";
 import { IntegrationsView } from "@/components/integrations/IntegrationsView";
 import { BillingView } from "@/components/billing/BillingView";
+import { ReservationSystem } from "@/components/reservations/ReservationSystem";
+import { PaymentProcessor } from "@/components/payments/PaymentProcessor";
+import { AccessControlPanel } from "@/components/access/AccessControlPanel";
+import { ReportsDashboard } from "@/components/reports/ReportsDashboard";
 import type { Unit, Customer } from "@/hooks/useAppState";
 
 interface ContentRendererProps {
@@ -72,6 +75,21 @@ export const ContentRenderer = ({
     });
   };
 
+  const handleReserveUnit = (unitId: string, reservation: any) => {
+    console.log("Unit reserved:", unitId, reservation);
+    // Handle reservation logic here
+  };
+
+  const handlePaymentComplete = (paymentData: any) => {
+    console.log("Payment completed:", paymentData);
+    // Handle payment completion logic here
+  };
+
+  const handleAccessMethodAssigned = (method: string, code: string) => {
+    console.log("Access method assigned:", method, code);
+    // Handle access method assignment logic here
+  };
+
   if (showFloorPlan) {
     return (
       <FloorPlanView 
@@ -117,6 +135,27 @@ export const ContentRenderer = ({
         onBack={onBackFromTenant}
       />
     );
+  }
+
+  if (activeView === "reservations") {
+    return (
+      <ReservationSystem 
+        units={units} 
+        onReserveUnit={handleReserveUnit}
+      />
+    );
+  }
+
+  if (activeView === "access-control") {
+    return (
+      <AccessControlPanel 
+        onAccessMethodAssigned={handleAccessMethodAssigned}
+      />
+    );
+  }
+
+  if (activeView === "reports") {
+    return <ReportsDashboard />;
   }
 
   switch (activeView) {
