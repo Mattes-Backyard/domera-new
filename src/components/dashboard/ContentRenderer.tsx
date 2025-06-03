@@ -1,3 +1,4 @@
+
 import { OverviewStats } from "@/components/dashboard/OverviewStats";
 import { OccupancyChart } from "@/components/dashboard/OccupancyChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -17,6 +18,7 @@ import { PaymentProcessor } from "@/components/payments/PaymentProcessor";
 import { AccessControlPanel } from "@/components/access/AccessControlPanel";
 import { ReportsDashboard } from "@/components/reports/ReportsDashboard";
 import { AdminInterface } from "@/components/admin/AdminInterface";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Unit, Customer } from "@/hooks/useAppState";
 
 interface ContentRendererProps {
@@ -93,21 +95,25 @@ export const ContentRenderer = ({
 
   if (showFloorPlan) {
     return (
-      <FloorPlanView 
-        units={units} 
-        onBack={onBackFromFloorPlan}
-        onUnitUpdate={onUnitUpdate}
-      />
+      <ScrollArea className="h-full">
+        <FloorPlanView 
+          units={units} 
+          onBack={onBackFromFloorPlan}
+          onUnitUpdate={onUnitUpdate}
+        />
+      </ScrollArea>
     );
   }
 
   if (viewingUnitDetails) {
     return (
-      <UnitDetailsPage 
-        unit={viewingUnitDetails} 
-        onBack={onBackFromUnit}
-        onUnitUpdate={onUnitUpdate}
-      />
+      <ScrollArea className="h-full">
+        <UnitDetailsPage 
+          unit={viewingUnitDetails} 
+          onBack={onBackFromUnit}
+          onUnitUpdate={onUnitUpdate}
+        />
+      </ScrollArea>
     );
   }
 
@@ -131,95 +137,131 @@ export const ContentRenderer = ({
     };
 
     return (
-      <TenantDetailsPage 
-        tenant={tenant} 
-        onBack={onBackFromTenant}
-      />
+      <ScrollArea className="h-full">
+        <TenantDetailsPage 
+          tenant={tenant} 
+          onBack={onBackFromTenant}
+        />
+      </ScrollArea>
     );
   }
 
   if (activeView === "admin") {
-    return <AdminInterface />;
+    return (
+      <ScrollArea className="h-full">
+        <AdminInterface />
+      </ScrollArea>
+    );
   }
 
   if (activeView === "reservations") {
     return (
-      <ReservationSystem 
-        units={units} 
-        onReserveUnit={handleReserveUnit}
-      />
+      <ScrollArea className="h-full">
+        <ReservationSystem 
+          units={units} 
+          onReserveUnit={handleReserveUnit}
+        />
+      </ScrollArea>
     );
   }
 
   if (activeView === "access-control") {
     return (
-      <AccessControlPanel 
-        onAccessMethodAssigned={handleAccessMethodAssigned}
-      />
+      <ScrollArea className="h-full">
+        <AccessControlPanel 
+          onAccessMethodAssigned={handleAccessMethodAssigned}
+        />
+      </ScrollArea>
     );
   }
 
   if (activeView === "reports") {
-    return <ReportsDashboard />;
+    return (
+      <ScrollArea className="h-full">
+        <ReportsDashboard />
+      </ScrollArea>
+    );
   }
 
   switch (activeView) {
     case "billing":
-      return <BillingView />;
+      return (
+        <ScrollArea className="h-full">
+          <BillingView />
+        </ScrollArea>
+      );
     case "integrations":
-      return <IntegrationsView />;
+      return (
+        <ScrollArea className="h-full">
+          <IntegrationsView />
+        </ScrollArea>
+      );
     case "units":
       return (
-        <UnitGrid 
-          searchQuery={searchQuery} 
-          selectedUnitId={selectedUnitId} 
-          onClearSelection={onClearUnitSelection} 
-          units={units}
-          onUnitSelect={onUnitSelect}
-          onUnitAdd={onUnitAdd}
-          triggerAddDialog={false}
-          onAddDialogClose={() => {}}
-          onTenantClick={onTenantClick}
-        />
+        <ScrollArea className="h-full">
+          <UnitGrid 
+            searchQuery={searchQuery} 
+            selectedUnitId={selectedUnitId} 
+            onClearSelection={onClearUnitSelection} 
+            units={units}
+            onUnitSelect={onUnitSelect}
+            onUnitAdd={onUnitAdd}
+            triggerAddDialog={false}
+            onAddDialogClose={() => {}}
+            onTenantClick={onTenantClick}
+          />
+        </ScrollArea>
       );
     case "customers":
       return (
-        <CustomerList 
-          selectedCustomerId={selectedCustomerId} 
-          onClearSelection={onClearCustomerSelection} 
-          customers={customers} 
-          onAddCustomer={onCustomerAdd}
-          onViewDetails={onTenantClick}
-          triggerAddDialog={false}
-          onAddDialogClose={() => {}}
-        />
+        <ScrollArea className="h-full">
+          <CustomerList 
+            selectedCustomerId={selectedCustomerId} 
+            onClearSelection={onClearCustomerSelection} 
+            customers={customers} 
+            onAddCustomer={onCustomerAdd}
+            onViewDetails={onTenantClick}
+            triggerAddDialog={false}
+            onAddDialogClose={() => {}}
+          />
+        </ScrollArea>
       );
     case "tasks":
-      return <TasksView units={units} customers={customers} />;
+      return (
+        <ScrollArea className="h-full">
+          <TasksView units={units} customers={customers} />
+        </ScrollArea>
+      );
     case "operations":
-      return <OperationsView 
-        units={units} 
-        onTenantClick={onTenantClick} 
-        onUnitsUpdate={handleUnitsUpdate}
-        selectedSites={selectedSites}
-      />;
+      return (
+        <ScrollArea className="h-full">
+          <OperationsView 
+            units={units} 
+            onTenantClick={onTenantClick} 
+            onUnitsUpdate={handleUnitsUpdate}
+            selectedSites={selectedSites}
+          />
+        </ScrollArea>
+      );
     case "dashboard":
     default:
       return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-full">
-          <div className="lg:col-span-8 space-y-6">
-            <OverviewStats />
-            <OccupancyChart units={units} />
-            <RecentActivity />
+        <ScrollArea className="h-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-full">
+            <div className="lg:col-span-8 space-y-6">
+              <OverviewStats />
+              <OccupancyChart units={units} />
+              <RecentActivity />
+            </div>
+            <div className="lg:col-span-4 space-y-6">
+              <QuickActions 
+                onAddUnit={onQuickAddUnit}
+                onAddCustomer={onCustomerAdd}
+              />
+              <AIInsights />
+            </div>
           </div>
-          <div className="lg:col-span-4 space-y-6">
-            <QuickActions 
-              onAddUnit={onQuickAddUnit}
-              onAddCustomer={onCustomerAdd}
-            />
-            <AIInsights />
-          </div>
-        </div>
+        </ScrollArea>
       );
   }
 };
