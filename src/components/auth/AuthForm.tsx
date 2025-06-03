@@ -53,6 +53,13 @@ export const AuthForm = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/lovable-uploads/542819c4-12f3-4c7e-b419-442c8ce6c4ce.png" 
+              alt="Domera Storage Logo" 
+              className="h-16 w-16 object-contain"
+            />
+          </div>
           <CardTitle className="text-2xl font-bold text-slate-800">
             Domera Storage
           </CardTitle>
