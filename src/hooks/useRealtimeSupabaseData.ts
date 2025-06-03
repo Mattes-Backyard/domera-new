@@ -41,13 +41,13 @@ export const useRealtimeSupabaseData = () => {
         tenant: unit.unit_rentals?.[0]?.customer?.profile ? 
           `${unit.unit_rentals[0].customer.profile.first_name} ${unit.unit_rentals[0].customer.profile.last_name}`.trim() : 
           null,
-        tenantId: unit.unit_rentals?.[0]?.customer?.user_id || null,
+        tenantId: unit.unit_rentals?.[0]?.customer?.user_id || unit.unit_rentals?.[0]?.customer?.id || null,
         rate: Number(unit.monthly_rate),
         climate: unit.climate_controlled,
         site: unit.facility?.city?.toLowerCase() || 'unknown'
       })) || [];
 
-      // Fetch customers
+      // Fetch customers - now handle both with and without profiles
       const { data: customersData } = await supabase
         .from('customers')
         .select(`
@@ -59,21 +59,29 @@ export const useRealtimeSupabaseData = () => {
           payments(amount, status)
         `);
 
-      // Transform customers data
-      const transformedCustomers = customersData?.map(customer => ({
-        id: customer.user_id,
-        name: customer.profile ? 
+      // Transform customers data with fallback for customers without profiles
+      const transformedCustomers = customersData?.map(customer => {
+        // Extract name from emergency contact or use placeholder if no profile
+        const customerName = customer.profile ? 
           `${customer.profile.first_name} ${customer.profile.last_name}`.trim() : 
-          'Unknown',
-        email: customer.profile?.email || '',
-        phone: customer.profile?.phone || '',
-        units: customer.unit_rentals?.map(rental => rental.unit?.unit_number) || [],
-        balance: Number(customer.balance) || 0,
-        status: customer.balance > 0 ? 'overdue' : 'good',
-        moveInDate: customer.move_in_date,
-        emergencyContact: customer.emergency_contact_name,
-        emergencyPhone: customer.emergency_contact_phone
-      })) || [];
+          customer.emergency_contact_name?.split(' ')[0] + ' (Contact)' || 'Unknown Customer';
+        
+        const customerEmail = customer.profile?.email || `customer${customer.id.slice(-4)}@email.se`;
+        const customerPhone = customer.profile?.phone || customer.emergency_contact_phone || '';
+
+        return {
+          id: customer.user_id || customer.id,
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone,
+          units: customer.unit_rentals?.map(rental => rental.unit?.unit_number) || [],
+          balance: Number(customer.balance) || 0,
+          status: customer.balance > 0 ? 'overdue' : 'good',
+          moveInDate: customer.move_in_date,
+          emergencyContact: customer.emergency_contact_name,
+          emergencyPhone: customer.emergency_contact_phone
+        };
+      }) || [];
 
       // Fetch facilities
       const { data: facilitiesData } = await supabase
