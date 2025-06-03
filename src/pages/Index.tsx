@@ -1,5 +1,4 @@
 
-
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -11,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRealtimeSupabaseData } from "@/hooks/useRealtimeSupabaseData";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useAppState } from "@/hooks/useAppState";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { useState } from "react";
 
 const Index = () => {
@@ -139,60 +139,62 @@ const Index = () => {
   return (
     <NotificationProvider>
       <TaskProvider>
-        <div className="flex h-screen bg-gray-50">
-          <DashboardSidebar 
-            activeView={activeView} 
-            setActiveView={setActiveView}
-          />
-          
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <DashboardHeader 
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onSearchResultClick={handleSearchResultClick}
-              units={units}
-              customers={customers}
-              onFloorPlanClick={() => setShowFloorPlan(true)}
-              selectedSites={selectedSites}
-              onSitesChange={setSelectedSites}
+        <SidebarProvider>
+          <div className="flex h-screen bg-gray-50 w-full">
+            <DashboardSidebar 
+              activeView={activeView} 
+              setActiveView={setActiveView}
             />
             
-            {(activeView === "dashboard" || activeView === "operations") && (
-              <div className="px-6 py-2 border-b bg-white">
-                <MultiSiteSelector 
-                  selectedSites={selectedSites}
-                  onSitesChange={setSelectedSites}
-                />
-              </div>
-            )}
-            
-            <main className="flex-1 overflow-hidden">
-              <ContentRenderer
-                activeView={activeView}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <DashboardHeader 
                 searchQuery={searchQuery}
-                selectedUnitId={selectedUnitId}
-                selectedCustomerId={selectedCustomerId}
-                viewingUnitDetails={viewingUnitDetails}
-                viewingTenantDetails={viewingTenantDetails}
-                showFloorPlan={showFloorPlan}
+                onSearchChange={setSearchQuery}
+                onSearchResultClick={handleSearchResultClick}
                 units={units}
                 customers={customers}
-                onUnitSelect={handleUnitSelect}
-                onUnitUpdate={handleUnitUpdate}
-                onUnitAdd={handleUnitAdd}
-                onCustomerAdd={handleCustomerAdd}
-                onTenantClick={handleTenantClick}
-                onClearUnitSelection={handleClearUnitSelection}
-                onClearCustomerSelection={handleClearCustomerSelection}
-                onBackFromUnit={handleBackFromUnit}
-                onBackFromTenant={handleBackFromTenant}
-                onBackFromFloorPlan={handleBackFromFloorPlan}
-                onQuickAddUnit={handleQuickAddUnit}
+                onFloorPlanClick={() => setShowFloorPlan(true)}
                 selectedSites={selectedSites}
+                onSitesChange={setSelectedSites}
               />
-            </main>
+              
+              {(activeView === "dashboard" || activeView === "operations") && (
+                <div className="px-6 py-2 border-b bg-white">
+                  <MultiSiteSelector 
+                    selectedSites={selectedSites}
+                    onSitesChange={setSelectedSites}
+                  />
+                </div>
+              )}
+              
+              <main className="flex-1 overflow-hidden">
+                <ContentRenderer
+                  activeView={activeView}
+                  searchQuery={searchQuery}
+                  selectedUnitId={selectedUnitId}
+                  selectedCustomerId={selectedCustomerId}
+                  viewingUnitDetails={viewingUnitDetails}
+                  viewingTenantDetails={viewingTenantDetails}
+                  showFloorPlan={showFloorPlan}
+                  units={units}
+                  customers={customers}
+                  onUnitSelect={handleUnitSelect}
+                  onUnitUpdate={handleUnitUpdate}
+                  onUnitAdd={handleUnitAdd}
+                  onCustomerAdd={handleCustomerAdd}
+                  onTenantClick={handleTenantClick}
+                  onClearUnitSelection={handleClearUnitSelection}
+                  onClearCustomerSelection={handleClearCustomerSelection}
+                  onBackFromUnit={handleBackFromUnit}
+                  onBackFromTenant={handleBackFromTenant}
+                  onBackFromFloorPlan={handleBackFromFloorPlan}
+                  onQuickAddUnit={handleQuickAddUnit}
+                  selectedSites={selectedSites}
+                />
+              </main>
+            </div>
           </div>
-        </div>
+        </SidebarProvider>
       </TaskProvider>
     </NotificationProvider>
   );
