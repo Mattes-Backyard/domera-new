@@ -4,36 +4,42 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { ContentRenderer } from "@/components/dashboard/ContentRenderer";
 import { AddUnitDialog } from "@/components/units/AddUnitDialog";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { useAppState } from "@/hooks/useAppState";
-import { updateUnitWithSync } from "@/utils/customerSync";
+import { AuthForm } from "@/components/auth/AuthForm";
+import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useState } from "react";
 import type { Unit, Customer } from "@/hooks/useAppState";
 
 const Index = () => {
-  const {
-    activeView,
-    setActiveView,
-    searchQuery,
-    setSearchQuery,
-    selectedUnitId,
-    setSelectedUnitId,
-    selectedCustomerId,
-    setSelectedCustomerId,
-    viewingUnitDetails,
-    setViewingUnitDetails,
-    viewingTenantDetails,
-    setViewingTenantDetails,
-    showFloorPlan,
-    setShowFloorPlan,
-    units,
-    setUnits,
-    customers,
-    setCustomers,
-    showAddUnitDialog,
-    setShowAddUnitDialog,
-    selectedSites,
-    setSelectedSites,
-    addUnit,
-  } = useAppState();
+  const { user, loading: authLoading } = useAuth();
+  const { units, customers, loading: dataLoading, addUnit, updateUnit, addCustomer } = useSupabaseData();
+  
+  const [activeView, setActiveView] = useState("dashboard");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [viewingUnitDetails, setViewingUnitDetails] = useState<Unit | null>(null);
+  const [viewingTenantDetails, setViewingTenantDetails] = useState<Customer | null>(null);
+  const [showFloorPlan, setShowFloorPlan] = useState(false);
+  const [showAddUnitDialog, setShowAddUnitDialog] = useState(false);
+  const [selectedSites, setSelectedSites] = useState(["helsingborg"]);
+
+  // Show loading spinner while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth form if not authenticated
+  if (!user) {
+    return <AuthForm />;
+  }
 
   // Filter units based on selected sites
   const filteredUnits = units.filter(unit => selectedSites.includes(unit.site));
@@ -41,7 +47,6 @@ const Index = () => {
   const handleAddUnit = (newUnit: Unit) => {
     console.log("Adding new unit:", newUnit);
     addUnit(newUnit);
-    // Sync happens automatically in addUnit via useAppState
   };
 
   const handleTenantClick = (tenantId: string) => {
@@ -71,21 +76,12 @@ const Index = () => {
 
   const handleAddCustomer = (newCustomer: Customer) => {
     console.log("Adding new customer:", newCustomer);
-    const updatedCustomers = [...customers, newCustomer];
-    setCustomers(updatedCustomers);
+    addCustomer(newCustomer);
   };
 
   const handleUnitUpdate = (updatedUnit: Unit) => {
-    console.log("Handling unit update with sync:", updatedUnit);
-    updateUnitWithSync(
-      updatedUnit,
-      units,
-      customers,
-      setUnits,
-      setCustomers,
-      viewingTenantDetails,
-      setViewingTenantDetails
-    );
+    console.log("Handling unit update:", updatedUnit);
+    updateUnit(updatedUnit);
     setViewingUnitDetails(updatedUnit);
   };
 
@@ -129,29 +125,38 @@ const Index = () => {
             onSitesChange={setSelectedSites}
           />
           <main className="flex-1 overflow-y-auto">
-            <ContentRenderer
-              activeView={activeView}
-              searchQuery={searchQuery}
-              selectedUnitId={selectedUnitId}
-              selectedCustomerId={selectedCustomerId}
-              viewingUnitDetails={viewingUnitDetails}
-              viewingTenantDetails={viewingTenantDetails}
-              showFloorPlan={showFloorPlan}
-              units={filteredUnits}
-              customers={customers}
-              onUnitSelect={setViewingUnitDetails}
-              onUnitUpdate={handleUnitUpdate}
-              onUnitAdd={handleAddUnit}
-              onCustomerAdd={handleAddCustomer}
-              onTenantClick={handleTenantClick}
-              onClearUnitSelection={() => setSelectedUnitId(null)}
-              onClearCustomerSelection={() => setSelectedCustomerId(null)}
-              onBackFromUnit={() => setViewingUnitDetails(null)}
-              onBackFromTenant={() => setViewingTenantDetails(null)}
-              onBackFromFloorPlan={handleBackFromFloorPlan}
-              onQuickAddUnit={handleQuickAddUnit}
-              selectedSites={selectedSites}
-            />
+            {dataLoading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-4 text-slate-600">Loading data...</p>
+                </div>
+              </div>
+            ) : (
+              <ContentRenderer
+                activeView={activeView}
+                searchQuery={searchQuery}
+                selectedUnitId={selectedUnitId}
+                selectedCustomerId={selectedCustomerId}
+                viewingUnitDetails={viewingUnitDetails}
+                viewingTenantDetails={viewingTenantDetails}
+                showFloorPlan={showFloorPlan}
+                units={filteredUnits}
+                customers={customers}
+                onUnitSelect={setViewingUnitDetails}
+                onUnitUpdate={handleUnitUpdate}
+                onUnitAdd={handleAddUnit}
+                onCustomerAdd={handleAddCustomer}
+                onTenantClick={handleTenantClick}
+                onClearUnitSelection={() => setSelectedUnitId(null)}
+                onClearCustomerSelection={() => setSelectedCustomerId(null)}
+                onBackFromUnit={() => setViewingUnitDetails(null)}
+                onBackFromTenant={() => setViewingTenantDetails(null)}
+                onBackFromFloorPlan={handleBackFromFloorPlan}
+                onQuickAddUnit={handleQuickAddUnit}
+                selectedSites={selectedSites}
+              />
+            )}
           </main>
         </div>
         
