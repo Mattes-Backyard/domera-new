@@ -1,4 +1,5 @@
 
+
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -13,7 +14,7 @@ import { useAppState } from "@/hooks/useAppState";
 import { useState } from "react";
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   // Use real-time data instead of regular data
@@ -21,7 +22,7 @@ const Index = () => {
     units, 
     customers, 
     facilities, 
-    loading, 
+    loading: dataLoading, 
     addUnit, 
     updateUnit, 
     addCustomer 
@@ -46,17 +47,34 @@ const Index = () => {
     setSelectedSites,
   } = useAppState();
 
-  // Enable real-time notifications
+  // Enable real-time notifications only when user is authenticated
   useRealtimeNotifications();
 
+  // Show loading screen while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth form if not authenticated
   if (!user) {
     return <AuthForm />;
   }
 
-  if (loading) {
+  // Show data loading screen for authenticated users
+  if (dataLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading your data...</p>
+        </div>
       </div>
     );
   }
