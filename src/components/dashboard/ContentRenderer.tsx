@@ -16,6 +16,7 @@ import { ReservationSystem } from "@/components/reservations/ReservationSystem";
 import { PaymentProcessor } from "@/components/payments/PaymentProcessor";
 import { AccessControlPanel } from "@/components/access/AccessControlPanel";
 import { ReportsDashboard } from "@/components/reports/ReportsDashboard";
+import { AdminInterface } from "@/components/admin/AdminInterface";
 import type { Unit, Customer } from "@/hooks/useAppState";
 
 interface ContentRendererProps {
@@ -135,6 +136,10 @@ export const ContentRenderer = ({
         onBack={onBackFromTenant}
       />
     );
+  }
+
+  if (activeView === "admin") {
+    return <AdminInterface />;
   }
 
   if (activeView === "reservations") {

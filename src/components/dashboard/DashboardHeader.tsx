@@ -19,6 +19,7 @@ interface DashboardHeaderProps {
   onFloorPlanClick: () => void;
   selectedSites: string[];
   onSitesChange: (sites: string[]) => void;
+  onAdminClick?: () => void;
 }
 
 export const DashboardHeader = ({
@@ -30,6 +31,7 @@ export const DashboardHeader = ({
   onFloorPlanClick,
   selectedSites,
   onSitesChange,
+  onAdminClick,
 }: DashboardHeaderProps) => {
   const [showResults, setShowResults] = useState(false);
 
@@ -108,7 +110,7 @@ export const DashboardHeader = ({
           </Button>
           
           <NotificationDropdown />
-          <UserMenu />
+          <UserMenu onAdminClick={onAdminClick} />
         </div>
       </div>
     </header>

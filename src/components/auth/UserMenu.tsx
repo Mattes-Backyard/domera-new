@@ -1,5 +1,5 @@
 
-import { User, LogOut, Settings } from 'lucide-react';
+import { User, LogOut, Settings, Shield } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
-export const UserMenu = () => {
+interface UserMenuProps {
+  onAdminClick?: () => void;
+}
+
+export const UserMenu = ({ onAdminClick }: UserMenuProps) => {
   const { user, profile, signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -36,7 +40,7 @@ export const UserMenu = () => {
     if (profile?.first_name || profile?.last_name) {
       return `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim();
     }
-    return user?.email || 'User';
+    return 'User';
   };
 
   return (
@@ -53,9 +57,6 @@ export const UserMenu = () => {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{getDisplayName()}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user?.email}
-            </p>
             {profile?.role && (
               <p className="text-xs leading-none text-muted-foreground capitalize">
                 {profile.role}
@@ -72,6 +73,15 @@ export const UserMenu = () => {
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
         </DropdownMenuItem>
+        {profile?.role === 'admin' && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onAdminClick}>
+              <Shield className="mr-2 h-4 w-4" />
+              <span>Admin Panel</span>
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />

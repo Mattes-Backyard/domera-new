@@ -1,4 +1,3 @@
-
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { ContentRenderer } from "@/components/dashboard/ContentRenderer";
@@ -11,7 +10,7 @@ import { useState } from "react";
 import type { Unit, Customer } from "@/hooks/useAppState";
 
 const Index = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, profile } = useAuth();
   const { units, customers, loading: dataLoading, addUnit, updateUnit, addCustomer } = useSupabaseData();
   
   const [activeView, setActiveView] = useState("dashboard");
@@ -99,6 +98,15 @@ const Index = () => {
     setActiveView("dashboard");
   };
 
+  const handleAdminClick = () => {
+    setActiveView("admin");
+    setViewingUnitDetails(null);
+    setViewingTenantDetails(null);
+    setSelectedUnitId(null);
+    setSelectedCustomerId(null);
+    setShowFloorPlan(false);
+  };
+
   // Enhanced navigation handler that clears any detail views
   const handleNavigationChange = (view: string) => {
     setActiveView(view);
@@ -123,6 +131,7 @@ const Index = () => {
             onFloorPlanClick={handleFloorPlanClick}
             selectedSites={selectedSites}
             onSitesChange={setSelectedSites}
+            onAdminClick={profile?.role === 'admin' ? handleAdminClick : undefined}
           />
           <main className="flex-1 overflow-y-auto">
             {dataLoading ? (
