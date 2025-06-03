@@ -65,6 +65,28 @@ export const AdminInterface = () => {
     }
   };
 
+  const assignMathiasToAllFacilities = async () => {
+    // Mathias's user ID from auth logs
+    const mathiasUserId = 'fd5f9f9b-ac59-4af4-ac1b-d3cd87da0158';
+    
+    // Update Mathias to admin role with no specific facility (admin has access to all)
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        role: 'admin',
+        facility_id: null // Admin doesn't need a specific facility
+      })
+      .eq('id', mathiasUserId);
+
+    if (error) {
+      toast.error('Error updating Mathias profile');
+      console.error('Error:', error);
+    } else {
+      toast.success('Mathias has been granted admin access to all facilities');
+      fetchProfiles();
+    }
+  };
+
   const updateUserRole = async (userId: string, newRole: string, facilityId?: string) => {
     const updateData: any = { role: newRole };
     if (newRole === 'manager' && facilityId) {
@@ -117,6 +139,9 @@ export const AdminInterface = () => {
           <p className="text-gray-600 mt-2">Manage user roles and permissions</p>
         </div>
         <div className="flex items-center space-x-4">
+          <Button onClick={assignMathiasToAllFacilities} className="bg-blue-600 hover:bg-blue-700">
+            Grant Mathias Admin Access
+          </Button>
           <Card className="p-4">
             <div className="flex items-center space-x-2">
               <Users className="h-5 w-5 text-blue-500" />
@@ -186,6 +211,8 @@ export const AdminInterface = () => {
                             {facilities.find(f => f.id === profile.facility_id)?.name || 'Unknown'}
                           </span>
                         </div>
+                      ) : profile.role === 'admin' ? (
+                        <span className="text-green-600 font-medium">All Facilities</span>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
