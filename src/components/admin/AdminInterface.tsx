@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Users, Shield, Building } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { AddUserDialog } from './AddUserDialog';
 
 interface ProfileData {
   id: string;
@@ -130,10 +131,13 @@ export const AdminInterface = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Shield className="h-5 w-5" />
-            <span>User Management</span>
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center space-x-2">
+              <Shield className="h-5 w-5" />
+              <span>User Management</span>
+            </CardTitle>
+            <AddUserDialog facilities={facilities} onUserAdded={fetchProfiles} />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="mb-4">
