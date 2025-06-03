@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,19 @@ export const DashboardHeader = ({
     onSearchChange(""); // Clear the search query after a result is clicked
   };
 
+  // Filter search results based on query
+  const filteredUnits = units.filter(unit => 
+    unit.unit_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    unit.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    unit.size?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredCustomers = customers.filter(customer => 
+    customer.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    customer.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    customer.phone?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="flex h-16 items-center justify-between px-4 lg:px-6">
@@ -61,15 +75,16 @@ export const DashboardHeader = ({
               />
               {showResults && (
                 <SearchResults
-                  query={searchQuery}
-                  units={units}
-                  customers={customers}
+                  searchQuery={searchQuery}
+                  searchResults={{
+                    units: filteredUnits,
+                    customers: filteredCustomers
+                  }}
                   onResultClick={(type, id) => {
                     handleSearchResultClick(type, id);
                     setShowResults(false);
                     onSearchChange("");
                   }}
-                  onClose={() => setShowResults(false)}
                 />
               )}
             </div>
