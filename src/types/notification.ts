@@ -21,3 +21,12 @@ export interface Notification {
   relatedId?: string;
   actionUrl?: string;
 }
+
+export interface NotificationContextType {
+  notifications: Notification[];
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'isRead'>) => void;
+  markAsRead: (notificationId: string) => void;
+  markAllAsRead: () => void;
+  clearNotification: (notificationId: string) => void;
+  unreadCount: number;
+}

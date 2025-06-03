@@ -1,3 +1,4 @@
+
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -107,23 +108,35 @@ const Index = () => {
     setActiveView("units");
   };
 
+  const handleSearchResultClick = (type: 'unit' | 'customer', id: string) => {
+    if (type === 'unit') {
+      setSelectedUnitId(id);
+      setActiveView('units');
+    } else if (type === 'customer') {
+      setSelectedCustomerId(id);
+      setActiveView('customers');
+    }
+  };
+
   return (
     <NotificationProvider>
       <TaskProvider>
         <div className="flex h-screen bg-gray-50">
           <DashboardSidebar 
             activeView={activeView} 
-            onViewChange={setActiveView}
-            collapsed={sidebarCollapsed}
-            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-            onFloorPlanClick={() => setShowFloorPlan(true)}
+            setActiveView={setActiveView}
           />
           
           <div className="flex-1 flex flex-col overflow-hidden">
             <DashboardHeader 
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
-              onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+              onSearchResultClick={handleSearchResultClick}
+              units={units}
+              customers={customers}
+              onFloorPlanClick={() => setShowFloorPlan(true)}
+              selectedSites={selectedSites}
+              onSitesChange={setSelectedSites}
             />
             
             {(activeView === "dashboard" || activeView === "operations") && (
