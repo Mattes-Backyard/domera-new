@@ -1,4 +1,3 @@
-
 import { OverviewStats } from "@/components/dashboard/OverviewStats";
 import { OccupancyChart } from "@/components/dashboard/OccupancyChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -40,7 +39,6 @@ interface ContentRendererProps {
   onBackFromTenant: () => void;
   onBackFromFloorPlan: () => void;
   onQuickAddUnit: () => void;
-  onQuickAddCustomer: () => void;
   selectedSites?: string[];
 }
 
