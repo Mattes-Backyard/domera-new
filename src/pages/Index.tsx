@@ -140,13 +140,13 @@ const Index = () => {
     <NotificationProvider>
       <TaskProvider>
         <SidebarProvider>
-          <div className="flex h-screen bg-gray-50 w-full">
+          <div className="flex h-screen bg-gray-50 w-full overflow-hidden">
             <DashboardSidebar 
               activeView={activeView} 
               setActiveView={setActiveView}
             />
             
-            <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
               <DashboardHeader 
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
@@ -167,7 +167,7 @@ const Index = () => {
                 </div>
               )}
               
-              <main className="flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-hidden">
                 <ContentRenderer
                   activeView={activeView}
                   searchQuery={searchQuery}
@@ -191,7 +191,7 @@ const Index = () => {
                   onQuickAddUnit={handleQuickAddUnit}
                   selectedSites={selectedSites}
                 />
-              </main>
+              </div>
             </div>
           </div>
         </SidebarProvider>

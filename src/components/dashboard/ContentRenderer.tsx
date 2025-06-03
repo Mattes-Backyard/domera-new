@@ -1,4 +1,3 @@
-
 import { OverviewStats } from "@/components/dashboard/OverviewStats";
 import { OccupancyChart } from "@/components/dashboard/OccupancyChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -18,7 +17,6 @@ import { PaymentProcessor } from "@/components/payments/PaymentProcessor";
 import { AccessControlPanel } from "@/components/access/AccessControlPanel";
 import { ReportsDashboard } from "@/components/reports/ReportsDashboard";
 import { AdminInterface } from "@/components/admin/AdminInterface";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Unit, Customer } from "@/hooks/useAppState";
 
 interface ContentRendererProps {
@@ -95,25 +93,25 @@ export const ContentRenderer = ({
 
   if (showFloorPlan) {
     return (
-      <ScrollArea className="h-full">
+      <div className="h-full overflow-auto">
         <FloorPlanView 
           units={units} 
           onBack={onBackFromFloorPlan}
           onUnitUpdate={onUnitUpdate}
         />
-      </ScrollArea>
+      </div>
     );
   }
 
   if (viewingUnitDetails) {
     return (
-      <ScrollArea className="h-full">
+      <div className="h-full overflow-auto">
         <UnitDetailsPage 
           unit={viewingUnitDetails} 
           onBack={onBackFromUnit}
           onUnitUpdate={onUnitUpdate}
         />
-      </ScrollArea>
+      </div>
     );
   }
 
@@ -137,68 +135,68 @@ export const ContentRenderer = ({
     };
 
     return (
-      <ScrollArea className="h-full">
+      <div className="h-full overflow-auto">
         <TenantDetailsPage 
           tenant={tenant} 
           onBack={onBackFromTenant}
         />
-      </ScrollArea>
+      </div>
     );
   }
 
   if (activeView === "admin") {
     return (
-      <ScrollArea className="h-full">
+      <div className="h-full overflow-auto">
         <AdminInterface />
-      </ScrollArea>
+      </div>
     );
   }
 
   if (activeView === "reservations") {
     return (
-      <ScrollArea className="h-full">
+      <div className="h-full overflow-auto">
         <ReservationSystem 
           units={units} 
           onReserveUnit={handleReserveUnit}
         />
-      </ScrollArea>
+      </div>
     );
   }
 
   if (activeView === "access-control") {
     return (
-      <ScrollArea className="h-full">
+      <div className="h-full overflow-auto">
         <AccessControlPanel 
           onAccessMethodAssigned={handleAccessMethodAssigned}
         />
-      </ScrollArea>
+      </div>
     );
   }
 
   if (activeView === "reports") {
     return (
-      <ScrollArea className="h-full">
+      <div className="h-full overflow-auto">
         <ReportsDashboard />
-      </ScrollArea>
+      </div>
     );
   }
 
   switch (activeView) {
     case "billing":
       return (
-        <ScrollArea className="h-full">
+        <div className="h-full overflow-auto">
           <BillingView />
-        </ScrollArea>
+        </div>
       );
     case "integrations":
       return (
-        <ScrollArea className="h-full">
+        <div className="h-full overflow-auto">
           <IntegrationsView />
-        </ScrollArea>
+        </div>
       );
     case "units":
       return (
-        <ScrollArea className="h-full">
+        <div className="h-full overflow-auto">
           <UnitGrid 
             searchQuery={searchQuery} 
             selectedUnitId={selectedUnitId} 
@@ -210,11 +208,11 @@ export const ContentRenderer = ({
             onAddDialogClose={() => {}}
             onTenantClick={onTenantClick}
           />
-        </ScrollArea>
+        </div>
       );
     case "customers":
       return (
-        <ScrollArea className="h-full">
+        <div className="h-full overflow-auto">
           <CustomerList 
             selectedCustomerId={selectedCustomerId} 
             onClearSelection={onClearCustomerSelection} 
@@ -224,29 +222,29 @@ export const ContentRenderer = ({
             triggerAddDialog={false}
             onAddDialogClose={() => {}}
           />
-        </ScrollArea>
+        </div>
       );
     case "tasks":
       return (
-        <ScrollArea className="h-full">
+        <div className="h-full overflow-auto">
           <TasksView units={units} customers={customers} />
-        </ScrollArea>
+        </div>
       );
     case "operations":
       return (
-        <ScrollArea className="h-full">
+        <div className="h-full overflow-auto">
           <OperationsView 
             units={units} 
             onTenantClick={onTenantClick} 
             onUnitsUpdate={handleUnitsUpdate}
             selectedSites={selectedSites}
           />
-        </ScrollArea>
+        </div>
       );
     case "dashboard":
     default:
       return (
-        <ScrollArea className="h-full">
+        <div className="h-full overflow-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-full">
             <div className="lg:col-span-8 space-y-6">
               <OverviewStats />
@@ -261,7 +259,7 @@ export const ContentRenderer = ({
               <AIInsights />
             </div>
           </div>
-        </ScrollArea>
+        </div>
       );
   }
 };
