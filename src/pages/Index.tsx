@@ -3,6 +3,7 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { ContentRenderer } from "@/components/dashboard/ContentRenderer";
 import { AddUnitDialog } from "@/components/units/AddUnitDialog";
+import { AddCustomerDialog } from "@/components/customers/AddCustomerDialog";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useAppState } from "@/hooks/useAppState";
 import { updateUnitWithSync } from "@/utils/customerSync";
@@ -34,6 +35,9 @@ const Index = () => {
     setSelectedSites,
     addUnit,
   } = useAppState();
+
+  // Add state for customer dialog
+  const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
 
   // Filter units based on selected sites
   const filteredUnits = units.filter(unit => selectedSites.includes(unit.site));
@@ -93,6 +97,10 @@ const Index = () => {
     setShowAddUnitDialog(true);
   };
 
+  const handleQuickAddCustomer = () => {
+    setShowAddCustomerDialog(true);
+  };
+
   const handleFloorPlanClick = () => {
     setShowFloorPlan(true);
     setActiveView("floor-plan");
@@ -150,6 +158,7 @@ const Index = () => {
               onBackFromTenant={() => setViewingTenantDetails(null)}
               onBackFromFloorPlan={handleBackFromFloorPlan}
               onQuickAddUnit={handleQuickAddUnit}
+              onQuickAddCustomer={handleQuickAddCustomer}
               selectedSites={selectedSites}
             />
           </main>
@@ -160,6 +169,13 @@ const Index = () => {
           isOpen={showAddUnitDialog}
           onClose={() => setShowAddUnitDialog(false)}
           onSave={handleAddUnit}
+        />
+
+        {/* Global Add Customer Dialog */}
+        <AddCustomerDialog
+          isOpen={showAddCustomerDialog}
+          onClose={() => setShowAddCustomerDialog(false)}
+          onSave={handleAddCustomer}
         />
       </div>
     </SidebarProvider>
