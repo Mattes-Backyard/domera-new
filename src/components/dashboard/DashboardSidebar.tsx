@@ -1,4 +1,5 @@
-import { Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap, Wrench, CheckSquare, ChevronDown, Plug, Calendar, Shield } from "lucide-react";
+
+import { Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap, Wrench, CheckSquare, ChevronDown, Plug, Calendar, Shield, UserCog } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +15,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useAuth } from "@/hooks/useAuth";
 
 const menuItems = [
   {
@@ -82,6 +84,9 @@ interface DashboardSidebarProps {
 }
 
 export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebarProps) => {
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
+
   return (
     <Sidebar className="border-r border-gray-200 bg-white">
       <SidebarHeader className="p-6">
@@ -143,6 +148,17 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
                           <span>Integrations</span>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
+                      {isAdmin && (
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton 
+                            onClick={() => setActiveView("admin")}
+                            isActive={activeView === "admin"}
+                          >
+                            <UserCog className="h-4 w-4" />
+                            <span>Admin Panel</span>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      )}
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>
