@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -14,109 +13,131 @@ export const useRealtimeSupabaseData = () => {
   const [loading, setLoading] = useState(true);
   const channelsRef = useRef<any[]>([]);
   const setupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchData = async () => {
-    if (!user || !profile) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     
     setLoading(true);
     
     try {
-      // Fetch all units with rental and customer information
-      const { data: unitsData } = await supabase
-        .from('units')
-        .select(`
-          *,
-          facility:facilities(name, city),
-          unit_rentals(
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        fetchTimeoutRef.current = setTimeout(() => reject(new Error('Fetch timeout')), 10000);
+      });
+
+      const fetchPromise = async () => {
+        // Fetch all units with rental and customer information
+        const { data: unitsData } = await supabase
+          .from('units')
+          .select(`
             *,
-            customer:customers(*)
-          )
-        `);
+            facility:facilities(name, city),
+            unit_rentals(
+              *,
+              customer:customers(*)
+            )
+          `);
 
-      // Fetch unit rentals separately for the invoice dialog
-      const { data: unitRentalsData } = await supabase
-        .from('unit_rentals')
-        .select('*');
+        // Fetch unit rentals separately for the invoice dialog
+        const { data: unitRentalsData } = await supabase
+          .from('unit_rentals')
+          .select('*');
 
-      setUnitRentals(unitRentalsData || []);
+        setUnitRentals(unitRentalsData || []);
 
-      // Transform units data
-      const transformedUnits = unitsData?.map(unit => {
-        // Find active rental for this unit
-        const activeRental = unit.unit_rentals?.find(rental => rental.is_active);
-        const customer = activeRental?.customer;
-        
-        let unitStatus = unit.status;
-        let customerName = null;
-        let customerId = null;
-        
-        if (unit.status === 'occupied' && customer) {
-          // Use safe property access and fallbacks
-          const firstName = (customer as any).first_name || '';
-          const lastName = (customer as any).last_name || '';
-          customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
-          customerId = customer.user_id || customer.id;
-        } else if (activeRental && customer) {
-          unitStatus = 'occupied';
-          const firstName = (customer as any).first_name || '';
-          const lastName = (customer as any).last_name || '';
-          customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
-          customerId = customer.user_id || customer.id;
-        }
-        
-        return {
-          id: unit.unit_number,
-          size: unit.size,
-          type: unit.type,
-          status: unitStatus,
-          tenant: customerName,
-          tenantId: customerId,
-          rate: Number(unit.monthly_rate),
-          climate: unit.climate_controlled,
-          site: unit.facility?.city?.toLowerCase() || 'unknown'
-        };
-      }) || [];
+        // Transform units data
+        const transformedUnits = unitsData?.map(unit => {
+          // Find active rental for this unit
+          const activeRental = unit.unit_rentals?.find(rental => rental.is_active);
+          const customer = activeRental?.customer;
+          
+          let unitStatus = unit.status;
+          let customerName = null;
+          let customerId = null;
+          
+          if (unit.status === 'occupied' && customer) {
+            // Use safe property access and fallbacks
+            const firstName = (customer as any)?.first_name || '';
+            const lastName = (customer as any)?.last_name || '';
+            customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
+            customerId = customer.user_id || customer.id;
+          } else if (activeRental && customer) {
+            unitStatus = 'occupied';
+            const firstName = (customer as any)?.first_name || '';
+            const lastName = (customer as any)?.last_name || '';
+            customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
+            customerId = customer.user_id || customer.id;
+          }
+          
+          return {
+            id: unit.unit_number,
+            size: unit.size,
+            type: unit.type,
+            status: unitStatus,
+            tenant: customerName,
+            tenantId: customerId,
+            rate: Number(unit.monthly_rate),
+            climate: unit.climate_controlled,
+            site: unit.facility?.city?.toLowerCase() || 'unknown'
+          };
+        }) || [];
 
-      // Fetch customers with their rental information directly from database
-      const { data: customersData } = await supabase
-        .from('customers')
-        .select(`
-          *,
-          unit_rentals(
+        // Fetch customers with their rental information directly from database
+        const { data: customersData } = await supabase
+          .from('customers')
+          .select(`
             *,
-            unit:units(unit_number)
-          ),
-          payments(amount, status)
-        `);
+            unit_rentals(
+              *,
+              unit:units(unit_number)
+            ),
+            payments(amount, status)
+          `);
 
-      // Transform customers to match our type interface with safe property access
-      const transformedCustomers = customersData?.map((customer: any) => ({
-        ...customer,
-        // Add computed fields for compatibility using safe property access
-        first_name: customer.first_name || customer.emergency_contact_name?.split(' ')[0] || '',
-        last_name: customer.last_name || customer.emergency_contact_name?.split(' ').slice(1).join(' ') || '',
-        email: customer.email || `customer${customer.id.slice(0, 8)}@storage.com`,
-        phone: customer.phone || customer.emergency_contact_phone || '',
-        address: customer.address || '',
-        city: customer.city || '',
-        state: customer.state || '',
-        zip_code: customer.zip_code || '',
-        ssn: customer.ssn || '',
-        status: customer.status || 'active',
-        join_date: customer.join_date || customer.move_in_date || new Date().toISOString().split('T')[0]
-      })) || [];
+        // Transform customers to match our type interface with safe property access
+        const transformedCustomers = customersData?.map((customer: any) => ({
+          ...customer,
+          // Add computed fields for compatibility using safe property access with fallbacks
+          first_name: (customer as any)?.first_name || customer.emergency_contact_name?.split(' ')[0] || '',
+          last_name: (customer as any)?.last_name || customer.emergency_contact_name?.split(' ').slice(1).join(' ') || '',
+          email: (customer as any)?.email || `customer${customer.id.slice(0, 8)}@storage.com`,
+          phone: (customer as any)?.phone || customer.emergency_contact_phone || '',
+          address: (customer as any)?.address || '',
+          city: (customer as any)?.city || '',
+          state: (customer as any)?.state || '',
+          zip_code: (customer as any)?.zip_code || '',
+          ssn: (customer as any)?.ssn || '',
+          status: (customer as any)?.status || 'active',
+          join_date: (customer as any)?.join_date || customer.move_in_date || new Date().toISOString().split('T')[0]
+        })) || [];
 
-      setUnits(transformedUnits);
-      setCustomers(transformedCustomers);
+        setUnits(transformedUnits);
+        setCustomers(transformedCustomers);
 
-      // Fetch facilities
-      const { data: facilitiesData } = await supabase
-        .from('facilities')
-        .select('*');
+        // Fetch facilities
+        const { data: facilitiesData } = await supabase
+          .from('facilities')
+          .select('*');
 
-      setFacilities(facilitiesData || []);
+        setFacilities(facilitiesData || []);
+      };
+
+      await Promise.race([fetchPromise(), timeoutPromise]);
+      
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+        fetchTimeoutRef.current = null;
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
+      // On error, show something rather than infinite loading
+      setUnits([]);
+      setCustomers([]);
+      setFacilities([]);
     } finally {
       setLoading(false);
     }
@@ -134,9 +155,14 @@ export const useRealtimeSupabaseData = () => {
         }
       });
       channelsRef.current = [];
+      setLoading(false);
       return;
     }
 
+    // Initial data fetch
+    fetchData();
+
+    // ... keep existing code (setupChannels function and channel setup)
     const setupChannels = () => {
       // Clear any existing timeout
       if (setupTimeoutRef.current) {
@@ -323,6 +349,10 @@ export const useRealtimeSupabaseData = () => {
       if (setupTimeoutRef.current) {
         clearTimeout(setupTimeoutRef.current);
         setupTimeoutRef.current = null;
+      }
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+        fetchTimeoutRef.current = null;
       }
       
       channelsRef.current.forEach(channel => {

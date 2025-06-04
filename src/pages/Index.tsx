@@ -1,4 +1,3 @@
-
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -56,7 +55,7 @@ const Index = () => {
       <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Checking authentication...</p>
         </div>
       </div>
     );
@@ -67,13 +66,14 @@ const Index = () => {
     return <AuthForm />;
   }
 
-  // Show data loading screen for authenticated users
+  // Show data loading screen for authenticated users, but with timeout
   if (dataLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <p className="text-gray-600">Loading your data...</p>
+          <p className="text-sm text-gray-500">This may take a moment on first load</p>
         </div>
       </div>
     );

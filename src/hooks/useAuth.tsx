@@ -41,71 +41,104 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          // Clear any invalid session data
+          await supabase.auth.signOut();
+        }
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Session retrieval failed:', error);
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+        }
+      }
+    };
+
+    getInitialSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session);
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+        console.log('Auth state change:', event, session?.user?.id);
         
-        if (session?.user) {
-          // Use setTimeout to prevent potential deadlock
-          setTimeout(() => {
-            refreshProfile();
-          }, 0);
-        } else {
-          setProfile(null);
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+          
+          if (session?.user) {
+            // Use setTimeout to prevent potential deadlock
+            setTimeout(() => {
+              if (mounted) {
+                refreshProfile();
+              }
+            }, 0);
+          } else {
+            setProfile(null);
+          }
         }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
-
-  useEffect(() => {
-    if (user && !profile) {
-      refreshProfile();
-    }
-  }, [user]);
 
   const signUp = async (email: string, password: string, userData?: any) => {
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userData,
-        emailRedirectTo: `${window.location.origin}/`
-      }
-    });
-    setLoading(false);
-    return { error };
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData,
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+      return { error };
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    setLoading(false);
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      return { error };
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signOut = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signOut();
-    setLoading(false);
-    return { error };
+    try {
+      const { error } = await supabase.auth.signOut();
+      return { error };
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
