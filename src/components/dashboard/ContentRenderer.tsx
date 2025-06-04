@@ -45,47 +45,101 @@ interface ContentRendererProps {
 
 // Transform Unit from useAppState to FloorPlanView Unit interface
 const transformUnitForFloorPlan = (unit: Unit) => {
-  return {
-    id: unit.id,
-    size: unit.size,
-    type: unit.type || 'Standard',
-    status: unit.status,
-    tenant: unit.tenant?.name || null,
-    tenantId: unit.tenant?.id || null,
-    rate: unit.monthly_rate,
-    climate: unit.climate_controlled || false,
-    site: unit.facility_id
-  };
+  console.log('Transforming unit for floor plan:', unit);
+  
+  if (!unit) {
+    console.error('Unit is null or undefined');
+    return null;
+  }
+
+  try {
+    return {
+      id: unit.id || '',
+      size: unit.size || '',
+      type: unit.type || 'Standard',
+      status: unit.status || 'available',
+      tenant: unit.tenant?.name || null,
+      tenantId: unit.tenant?.id || null,
+      rate: unit.monthly_rate || 0,
+      climate: unit.climate_controlled || false,
+      site: unit.facility_id || ''
+    };
+  } catch (error) {
+    console.error('Error transforming unit for floor plan:', error, unit);
+    return null;
+  }
 };
 
 // Transform Unit from useAppState to UnitDetailsPage Unit interface
 const transformUnitForDetails = (unit: Unit) => {
-  return {
-    id: unit.id,
-    size: unit.size,
-    type: unit.type || 'Standard',
-    status: unit.status,
-    tenant: unit.tenant?.name || null,
-    tenantId: unit.tenant?.id || null,
-    rate: unit.monthly_rate,
-    climate: unit.climate_controlled || false,
-    site: unit.facility_id
-  };
+  console.log('Transforming unit for details:', unit);
+  
+  if (!unit) {
+    console.error('Unit is null or undefined');
+    return null;
+  }
+
+  try {
+    return {
+      id: unit.id || '',
+      size: unit.size || '',
+      type: unit.type || 'Standard',
+      status: unit.status || 'available',
+      tenant: unit.tenant?.name || null,
+      tenantId: unit.tenant?.id || null,
+      rate: unit.monthly_rate || 0,
+      climate: unit.climate_controlled || false,
+      site: unit.facility_id || ''
+    };
+  } catch (error) {
+    console.error('Error transforming unit for details:', error, unit);
+    return null;
+  }
 };
 
 // Transform database customer to tenant format for TenantDetailsPage
 const transformCustomerToTenant = (customer: DatabaseCustomer): Tenant => {
-  return {
-    id: customer.id,
-    name: `${customer.first_name} ${customer.last_name}`,
-    email: customer.email,
-    phone: customer.phone,
-    address: `${customer.address}, ${customer.city}, ${customer.state} ${customer.zip_code}`,
-    ssn: "", // Not available in current customer data
-    status: "active", // Default status
-    joinDate: customer.move_in_date || new Date().toISOString().split('T')[0],
-    units: [] // Would need to be populated from unit rentals
-  };
+  if (!customer) {
+    console.error('Customer is null or undefined');
+    return {
+      id: '',
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      ssn: '',
+      status: 'active',
+      joinDate: '',
+      units: []
+    };
+  }
+
+  try {
+    return {
+      id: customer.id || '',
+      name: `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Unknown',
+      email: customer.email || '',
+      phone: customer.phone || '',
+      address: `${customer.address || ''}, ${customer.city || ''}, ${customer.state || ''} ${customer.zip_code || ''}`.trim(),
+      ssn: "",
+      status: "active",
+      joinDate: customer.move_in_date || new Date().toISOString().split('T')[0],
+      units: []
+    };
+  } catch (error) {
+    console.error('Error transforming customer to tenant:', error, customer);
+    return {
+      id: customer.id || '',
+      name: 'Error',
+      email: '',
+      phone: '',
+      address: '',
+      ssn: '',
+      status: 'active',
+      joinDate: '',
+      units: []
+    };
+  }
 };
 
 export const ContentRenderer = ({
@@ -112,11 +166,17 @@ export const ContentRenderer = ({
   onQuickAddUnit,
   selectedSites,
 }: ContentRendererProps) => {
-  // Transform Customer[] to DatabaseCustomer[] for CustomerList
-  const databaseCustomers = customers.map(transformCustomerToDatabaseCustomer);
+  console.log('ContentRenderer rendering with activeView:', activeView);
+  console.log('Units data:', units);
+  console.log('Facilities data:', facilities);
 
-  // Transform units for floor plan view
-  const transformedUnitsForFloorPlan = units.map(transformUnitForFloorPlan);
+  // Safely transform Customer[] to DatabaseCustomer[] for CustomerList
+  const databaseCustomers = customers?.map?.(transformCustomerToDatabaseCustomer) || [];
+
+  // Safely transform units for floor plan view
+  const transformedUnitsForFloorPlan = (units || [])
+    .map(transformUnitForFloorPlan)
+    .filter(unit => unit !== null);
 
   // Show floor plan if requested
   if (showFloorPlan) {
@@ -126,15 +186,15 @@ export const ContentRenderer = ({
           units={transformedUnitsForFloorPlan}
           onBack={onBackFromFloorPlan}
           onUnitClick={(unit) => {
-            // Find original unit and call onUnitSelect
-            const originalUnit = units.find(u => u.id === unit.id);
+            console.log('Floor plan unit clicked:', unit);
+            const originalUnit = units?.find?.(u => u.id === unit.id);
             if (originalUnit) {
               onUnitSelect(originalUnit);
             }
           }}
           onUnitUpdate={(updatedUnit) => {
-            // Find original unit and transform back
-            const originalUnit = units.find(u => u.id === updatedUnit.id);
+            console.log('Floor plan unit updated:', updatedUnit);
+            const originalUnit = units?.find?.(u => u.id === updatedUnit.id);
             if (originalUnit) {
               const transformedUnit = {
                 ...originalUnit,
@@ -153,13 +213,26 @@ export const ContentRenderer = ({
   // Show unit details if viewing a specific unit
   if (viewingUnitDetails) {
     const transformedUnit = transformUnitForDetails(viewingUnitDetails);
+    if (!transformedUnit) {
+      return (
+        <div className="h-full overflow-auto p-6">
+          <div className="text-center">
+            <p className="text-red-600">Error loading unit details</p>
+            <button onClick={onBackFromUnit} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
+              Go Back
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="h-full overflow-auto">
         <UnitDetailsPage
           unit={transformedUnit}
           onBack={onBackFromUnit}
           onUnitUpdate={(updatedUnit) => {
-            // Transform back to useAppState Unit format
+            console.log('Unit details updated:', updatedUnit);
             const transformedBack = {
               ...viewingUnitDetails,
               monthly_rate: updatedUnit.rate,
@@ -188,112 +261,129 @@ export const ContentRenderer = ({
     );
   }
 
-  // Regular view rendering with proper scrolling containers
-  switch (activeView) {
-    case "dashboard":
-      return (
-        <div className="h-full overflow-auto">
-          <ReportsDashboard />
+  // Regular view rendering with proper scrolling containers and error handling
+  try {
+    switch (activeView) {
+      case "dashboard":
+        return (
+          <div className="h-full overflow-auto">
+            <ReportsDashboard />
+          </div>
+        );
+      case "units":
+        console.log('Rendering units view with:', { units: units?.length, facilities: facilities?.length });
+        return (
+          <div className="h-full overflow-auto">
+            <UnitGrid
+              searchQuery={searchQuery}
+              selectedUnitId={selectedUnitId}
+              onClearSelection={onClearUnitSelection}
+              units={transformedUnitsForFloorPlan}
+              onUnitSelect={(unit) => {
+                console.log('Unit grid unit selected:', unit);
+                const originalUnit = units?.find?.(u => u.id === unit.id);
+                if (originalUnit) {
+                  onUnitSelect(originalUnit);
+                }
+              }}
+              onUnitAdd={(newUnit) => {
+                console.log('Unit grid unit added:', newUnit);
+                try {
+                  const transformedBack = {
+                    id: newUnit.id,
+                    unit_number: newUnit.id,
+                    size: newUnit.size,
+                    monthly_rate: newUnit.rate,
+                    status: newUnit.status as any,
+                    type: newUnit.type,
+                    climate_controlled: newUnit.climate,
+                    facility_id: newUnit.site,
+                    tenant: newUnit.tenant ? {
+                      id: newUnit.tenantId || '',
+                      name: newUnit.tenant,
+                      phone: '',
+                      email: ''
+                    } : undefined
+                  };
+                  onUnitAdd(transformedBack);
+                } catch (error) {
+                  console.error('Error adding unit:', error);
+                }
+              }}
+              onTenantClick={onTenantClick}
+              facilities={facilities || []}
+            />
+          </div>
+        );
+      case "customers":
+        return (
+          <div className="h-full overflow-auto">
+            <CustomerList
+              searchQuery={searchQuery}
+              selectedCustomerId={selectedCustomerId}
+              onClearSelection={onClearCustomerSelection}
+              customers={databaseCustomers}
+              onCustomerAdd={onCustomerAdd}
+              onTenantClick={onTenantClick}
+            />
+          </div>
+        );
+      case "reports":
+        return (
+          <div className="h-full overflow-auto">
+            <ReportsDashboard />
+          </div>
+        );
+      case "tasks":
+        return (
+          <div className="h-full overflow-auto">
+            <TasksView />
+          </div>
+        );
+      case "billing":
+        return (
+          <div className="h-full overflow-auto">
+            <BillingView />
+          </div>
+        );
+      case "operations":
+        return (
+          <div className="h-full overflow-auto">
+            <OperationsView
+              units={transformedUnitsForFloorPlan}
+              onTenantClick={onTenantClick}
+              selectedSites={selectedSites}
+            />
+          </div>
+        );
+      case "admin":
+        return (
+          <div className="h-full overflow-auto">
+            <AdminInterface />
+          </div>
+        );
+      case "integrations":
+        return (
+          <div className="h-full overflow-auto">
+            <IntegrationsView />
+          </div>
+        );
+      default:
+        return (
+          <div className="h-full overflow-auto">
+            <ReportsDashboard />
+          </div>
+        );
+    }
+  } catch (error) {
+    console.error('Error rendering content:', error);
+    return (
+      <div className="h-full overflow-auto p-6">
+        <div className="text-center">
+          <p className="text-red-600">An error occurred while loading this view</p>
+          <p className="text-gray-600 mt-2">Please try refreshing the page</p>
         </div>
-      );
-    case "units":
-      return (
-        <div className="h-full overflow-auto">
-          <UnitGrid
-            searchQuery={searchQuery}
-            selectedUnitId={selectedUnitId}
-            onClearSelection={onClearUnitSelection}
-            units={transformedUnitsForFloorPlan}
-            onUnitSelect={(unit) => {
-              // Find original unit and call onUnitSelect
-              const originalUnit = units.find(u => u.id === unit.id);
-              if (originalUnit) {
-                onUnitSelect(originalUnit);
-              }
-            }}
-            onUnitAdd={(newUnit) => {
-              // Transform back to useAppState Unit format
-              const transformedBack = {
-                id: newUnit.id,
-                unit_number: newUnit.id,
-                size: newUnit.size,
-                monthly_rate: newUnit.rate,
-                status: newUnit.status as any,
-                type: newUnit.type,
-                climate_controlled: newUnit.climate,
-                facility_id: newUnit.site,
-                tenant: newUnit.tenant ? {
-                  id: newUnit.tenantId || '',
-                  name: newUnit.tenant,
-                  phone: '',
-                  email: ''
-                } : undefined
-              };
-              onUnitAdd(transformedBack);
-            }}
-            onTenantClick={onTenantClick}
-            facilities={facilities}
-          />
-        </div>
-      );
-    case "customers":
-      return (
-        <div className="h-full overflow-auto">
-          <CustomerList
-            searchQuery={searchQuery}
-            selectedCustomerId={selectedCustomerId}
-            onClearSelection={onClearCustomerSelection}
-            customers={databaseCustomers}
-            onCustomerAdd={onCustomerAdd}
-            onTenantClick={onTenantClick}
-          />
-        </div>
-      );
-    case "reports":
-      return (
-        <div className="h-full overflow-auto">
-          <ReportsDashboard />
-        </div>
-      );
-    case "tasks":
-      return (
-        <div className="h-full overflow-auto">
-          <TasksView />
-        </div>
-      );
-    case "billing":
-      return (
-        <div className="h-full overflow-auto">
-          <BillingView />
-        </div>
-      );
-    case "operations":
-      return (
-        <div className="h-full overflow-auto">
-          <OperationsView
-            units={transformedUnitsForFloorPlan}
-            onTenantClick={onTenantClick}
-            selectedSites={selectedSites}
-          />
-        </div>
-      );
-    case "admin":
-      return (
-        <div className="h-full overflow-auto">
-          <AdminInterface />
-        </div>
-      );
-    case "integrations":
-      return (
-        <div className="h-full overflow-auto">
-          <IntegrationsView />
-        </div>
-      );
-    default:
-      return (
-        <div className="h-full overflow-auto">
-          <ReportsDashboard />
-        </div>
-      );
+      </div>
+    );
   }
 };
