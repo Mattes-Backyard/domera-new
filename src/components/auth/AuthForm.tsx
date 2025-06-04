@@ -1,4 +1,5 @@
 
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,7 +58,7 @@ export const AuthForm = () => {
             <img 
               src="/lovable-uploads/ef3cdb43-d066-4a2d-8139-bec16ef0f18d.png" 
               alt="Logo" 
-              className="h-24 w-24 object-contain"
+              className="h-32 w-32 object-contain"
             />
           </div>
           <p className="text-slate-600">Access your property management system</p>
@@ -150,3 +151,4 @@ export const AuthForm = () => {
     </div>
   );
 };
+
