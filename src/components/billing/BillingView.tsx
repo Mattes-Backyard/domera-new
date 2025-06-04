@@ -5,16 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, Download, Eye, DollarSign, FileText, Calendar, CreditCard } from "lucide-react";
+import { Search, Filter, Download, Eye, DollarSign, FileText, Calendar, CreditCard, Trash2 } from "lucide-react";
 import { PaymentProcessor } from "@/components/payments/PaymentProcessor";
 import { CreateInvoiceDialog } from "@/components/billing/CreateInvoiceDialog";
 import { useInvoices, type Invoice } from "@/hooks/useInvoices";
 import { useRealtimeSupabaseData } from "@/hooks/useRealtimeSupabaseData";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 export const BillingView = () => {
-  const { invoices, loading, updateInvoiceStatus, downloadInvoicePDF, generateInvoicePDF, previewInvoicePDF, createInvoice } = useInvoices();
+  const { invoices, loading, updateInvoiceStatus, downloadInvoicePDF, generateInvoicePDF, previewInvoicePDF, createInvoice, deleteInvoice } = useInvoices();
   const { customers } = useRealtimeSupabaseData();
+  const { profile } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [amountFilter, setAmountFilter] = useState("all");
@@ -22,6 +24,7 @@ export const BillingView = () => {
   const [showPaymentProcessor, setShowPaymentProcessor] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [processingPDFs, setProcessingPDFs] = useState<Set<string>>(new Set());
+  const [deletingInvoices, setDeletingInvoices] = useState<Set<string>>(new Set());
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -151,6 +154,31 @@ export const BillingView = () => {
       });
     }
   };
+
+  const handleDeleteInvoice = async (invoice: Invoice) => {
+    if (deletingInvoices.has(invoice.id)) return;
+    
+    if (!confirm(`Are you sure you want to delete invoice ${invoice.invoice_number}? This action cannot be undone.`)) {
+      return;
+    }
+    
+    setDeletingInvoices(prev => new Set(prev).add(invoice.id));
+    try {
+      await deleteInvoice(invoice.id);
+      toast.success("Invoice deleted successfully");
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error(`Failed to delete invoice: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setDeletingInvoices(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(invoice.id);
+        return newSet;
+      });
+    }
+  };
+
+  const isAdmin = profile?.role === 'admin';
 
   if (loading) {
     return (
@@ -335,7 +363,7 @@ export const BillingView = () => {
                   <TableHead>Issue Date</TableHead>
                   <TableHead>Due Date</TableHead>
                   <TableHead>VAT</TableHead>
-                  <TableHead className="w-[150px]">Actions</TableHead>
+                  <TableHead className={isAdmin ? "w-[200px]" : "w-[150px]"}>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -419,6 +447,21 @@ export const BillingView = () => {
                             onClick={() => handlePayInvoice(invoice)}
                           >
                             <CreditCard className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {isAdmin && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteInvoice(invoice)}
+                            disabled={deletingInvoices.has(invoice.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            {deletingInvoices.has(invoice.id) ? (
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-red-600" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
                           </Button>
                         )}
                       </div>

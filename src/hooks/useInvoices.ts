@@ -52,7 +52,7 @@ export interface CreateInvoiceData {
 }
 
 export const useInvoices = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -552,6 +552,55 @@ export const useInvoices = () => {
     }
   };
 
+  const deleteInvoice = async (invoiceId: string) => {
+    if (!user || profile?.role !== 'admin') {
+      throw new Error('Unauthorized: Admin access required');
+    }
+
+    try {
+      // First, get the invoice to check if it has a PDF file
+      const { data: invoice, error: fetchError } = await supabase
+        .from('invoices')
+        .select('pdf_file_path')
+        .eq('id', invoiceId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching invoice for deletion:', fetchError);
+        throw new Error(`Failed to fetch invoice: ${fetchError.message}`);
+      }
+
+      // Delete the PDF file from storage if it exists
+      if (invoice?.pdf_file_path) {
+        const { error: storageError } = await supabase.storage
+          .from('company-assets')
+          .remove([invoice.pdf_file_path]);
+
+        if (storageError) {
+          console.warn('Warning: Could not delete PDF file from storage:', storageError);
+          // Continue with invoice deletion even if PDF deletion fails
+        }
+      }
+
+      // Delete the invoice from the database
+      const { error: deleteError } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('id', invoiceId);
+
+      if (deleteError) {
+        console.error('Error deleting invoice:', deleteError);
+        throw new Error(`Failed to delete invoice: ${deleteError.message}`);
+      }
+
+      await fetchInvoices(); // Refresh the list
+      return true;
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchInvoices();
@@ -565,6 +614,7 @@ export const useInvoices = () => {
     loading,
     createInvoice,
     updateInvoiceStatus,
+    deleteInvoice,
     generateInvoicePDF,
     previewInvoicePDF,
     downloadInvoicePDF,
