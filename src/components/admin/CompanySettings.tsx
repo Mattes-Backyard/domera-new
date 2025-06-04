@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,21 +25,22 @@ const TIMEZONES = [
 export const CompanySettings = () => {
   const { companyInfo, loading, updateCompanyInfo, uploadLogo } = useCompanySettings();
   const [formData, setFormData] = useState({
-    company_name: companyInfo?.company_name || '',
-    address: companyInfo?.address || '',
-    city: companyInfo?.city || '',
-    postal_code: companyInfo?.postal_code || '',
-    country: companyInfo?.country || '',
-    phone: companyInfo?.phone || '',
-    email: companyInfo?.email || '',
-    vat_number: companyInfo?.vat_number || '',
-    currency: companyInfo?.currency || 'EUR',
-    timezone: companyInfo?.timezone || 'Europe/Stockholm'
+    company_name: '',
+    address: '',
+    city: '',
+    postal_code: '',
+    country: '',
+    phone: '',
+    email: '',
+    vat_number: '',
+    currency: 'EUR',
+    timezone: 'Europe/Stockholm'
   });
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  // Update form data when companyInfo changes
-  useState(() => {
+  // Sync form data with company info when it loads or changes
+  useEffect(() => {
     if (companyInfo) {
       setFormData({
         company_name: companyInfo.company_name || '',
@@ -54,7 +55,7 @@ export const CompanySettings = () => {
         timezone: companyInfo.timezone || 'Europe/Stockholm'
       });
     }
-  });
+  }, [companyInfo]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -62,7 +63,15 @@ export const CompanySettings = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await updateCompanyInfo(formData);
+    setSaving(true);
+    
+    try {
+      await updateCompanyInfo(formData);
+    } catch (error) {
+      console.error('Error saving company settings:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,8 +79,13 @@ export const CompanySettings = () => {
     if (!file) return;
 
     setUploading(true);
-    await uploadLogo(file);
-    setUploading(false);
+    try {
+      await uploadLogo(file);
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+    } finally {
+      setUploading(false);
+    }
   };
 
   if (loading) {
@@ -120,6 +134,10 @@ export const CompanySettings = () => {
                   PNG, JPG, GIF up to 5MB
                 </p>
               </div>
+              
+              {uploading && (
+                <p className="text-sm text-blue-600">Uploading logo...</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -136,90 +154,98 @@ export const CompanySettings = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="company_name">Company Name</Label>
+                  <Label htmlFor="company_name">Company Name *</Label>
                   <Input
                     id="company_name"
                     value={formData.company_name}
                     onChange={(e) => handleInputChange('company_name', e.target.value)}
                     placeholder="Your Company Name"
+                    required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="vat_number">VAT Number</Label>
+                  <Label htmlFor="vat_number">VAT Number *</Label>
                   <Input
                     id="vat_number"
                     value={formData.vat_number}
                     onChange={(e) => handleInputChange('vat_number', e.target.value)}
                     placeholder="SE123456789001"
+                    required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Email *</Label>
                   <Input
                     id="email"
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="contact@company.com"
+                    required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">Phone *</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     placeholder="+46 8 123 456 78"
+                    required
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <Label htmlFor="address">Address</Label>
+                  <Label htmlFor="address">Address *</Label>
                   <Input
                     id="address"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
                     placeholder="123 Business Street"
+                    required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="city">City</Label>
+                  <Label htmlFor="city">City *</Label>
                   <Input
                     id="city"
                     value={formData.city}
                     onChange={(e) => handleInputChange('city', e.target.value)}
                     placeholder="Stockholm"
+                    required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="postal_code">Postal Code</Label>
+                  <Label htmlFor="postal_code">Postal Code *</Label>
                   <Input
                     id="postal_code"
                     value={formData.postal_code}
                     onChange={(e) => handleInputChange('postal_code', e.target.value)}
                     placeholder="12345"
+                    required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="country">Country</Label>
+                  <Label htmlFor="country">Country *</Label>
                   <Input
                     id="country"
                     value={formData.country}
                     onChange={(e) => handleInputChange('country', e.target.value)}
                     placeholder="Sweden"
+                    required
                   />
                 </div>
 
                 <div>
                   <Label htmlFor="currency" className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4" />
-                    Currency
+                    Currency *
                   </Label>
                   <Select 
                     value={formData.currency} 
@@ -241,7 +267,7 @@ export const CompanySettings = () => {
                 <div>
                   <Label htmlFor="timezone" className="flex items-center gap-2">
                     <Globe className="h-4 w-4" />
-                    Timezone
+                    Timezone *
                   </Label>
                   <Select 
                     value={formData.timezone} 
@@ -262,14 +288,30 @@ export const CompanySettings = () => {
               </div>
 
               <div className="flex justify-end">
-                <Button type="submit">
-                  Save Changes
+                <Button type="submit" disabled={saving}>
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
       </div>
+      
+      {/* Information about data persistence */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <div className="w-2 h-2 rounded-full bg-blue-600 mt-2 flex-shrink-0"></div>
+            <div>
+              <h4 className="font-medium text-blue-900 mb-1">Data Persistence</h4>
+              <p className="text-sm text-blue-800">
+                All company information is automatically saved to your database and will appear on invoices, 
+                documents, and throughout the application. Changes are immediately reflected across all features.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
