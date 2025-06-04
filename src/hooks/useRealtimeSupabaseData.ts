@@ -17,34 +17,24 @@ export const useRealtimeSupabaseData = () => {
     setLoading(true);
     
     try {
-      // Fetch units with detailed rental and customer information
+      // Fetch all units with rental and customer information
       const { data: unitsData } = await supabase
         .from('units')
         .select(`
           *,
           facility:facilities(name, city),
-          unit_rentals!inner(
+          unit_rentals(
             *,
-            customer:customers!inner(
+            customer:customers(
               *,
               profile:profiles(first_name, last_name, email, phone)
             )
           )
         `);
 
-      // Also fetch units without active rentals
-      const { data: unoccupiedUnitsData } = await supabase
-        .from('units')
-        .select(`
-          *,
-          facility:facilities(name, city)
-        `)
-        .not('id', 'in', `(${unitsData?.map(u => `'${u.id}'`).join(',') || "''"} )`);
-
-      // Combine and transform units data
-      const allUnitsData = [...(unitsData || []), ...(unoccupiedUnitsData || [])];
-      
-      const transformedUnits = allUnitsData?.map(unit => {
+      // Transform units data
+      const transformedUnits = unitsData?.map(unit => {
+        // Find active rental for this unit
         const activeRental = unit.unit_rentals?.find(rental => rental.is_active);
         const customer = activeRental?.customer;
         
@@ -54,15 +44,27 @@ export const useRealtimeSupabaseData = () => {
           unitStatus = 'occupied';
         }
         
+        // Format customer name consistently
+        let tenantName = null;
+        let tenantId = null;
+        
+        if (customer?.profile) {
+          const firstName = customer.profile.first_name || '';
+          const lastName = customer.profile.last_name || '';
+          tenantName = `${firstName} ${lastName}`.trim() || null;
+          tenantId = customer.user_id || customer.id;
+        } else if (customer) {
+          tenantName = `Customer ${customer.id.slice(-4)}`;
+          tenantId = customer.user_id || customer.id;
+        }
+        
         return {
           id: unit.unit_number,
           size: unit.size,
           type: unit.type,
           status: unitStatus,
-          tenant: customer?.profile ? 
-            `${customer.profile.first_name || ''} ${customer.profile.last_name || ''}`.trim() : 
-            null,
-          tenantId: customer?.user_id || customer?.id || null,
+          tenant: tenantName,
+          tenantId: tenantId,
           rate: Number(unit.monthly_rate),
           climate: unit.climate_controlled,
           site: unit.facility?.city?.toLowerCase() || 'unknown'
@@ -84,9 +86,20 @@ export const useRealtimeSupabaseData = () => {
 
       // Transform customers data
       const transformedCustomers = customersData?.map(customer => {
-        const customerName = customer.profile ? 
-          `${customer.profile.first_name || ''} ${customer.profile.last_name || ''}`.trim() : 
-          `Customer ${customer.id.slice(-4)}`;
+        // Format customer name consistently
+        let customerName = 'Unknown Customer';
+        
+        if (customer.profile) {
+          const firstName = customer.profile.first_name || '';
+          const lastName = customer.profile.last_name || '';
+          customerName = `${firstName} ${lastName}`.trim();
+          
+          if (!customerName) {
+            customerName = `Customer ${customer.id.slice(-4)}`;
+          }
+        } else {
+          customerName = `Customer ${customer.id.slice(-4)}`;
+        }
         
         const customerEmail = customer.profile?.email || `customer${customer.id.slice(-4)}@placeholder.com`;
         const customerPhone = customer.profile?.phone || customer.emergency_contact_phone || 'No phone';
