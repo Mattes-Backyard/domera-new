@@ -169,6 +169,25 @@ export const useInvoices = () => {
     try {
       console.log('Starting PDF generation for invoice:', invoice.invoice_number);
       
+      // Get unit information for the invoice
+      let unitNumber = '';
+      if (invoice.unit_rental_id) {
+        const { data: rentalData } = await supabase
+          .from('unit_rentals')
+          .select(`
+            *,
+            units (
+              unit_number
+            )
+          `)
+          .eq('id', invoice.unit_rental_id)
+          .single();
+        
+        if (rentalData?.units) {
+          unitNumber = rentalData.units.unit_number || '';
+        }
+      }
+      
       const pdf = new jsPDF();
       const currency = invoice.currency || companyInfo?.currency || 'EUR';
       const currencySymbol = getCurrencySymbol(currency);
@@ -263,10 +282,10 @@ export const useInvoices = () => {
       pdf.text('Lev ant', 130, tableStartY + 5);
       pdf.text('Summa', 165, tableStartY + 5);
       
-      // Table content row
+      // Table content row - use unit number if available
       const contentY = tableStartY + rowHeight;
       pdf.setFont('helvetica', 'normal');
-      const description = invoice.description || `Hyra Förråd ${invoice.unit_rental_id || '1-A1-10'}`;
+      const description = invoice.description || `Hyra Förråd ${unitNumber || '1-A1-10'}`;
       pdf.text(description, 22, contentY + 5);
       pdf.text('1', 130, contentY + 5);
       pdf.text(`${invoice.subtotal.toFixed(2).replace('.', ',')} ${currencySymbol === '€' ? 'kr' : currencySymbol}`, 165, contentY + 5);

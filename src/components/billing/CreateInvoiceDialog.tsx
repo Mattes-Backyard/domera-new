@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -66,7 +65,7 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
       const unit = units.find(u => u.id === rental.unit_id);
       return {
         ...rental,
-        unit_name: unit ? `Unit ${unit.unit_number}` : `Unit ${rental.unit_id?.slice(0, 8)}...`,
+        unit_id_display: unit ? unit.unit_number : `Unit ${rental.unit_id?.slice(0, 8)}...`,
         unit_details: unit
       };
     });
@@ -77,12 +76,12 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
     const selectedRental = customerUnits.find(r => r.id === rentalId);
     
     if (selectedRental) {
-      const unitName = selectedRental.unit_name || 'Storage unit';
+      const unitId = selectedRental.unit_id_display || 'Storage unit';
       setFormData(prev => ({ 
         ...prev, 
         unit_rental_id: rentalId,
         subtotal: selectedRental.monthly_rate || 0,
-        description: `${unitName} rental`
+        description: `${unitId} rental`
       }));
     }
   };
@@ -211,7 +210,7 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
                         key={rental.id} 
                         value={rental.id}
                       >
-                        {rental.unit_name} - {currencySymbol}{rental.monthly_rate || 0}/month
+                        {rental.unit_id_display} - {currencySymbol}{rental.monthly_rate || 0}/month
                       </SelectItem>
                     ))
                   ) : (
