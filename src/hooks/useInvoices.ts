@@ -241,19 +241,19 @@ export const useInvoices = () => {
       pdf.text('Payment Terms: Net 30 days', 20, totalsY + 35);
       pdf.text('Thank you for your business!', 20, totalsY + 45);
 
-      // Convert PDF to blob - use binary string instead of arraybuffer
+      // Convert PDF to blob with correct content type
       const pdfOutput = pdf.output('blob');
       const fileName = `invoice-${invoice.invoice_number}.pdf`;
       
       console.log('Uploading PDF to storage:', fileName);
       
-      // Upload to Supabase storage with binary content type
+      // Upload to Supabase storage with proper PDF content type
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('company-assets')
         .upload(`invoices/${fileName}`, pdfOutput, {
           cacheControl: '3600',
           upsert: true,
-          contentType: 'application/octet-stream'
+          contentType: 'application/pdf'
         });
 
       if (uploadError) {
