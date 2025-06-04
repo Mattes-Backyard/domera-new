@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -33,6 +32,19 @@ export interface CompanyInfo {
   logo_url?: string;
 }
 
+export interface CreateInvoiceData {
+  invoice_number: string;
+  customer_id: string;
+  unit_rental_id?: string;
+  issue_date: string;
+  due_date: string;
+  subtotal: number;
+  vat_rate: number;
+  vat_amount: number;
+  total_amount: number;
+  status: Invoice['status'];
+}
+
 export const useInvoices = () => {
   const { user } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -54,7 +66,13 @@ export const useInvoices = () => {
         return;
       }
 
-      setInvoices(invoicesData || []);
+      // Type assertion to ensure status field matches our union type
+      const typedInvoices = (invoicesData || []).map(invoice => ({
+        ...invoice,
+        status: invoice.status as Invoice['status']
+      }));
+
+      setInvoices(typedInvoices);
     } catch (error) {
       console.error('Error fetching invoices:', error);
     } finally {
@@ -197,7 +215,7 @@ export const useInvoices = () => {
     `;
   };
 
-  const createInvoice = async (invoiceData: Partial<Invoice>) => {
+  const createInvoice = async (invoiceData: CreateInvoiceData) => {
     if (!user) return null;
 
     try {

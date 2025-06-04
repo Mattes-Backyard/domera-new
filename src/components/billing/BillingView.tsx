@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Filter, Download, Eye, DollarSign, FileText, Calendar, CreditCard, Plus } from "lucide-react";
 import { PaymentProcessor } from "@/components/payments/PaymentProcessor";
-import { useInvoices, type Invoice } from "@/hooks/useInvoices";
+import { useInvoices, type Invoice, type CreateInvoiceData } from "@/hooks/useInvoices";
 import { useRealtimeSupabaseData } from "@/hooks/useRealtimeSupabaseData";
 import { toast } from "sonner";
 
@@ -92,7 +91,7 @@ export const BillingView = () => {
 
   const handleGenerateInvoice = async () => {
     // Create a sample invoice for demonstration
-    const newInvoice = {
+    const newInvoiceData: CreateInvoiceData = {
       invoice_number: `INV-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(4, '0')}`,
       customer_id: customers[0]?.id || 'sample-customer-id',
       issue_date: new Date().toISOString().split('T')[0],
@@ -101,10 +100,10 @@ export const BillingView = () => {
       vat_rate: 25.00,
       vat_amount: 50.00,
       total_amount: 250.00,
-      status: 'draft' as const
+      status: 'draft'
     };
 
-    const result = await createInvoice(newInvoice);
+    const result = await createInvoice(newInvoiceData);
     if (result) {
       toast.success("New invoice created successfully");
     } else {
