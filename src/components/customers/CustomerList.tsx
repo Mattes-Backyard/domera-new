@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,9 +40,12 @@ export const CustomerList = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
+      case "good":
         return "bg-green-100 text-green-800";
       case "reserved":
         return "bg-yellow-100 text-yellow-800";
+      case "overdue":
+        return "bg-red-100 text-red-800";
       case "former":
         return "bg-gray-100 text-gray-800";
       default:
@@ -98,7 +100,6 @@ export const CustomerList = ({
         </div>
       </div>
 
-      {/* Filters - only show if no external search query is provided */}
       {!searchQuery && (
         <Card className="mb-6">
           <CardHeader>
@@ -124,8 +125,8 @@ export const CustomerList = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="reserved">Reserved</SelectItem>
+                <SelectItem value="good">Good</SelectItem>
+                <SelectItem value="overdue">Overdue</SelectItem>
                 <SelectItem value="former">Former</SelectItem>
               </SelectContent>
             </Select>
@@ -156,7 +157,6 @@ export const CustomerList = ({
         </Card>
       )}
 
-      {/* Customer Table */}
       <Card>
         <Table>
           <TableHeader>

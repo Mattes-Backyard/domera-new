@@ -10,7 +10,7 @@ import { OperationsView } from "@/components/operations/OperationsView";
 import { FloorPlanView } from "@/components/floor-plan/FloorPlanView";
 import { AdminInterface } from "@/components/admin/AdminInterface";
 import { IntegrationsView } from "@/components/integrations/IntegrationsView";
-import { Customer, DatabaseCustomer, Tenant } from "@/types/customer";
+import { Customer, DatabaseCustomer, Tenant, TenantUnit, transformCustomerToDatabaseCustomer } from "@/types/customer";
 
 interface Unit {
   id: string;

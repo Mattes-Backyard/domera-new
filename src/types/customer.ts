@@ -20,6 +20,7 @@ export interface DatabaseCustomer {
   balance?: number;
   notes?: string;
   facility_id: string;
+  user_id?: string;
 }
 
 // Transformed Customer type (used in UI)
@@ -34,7 +35,7 @@ export interface Customer {
   moveInDate?: string;
   emergencyContact?: string;
   emergencyPhone?: string;
-  joinDate?: string; // Added for CustomerList compatibility
+  joinDate?: string;
 }
 
 // TenantUnit type for TenantDetailsPage
@@ -60,3 +61,42 @@ export interface Tenant {
   joinDate: string;
   units: TenantUnit[];
 }
+
+// Helper function to transform DatabaseCustomer to Customer
+export const transformDatabaseCustomerToCustomer = (dbCustomer: DatabaseCustomer, units: string[] = []): Customer => {
+  return {
+    id: dbCustomer.id,
+    name: `${dbCustomer.first_name} ${dbCustomer.last_name}`.trim(),
+    email: dbCustomer.email,
+    phone: dbCustomer.phone,
+    units,
+    balance: dbCustomer.balance || 0,
+    status: (dbCustomer.balance || 0) > 0 ? 'overdue' : 'good',
+    moveInDate: dbCustomer.move_in_date,
+    emergencyContact: dbCustomer.emergency_contact_name,
+    emergencyPhone: dbCustomer.emergency_contact_phone,
+    joinDate: dbCustomer.move_in_date
+  };
+};
+
+// Helper function to transform Customer to DatabaseCustomer
+export const transformCustomerToDatabaseCustomer = (customer: Customer): DatabaseCustomer => {
+  const nameParts = customer.name.split(' ');
+  return {
+    id: customer.id,
+    first_name: nameParts[0] || '',
+    last_name: nameParts.slice(1).join(' ') || '',
+    email: customer.email,
+    phone: customer.phone,
+    address: '', // Not available in Customer type
+    city: '', // Not available in Customer type
+    state: '', // Not available in Customer type
+    zip_code: '', // Not available in Customer type
+    emergency_contact_name: customer.emergencyContact,
+    emergency_contact_phone: customer.emergencyPhone,
+    move_in_date: customer.moveInDate,
+    balance: customer.balance,
+    facility_id: '', // Not available in Customer type
+    user_id: customer.id
+  };
+};
