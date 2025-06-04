@@ -62,19 +62,14 @@ const transformUnitForFloorPlan = (unit: Unit) => {
 const transformUnitForDetails = (unit: Unit) => {
   return {
     id: unit.id,
-    unit_number: unit.unit_number,
     size: unit.size,
     type: unit.type || 'Standard',
     status: unit.status,
     tenant: unit.tenant?.name || null,
     tenantId: unit.tenant?.id || null,
-    monthly_rate: unit.monthly_rate,
-    climate_controlled: unit.climate_controlled || false,
-    facility_id: unit.facility_id,
-    description: unit.description,
-    floor_level: unit.floor_level,
-    created_at: unit.created_at,
-    updated_at: unit.updated_at
+    rate: unit.monthly_rate,
+    climate: unit.climate_controlled || false,
+    site: unit.facility_id
   };
 };
 
@@ -167,8 +162,8 @@ export const ContentRenderer = ({
             // Transform back to useAppState Unit format
             const transformedBack = {
               ...viewingUnitDetails,
-              monthly_rate: updatedUnit.monthly_rate,
-              climate_controlled: updatedUnit.climate_controlled,
+              monthly_rate: updatedUnit.rate,
+              climate_controlled: updatedUnit.climate,
               status: updatedUnit.status as any
             };
             onUnitUpdate(transformedBack);
@@ -208,9 +203,34 @@ export const ContentRenderer = ({
             searchQuery={searchQuery}
             selectedUnitId={selectedUnitId}
             onClearSelection={onClearUnitSelection}
-            units={units}
-            onUnitSelect={onUnitSelect}
-            onUnitAdd={onUnitAdd}
+            units={transformedUnitsForFloorPlan}
+            onUnitSelect={(unit) => {
+              // Find original unit and call onUnitSelect
+              const originalUnit = units.find(u => u.id === unit.id);
+              if (originalUnit) {
+                onUnitSelect(originalUnit);
+              }
+            }}
+            onUnitAdd={(newUnit) => {
+              // Transform back to useAppState Unit format
+              const transformedBack = {
+                id: newUnit.id,
+                unit_number: newUnit.id,
+                size: newUnit.size,
+                monthly_rate: newUnit.rate,
+                status: newUnit.status as any,
+                type: newUnit.type,
+                climate_controlled: newUnit.climate,
+                facility_id: newUnit.site,
+                tenant: newUnit.tenant ? {
+                  id: newUnit.tenantId || '',
+                  name: newUnit.tenant,
+                  phone: '',
+                  email: ''
+                } : undefined
+              };
+              onUnitAdd(transformedBack);
+            }}
             onTenantClick={onTenantClick}
             facilities={facilities}
           />
