@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,11 +39,11 @@ export const CompanySettings = () => {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Load data when component mounts or when companyInfo changes
+  // Load data when component mounts
   useEffect(() => {
-    console.log('CompanySettings: Loading company data', companyInfo);
-    refreshData(); // Ensure we have fresh data
-  }, []);
+    console.log('CompanySettings: Component mounted, refreshing data');
+    refreshData();
+  }, [refreshData]);
 
   // Sync form data with company info when it loads or changes
   useEffect(() => {
@@ -60,6 +61,21 @@ export const CompanySettings = () => {
         currency: companyInfo.currency || 'EUR',
         timezone: companyInfo.timezone || 'Europe/Stockholm'
       });
+    } else {
+      console.log('CompanySettings: No company info found, using defaults');
+      // If no company info exists, set reasonable defaults
+      setFormData({
+        company_name: '',
+        address: '',
+        city: '',
+        postal_code: '',
+        country: '',
+        phone: '',
+        email: '',
+        vat_number: '',
+        currency: 'EUR',
+        timezone: 'Europe/Stockholm'
+      });
     }
   }, [companyInfo]);
 
@@ -75,9 +91,9 @@ export const CompanySettings = () => {
       console.log('CompanySettings: Saving company data', formData);
       const success = await updateCompanyInfo(formData);
       if (success) {
+        console.log('CompanySettings: Data saved successfully, refreshing');
         // Refresh data after successful save to ensure UI is in sync
         await refreshData();
-        console.log('CompanySettings: Data saved and refreshed successfully');
       }
     } catch (error) {
       console.error('Error saving company settings:', error);
@@ -95,9 +111,9 @@ export const CompanySettings = () => {
       console.log('CompanySettings: Uploading logo', file.name);
       const logoUrl = await uploadLogo(file);
       if (logoUrl) {
+        console.log('CompanySettings: Logo uploaded successfully, refreshing data');
         // Refresh data after successful logo upload
         await refreshData();
-        console.log('CompanySettings: Logo uploaded and data refreshed');
       }
     } catch (error) {
       console.error('Error uploading logo:', error);
@@ -141,7 +157,7 @@ export const CompanySettings = () => {
               <Avatar className="h-24 w-24">
                 <AvatarImage src={companyInfo?.logo_url} alt="Company Logo" />
                 <AvatarFallback className="text-2xl">
-                  {formData.company_name.charAt(0) || 'C'}
+                  {formData.company_name ? formData.company_name.charAt(0) : 'C'}
                 </AvatarFallback>
               </Avatar>
               
