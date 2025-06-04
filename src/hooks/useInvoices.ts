@@ -15,6 +15,7 @@ export interface Invoice {
   vat_amount: number;
   total_amount: number;
   status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled' | 'pending';
+  description?: string;
   pdf_file_path?: string;
   created_at: string;
   updated_at: string;
@@ -44,6 +45,7 @@ export interface CreateInvoiceData {
   vat_amount: number;
   total_amount: number;
   status: Invoice['status'];
+  description?: string;
 }
 
 export const useInvoices = () => {
@@ -150,9 +152,10 @@ export const useInvoices = () => {
       // Table line
       pdf.line(20, tableStartY + 2, 190, tableStartY + 2);
       
-      // Table content
+      // Table content - Use the description from the invoice
       pdf.setFont('helvetica', 'normal');
-      pdf.text('Storage Unit Rental', 20, tableStartY + 10);
+      const description = invoice.description || 'Storage Unit Rental';
+      pdf.text(description, 20, tableStartY + 10);
       pdf.text(`${invoice.issue_date} - ${invoice.due_date}`, 80, tableStartY + 10);
       pdf.text(`€${invoice.subtotal.toFixed(2)}`, 150, tableStartY + 10);
       

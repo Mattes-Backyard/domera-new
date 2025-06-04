@@ -47,7 +47,12 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
   const handleUnitRentalChange = (unitId: string) => {
     const unit = units.find(u => u.id === unitId);
     if (unit) {
-      setFormData(prev => ({ ...prev, unit_rental_id: unitId, subtotal: unit.rate }));
+      setFormData(prev => ({ 
+        ...prev, 
+        unit_rental_id: unitId, 
+        subtotal: unit.monthly_rate || unit.rate || 0,
+        description: `Storage unit rental - Unit ${unit.unit_number}`
+      }));
     }
   };
 
@@ -70,7 +75,8 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
         vat_rate: formData.vat_rate,
         vat_amount: vatAmount,
         total_amount: totalAmount,
-        status: formData.status
+        status: formData.status,
+        description: formData.description
       };
 
       const result = await onCreateInvoice(invoiceData);
@@ -115,7 +121,7 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
               <Label htmlFor="customer">Customer *</Label>
               <Select 
                 value={formData.customer_id} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, customer_id: value }))}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, customer_id: value, unit_rental_id: "" }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select customer" />
@@ -143,7 +149,7 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
                 <SelectContent>
                   {getCustomerUnitRentals().map((unit) => (
                     <SelectItem key={unit.id} value={unit.id}>
-                      Unit {unit.id} - €{unit.rate}/month
+                      Unit {unit.unit_number} - €{unit.monthly_rate || unit.rate || 0}/month
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -217,12 +223,13 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
           </div>
 
           <div>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Description *</Label>
             <Textarea 
               placeholder="Invoice description..."
               className="min-h-[80px]"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              required
             />
           </div>
 
