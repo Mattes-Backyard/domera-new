@@ -1,281 +1,196 @@
 
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { UserPlus } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
 import { DatabaseCustomer } from "@/types/customer";
 
-const availableUnits = [
-  { id: "A-102", size: "5x5", rate: 85 },
-  { id: "C-301", size: "10x20", rate: 280 },
-];
-
 interface AddCustomerDialogProps {
-  onSave?: (customer: DatabaseCustomer) => void;
-  isOpen?: boolean;
-  onClose?: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCustomerAdd: (customer: DatabaseCustomer) => void;
 }
 
-export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustomerDialogProps) => {
-  const [open, setOpen] = useState(false);
+export const AddCustomerDialog = ({
+  open,
+  onOpenChange,
+  onCustomerAdd,
+}: AddCustomerDialogProps) => {
   const [formData, setFormData] = useState({
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     phone: "",
     address: "",
-    personalId: "",
-    taxId: "",
-    assignedUnit: "",
-    emergencyContactName: "",
-    emergencyContactPhone: "",
-    emergencyContactRelationship: "",
-    notes: "",
+    city: "",
+    state: "",
+    zip_code: "",
+    emergency_contact_name: "",
+    emergency_contact_phone: "",
   });
-
-  useEffect(() => {
-    if (isOpen !== undefined) {
-      setOpen(isOpen);
-    }
-  }, [isOpen]);
-
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    if (!newOpen && onClose) {
-      onClose();
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.name || !formData.email || !formData.phone) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Create new customer object as DatabaseCustomer
-    const nameParts = formData.name.split(' ');
     const newCustomer: DatabaseCustomer = {
-      id: formData.name.toLowerCase().replace(/\s+/g, '-'),
-      first_name: nameParts[0] || '',
-      last_name: nameParts.slice(1).join(' ') || '',
+      id: crypto.randomUUID(),
+      first_name: formData.first_name,
+      last_name: formData.last_name,
       email: formData.email,
       phone: formData.phone,
       address: formData.address,
-      city: '',
-      state: '',
-      zip_code: '',
-      emergency_contact_name: formData.emergencyContactName,
-      emergency_contact_phone: formData.emergencyContactPhone,
+      city: formData.city,
+      state: formData.state,
+      zip_code: formData.zip_code,
+      emergency_contact_name: formData.emergency_contact_name,
+      emergency_contact_phone: formData.emergency_contact_phone,
       move_in_date: new Date().toISOString().split('T')[0],
-      lease_end_date: undefined,
-      security_deposit: undefined,
       balance: 0,
-      notes: formData.notes,
-      facility_id: '',
-      user_id: undefined,
+      facility_id: "",
+      user_id: crypto.randomUUID(),
     };
 
-    // Call the callback to add customer to the system
-    if (onSave) {
-      onSave(newCustomer);
-    }
-
-    console.log("New customer data:", {
-      customer: newCustomer,
-      additionalInfo: {
-        personalId: formData.personalId,
-        taxId: formData.taxId,
-        assignedUnit: formData.assignedUnit,
-        emergencyContactRelationship: formData.emergencyContactRelationship,
-      }
-    });
+    onCustomerAdd(newCustomer);
+    onOpenChange(false);
     
-    toast({
-      title: "Success",
-      description: `Customer ${formData.name} has been added successfully${formData.assignedUnit ? ` and assigned to unit ${formData.assignedUnit}` : ""}`,
-    });
-
-    // Reset form and close dialog
+    // Reset form
     setFormData({
-      name: "",
+      first_name: "",
+      last_name: "",
       email: "",
       phone: "",
       address: "",
-      personalId: "",
-      taxId: "",
-      assignedUnit: "",
-      emergencyContactName: "",
-      emergencyContactPhone: "",
-      emergencyContactRelationship: "",
-      notes: "",
+      city: "",
+      state: "",
+      zip_code: "",
+      emergency_contact_name: "",
+      emergency_contact_phone: "",
     });
-    setOpen(false);
-    if (onClose) {
-      onClose();
-    }
+  };
+
+  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      {!isOpen && (
-        <DialogTrigger asChild>
-          <Button className="flex items-center space-x-2">
-            <UserPlus className="h-4 w-4" />
-            <span>Add New Customer</span>
-          </Button>
-        </DialogTrigger>
-      )}
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Add New Customer</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Basic Information</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone *</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="personalId">Personal ID</Label>
-                <Input
-                  id="personalId"
-                  value={formData.personalId}
-                  onChange={(e) => setFormData({ ...formData, personalId: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="taxId">Tax ID</Label>
-                <Input
-                  id="taxId"
-                  value={formData.taxId}
-                  onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Unit Assignment */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Unit Assignment (Optional)</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="assignedUnit">Assign Unit</Label>
-              <Select value={formData.assignedUnit} onValueChange={(value) => setFormData({ ...formData, assignedUnit: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a unit (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableUnits.map((unit) => (
-                    <SelectItem key={unit.id} value={unit.id}>
-                      {unit.id} - {unit.size} (${unit.rate}/month)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="first_name">First Name</Label>
+              <Input
+                id="first_name"
+                value={formData.first_name}
+                onChange={handleInputChange("first_name")}
+                required
+              />
             </div>
-          </div>
-
-          {/* Emergency Contact */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Emergency Contact</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="emergencyContactName">Contact Name</Label>
-                <Input
-                  id="emergencyContactName"
-                  value={formData.emergencyContactName}
-                  onChange={(e) => setFormData({ ...formData, emergencyContactName: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="emergencyContactPhone">Contact Phone</Label>
-                <Input
-                  id="emergencyContactPhone"
-                  value={formData.emergencyContactPhone}
-                  onChange={(e) => setFormData({ ...formData, emergencyContactPhone: e.target.value })}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label htmlFor="emergencyContactRelationship">Relationship</Label>
-                <Input
-                  id="emergencyContactRelationship"
-                  value={formData.emergencyContactRelationship}
-                  onChange={(e) => setFormData({ ...formData, emergencyContactRelationship: e.target.value })}
-                  placeholder="e.g., Spouse, Parent, Sibling"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Additional Notes</h3>
             <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Any additional information about the customer..."
-                rows={3}
+              <Label htmlFor="last_name">Last Name</Label>
+              <Input
+                id="last_name"
+                value={formData.last_name}
+                onChange={handleInputChange("last_name")}
+                required
               />
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange("email")}
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              value={formData.phone}
+              onChange={handleInputChange("phone")}
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="address">Address</Label>
+            <Input
+              id="address"
+              value={formData.address}
+              onChange={handleInputChange("address")}
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={handleInputChange("city")}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="state">State</Label>
+              <Input
+                id="state"
+                value={formData.state}
+                onChange={handleInputChange("state")}
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="zip_code">Zip Code</Label>
+            <Input
+              id="zip_code"
+              value={formData.zip_code}
+              onChange={handleInputChange("zip_code")}
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="emergency_contact_name">Emergency Contact Name</Label>
+              <Input
+                id="emergency_contact_name"
+                value={formData.emergency_contact_name}
+                onChange={handleInputChange("emergency_contact_name")}
+              />
+            </div>
+            <div>
+              <Label htmlFor="emergency_contact_phone">Emergency Contact Phone</Label>
+              <Input
+                id="emergency_contact_phone"
+                value={formData.emergency_contact_phone}
+                onChange={handleInputChange("emergency_contact_phone")}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">
-              Add Customer
-            </Button>
+            <Button type="submit">Add Customer</Button>
           </div>
         </form>
       </DialogContent>

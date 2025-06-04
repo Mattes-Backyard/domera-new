@@ -1,252 +1,107 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Mail, Phone, MapPin, Calendar, X, Search, Filter } from "lucide-react";
-import { AddCustomerDialog } from "./AddCustomerDialog";
-import { Customer, DatabaseCustomer } from "@/types/customer";
 import { useState } from "react";
+import { CustomerCard } from "./CustomerCard";
+import { AddCustomerDialog } from "./AddCustomerDialog";
+import { Button } from "@/components/ui/button";
+import { Plus, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Customer, DatabaseCustomer, transformCustomerToDatabaseCustomer } from "@/types/customer";
 
 interface CustomerListProps {
-  searchQuery?: string;
-  selectedCustomerId?: string | null;
-  onClearSelection?: () => void;
-  customers?: Customer[];
-  onCustomerAdd?: (customer: DatabaseCustomer) => void;
-  onTenantClick?: (customerId: string) => void;
-  triggerAddDialog?: boolean;
-  onAddDialogClose?: () => void;
+  searchQuery: string;
+  selectedCustomerId: string | null;
+  onClearSelection: () => void;
+  customers: Customer[];
+  onCustomerAdd: (customer: DatabaseCustomer) => void;
+  onTenantClick: (tenantId: string) => void;
 }
 
-export const CustomerList = ({ 
-  searchQuery = "",
-  selectedCustomerId, 
-  onClearSelection, 
-  customers = [], 
-  onCustomerAdd, 
+export const CustomerList = ({
+  searchQuery,
+  selectedCustomerId,
+  onClearSelection,
+  customers,
+  onCustomerAdd,
   onTenantClick,
-  triggerAddDialog = false,
-  onAddDialogClose
 }: CustomerListProps) => {
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [balanceFilter, setBalanceFilter] = useState("all");
 
-  // Use either the passed searchQuery or local search query
   const effectiveSearchQuery = searchQuery || localSearchQuery;
+  
+  const filteredCustomers = customers.filter(customer =>
+    customer.name.toLowerCase().includes(effectiveSearchQuery.toLowerCase()) ||
+    customer.email.toLowerCase().includes(effectiveSearchQuery.toLowerCase()) ||
+    customer.phone.includes(effectiveSearchQuery)
+  );
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-      case "good":
-        return "bg-green-100 text-green-800";
-      case "reserved":
-        return "bg-yellow-100 text-yellow-800";
-      case "overdue":
-        return "bg-red-100 text-red-800";
-      case "former":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getBalanceColor = (balance: number) => {
-    if (balance > 0) return "text-green-600";
-    if (balance < 0) return "text-red-600";
-    return "text-gray-600";
-  };
-
-  const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = customer.name.toLowerCase().includes(effectiveSearchQuery.toLowerCase()) ||
-                         customer.email.toLowerCase().includes(effectiveSearchQuery.toLowerCase()) ||
-                         customer.phone.includes(effectiveSearchQuery) ||
-                         customer.units.some(unit => unit.toLowerCase().includes(effectiveSearchQuery.toLowerCase()));
-    
-    const matchesStatus = statusFilter === "all" || customer.status === statusFilter;
-    
-    const matchesBalance = balanceFilter === "all" || 
-                          (balanceFilter === "positive" && customer.balance > 0) ||
-                          (balanceFilter === "negative" && customer.balance < 0) ||
-                          (balanceFilter === "zero" && customer.balance === 0);
-    
-    return matchesSearch && matchesStatus && matchesBalance;
-  });
-
-  const handleCustomerClick = (customer: Customer) => {
-    console.log("Customer clicked:", customer.id);
-    onTenantClick?.(customer.id);
+  const handleViewDetails = (customer: Customer) => {
+    onTenantClick(customer.id);
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customer Management</h1>
-          <p className="text-gray-600">
-            Browse and manage customer profiles ({filteredCustomers.length} of {customers.length} customers)
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {selectedCustomerId && (
-            <Button variant="outline" onClick={onClearSelection} className="flex items-center gap-2">
-              <X className="h-4 w-4" />
-              Clear Selection
-            </Button>
-          )}
-          <AddCustomerDialog onSave={onCustomerAdd} />
-        </div>
+    <div className="space-y-6 p-6 h-full overflow-auto">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Customer
+        </Button>
       </div>
 
       {!searchQuery && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filters & Search
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search customers..."
-                value={localSearchQuery}
-                onChange={(e) => setLocalSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="good">Good</SelectItem>
-                <SelectItem value="overdue">Overdue</SelectItem>
-                <SelectItem value="former">Former</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={balanceFilter} onValueChange={setBalanceFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All balances" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All balances</SelectItem>
-                <SelectItem value="positive">Credit balance</SelectItem>
-                <SelectItem value="negative">Overdue</SelectItem>
-                <SelectItem value="zero">Zero balance</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setLocalSearchQuery("");
-                setStatusFilter("all");
-                setBalanceFilter("all");
-              }}
-            >
-              Clear Filters
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search customers..."
+            value={localSearchQuery}
+            onChange={(e) => setLocalSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       )}
 
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Customer</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Units</TableHead>
-              <TableHead>Balance</TableHead>
-              <TableHead>Join Date</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredCustomers.map((customer) => (
-              <TableRow 
-                key={customer.id} 
-                className={`cursor-pointer hover:bg-gray-50 ${selectedCustomerId === customer.id ? 'bg-blue-50' : ''}`}
-                onClick={() => handleCustomerClick(customer)}
-              >
-                <TableCell>
-                  <div>
-                    <div className="font-medium text-gray-900">{customer.name}</div>
-                    <div className="text-sm text-gray-500">ID: {customer.id}</div>
-                  </div>
-                </TableCell>
-                
-                <TableCell>
-                  <div className="space-y-1">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Mail className="h-3 w-3 mr-1" />
-                      {customer.email}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Phone className="h-3 w-3 mr-1" />
-                      {customer.phone}
-                    </div>
-                  </div>
-                </TableCell>
-                
-                <TableCell>
-                  <Badge className={getStatusColor(customer.status)}>
-                    {customer.status}
-                  </Badge>
-                </TableCell>
-                
-                <TableCell>
-                  <div className="flex items-center text-sm">
-                    <MapPin className="h-3 w-3 mr-1 text-gray-400" />
-                    {customer.units.length > 0 ? customer.units.join(", ") : "None"}
-                  </div>
-                </TableCell>
-                
-                <TableCell>
-                  <span className={`font-semibold ${getBalanceColor(customer.balance)}`}>
-                    ${Math.abs(customer.balance)} {customer.balance < 0 ? "overdue" : customer.balance > 0 ? "credit" : ""}
-                  </span>
-                </TableCell>
-                
-                <TableCell>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    {customer.joinDate || customer.moveInDate || "N/A"}
-                  </div>
-                </TableCell>
-                
-                <TableCell>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCustomerClick(customer);
-                    }}
-                  >
-                    View
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        
-        {filteredCustomers.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No customers found matching your criteria.
-          </div>
-        )}
-      </Card>
+      {effectiveSearchQuery && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-600">
+            {filteredCustomers.length} customer(s) found for "{effectiveSearchQuery}"
+          </p>
+          {selectedCustomerId && (
+            <Button variant="outline" onClick={onClearSelection}>
+              Clear Selection
+            </Button>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredCustomers.map((customer) => (
+          <CustomerCard
+            key={customer.id}
+            customer={customer}
+            isSelected={selectedCustomerId === customer.id}
+            onViewDetails={handleViewDetails}
+          />
+        ))}
+      </div>
+
+      {filteredCustomers.length === 0 && effectiveSearchQuery && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No customers found matching "{effectiveSearchQuery}"</p>
+        </div>
+      )}
+
+      {filteredCustomers.length === 0 && !effectiveSearchQuery && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No customers yet. Add your first customer to get started.</p>
+        </div>
+      )}
+
+      <AddCustomerDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onCustomerAdd={onCustomerAdd}
+      />
     </div>
   );
 };
