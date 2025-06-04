@@ -1,4 +1,3 @@
-
 import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
@@ -10,7 +9,7 @@ import { OperationsView } from "@/components/operations/OperationsView";
 import { FloorPlanView } from "@/components/floor-plan/FloorPlanView";
 import { AdminInterface } from "@/components/admin/AdminInterface";
 import { IntegrationsView } from "@/components/integrations/IntegrationsView";
-import { Customer, DatabaseCustomer, Tenant, transformCustomerToDatabaseCustomer } from "@/types/customer";
+import { Customer, DatabaseCustomer, transformCustomerToDatabaseCustomer } from "@/types/customer";
 import type { Unit } from "@/hooks/useAppState";
 
 interface Facility {
@@ -129,6 +128,12 @@ export const ContentRenderer = ({
 
   // Regular view rendering with proper scrolling containers
   switch (activeView) {
+    case "dashboard":
+      return (
+        <div className="h-full overflow-auto">
+          <ReportsDashboard />
+        </div>
+      );
     case "units":
       return (
         <div className="h-full overflow-auto">
@@ -200,16 +205,7 @@ export const ContentRenderer = ({
     default:
       return (
         <div className="h-full overflow-auto">
-          <UnitGrid
-            searchQuery={searchQuery}
-            selectedUnitId={selectedUnitId}
-            onClearSelection={onClearUnitSelection}
-            units={units}
-            onUnitSelect={onUnitSelect}
-            onUnitAdd={onUnitAdd}
-            onTenantClick={onTenantClick}
-            facilities={facilities}
-          />
+          <ReportsDashboard />
         </div>
       );
   }
