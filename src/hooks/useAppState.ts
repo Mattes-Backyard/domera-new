@@ -277,5 +277,3 @@ export const useAppState = () => {
     addUnit,
   };
 };
-
-export type { Unit };
