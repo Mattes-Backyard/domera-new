@@ -4,7 +4,6 @@ import { Search, Bell } from "lucide-react";
 import { NotificationDropdown } from "@/components/dashboard/NotificationDropdown";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { MultiSiteSelector } from "@/components/dashboard/MultiSiteSelector";
-import { CompanyLogo } from "@/components/ui/company-logo";
 
 interface DashboardHeaderProps {
   searchQuery: string;
@@ -32,9 +31,8 @@ export const DashboardHeader = ({
   return (
     <header className="bg-white/95 backdrop-blur-sm border-b border-gray-200/80 px-6 py-4 sticky top-0 z-40">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
-        {/* Left side - Company Logo and Facility Selector */}
-        <div className="flex items-center space-x-4">
-          <CompanyLogo size="md" className="flex-shrink-0" />
+        {/* Left side - Facility Selector */}
+        <div className="flex items-center">
           {selectedSites && onSitesChange && (
             <MultiSiteSelector 
               selectedSites={selectedSites}
