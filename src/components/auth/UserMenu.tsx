@@ -29,6 +29,12 @@ export const UserMenu = ({ onAdminClick }: UserMenuProps) => {
     }
   };
 
+  const handleAdminClick = () => {
+    if (onAdminClick) {
+      onAdminClick();
+    }
+  };
+
   const getInitials = () => {
     if (!profile?.first_name && !profile?.last_name) {
       return user?.email?.charAt(0).toUpperCase() || 'U';
@@ -76,7 +82,7 @@ export const UserMenu = ({ onAdminClick }: UserMenuProps) => {
         {profile?.role === 'admin' && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onAdminClick}>
+            <DropdownMenuItem onClick={handleAdminClick}>
               <Shield className="mr-2 h-4 w-4" />
               <span>Admin Panel</span>
             </DropdownMenuItem>

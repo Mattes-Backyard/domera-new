@@ -16,11 +16,13 @@ export type Database = {
           company_name: string
           country: string
           created_at: string
+          currency: string
           email: string
           id: string
           logo_url: string | null
           phone: string
           postal_code: string
+          timezone: string
           updated_at: string
           vat_number: string
         }
@@ -30,11 +32,13 @@ export type Database = {
           company_name?: string
           country?: string
           created_at?: string
+          currency?: string
           email?: string
           id?: string
           logo_url?: string | null
           phone?: string
           postal_code?: string
+          timezone?: string
           updated_at?: string
           vat_number?: string
         }
@@ -44,11 +48,13 @@ export type Database = {
           company_name?: string
           country?: string
           created_at?: string
+          currency?: string
           email?: string
           id?: string
           logo_url?: string | null
           phone?: string
           postal_code?: string
+          timezone?: string
           updated_at?: string
           vat_number?: string
         }
@@ -118,6 +124,7 @@ export type Database = {
         Row: {
           address: string
           city: string
+          country: string | null
           created_at: string | null
           email: string | null
           id: string
@@ -125,12 +132,14 @@ export type Database = {
           name: string
           phone: string | null
           state: string | null
+          timezone: string | null
           updated_at: string | null
           zip_code: string | null
         }
         Insert: {
           address: string
           city: string
+          country?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
@@ -138,12 +147,14 @@ export type Database = {
           name: string
           phone?: string | null
           state?: string | null
+          timezone?: string | null
           updated_at?: string | null
           zip_code?: string | null
         }
         Update: {
           address?: string
           city?: string
+          country?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
@@ -151,6 +162,7 @@ export type Database = {
           name?: string
           phone?: string | null
           state?: string | null
+          timezone?: string | null
           updated_at?: string | null
           zip_code?: string | null
         }
@@ -167,6 +179,7 @@ export type Database = {
       invoices: {
         Row: {
           created_at: string
+          currency: string
           customer_id: string
           description: string | null
           due_date: string
@@ -184,6 +197,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          currency?: string
           customer_id: string
           description?: string | null
           due_date: string
@@ -201,6 +215,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          currency?: string
           customer_id?: string
           description?: string | null
           due_date?: string

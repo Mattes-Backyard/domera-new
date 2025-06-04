@@ -1,113 +1,37 @@
-
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Search, Map, Bell, Plus } from "lucide-react";
-import { SearchResults } from "./SearchResults";
-import { NotificationDropdown } from "./NotificationDropdown";
-import { MultiSiteSelector } from "./MultiSiteSelector";
+import { Search } from "lucide-react";
+import { NotificationDropdown } from "@/components/dashboard/NotificationDropdown";
 import { UserMenu } from "@/components/auth/UserMenu";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { CompanyLogo } from "@/components/ui/company-logo";
 
 interface DashboardHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  onSearchResultClick: (type: 'unit' | 'customer', id: string) => void;
-  units: any[];
-  customers: any[];
-  onFloorPlanClick: () => void;
-  selectedSites: string[];
-  onSitesChange: (sites: string[]) => void;
-  onAdminClick?: () => void;
+  onAdminClick: () => void;
 }
 
-export const DashboardHeader = ({
-  searchQuery,
-  onSearchChange,
-  onSearchResultClick,
-  units,
-  customers,
-  onFloorPlanClick,
-  selectedSites,
-  onSitesChange,
-  onAdminClick,
-}: DashboardHeaderProps) => {
-  const [showResults, setShowResults] = useState(false);
-
-  // Enhanced search result click handler
-  const handleSearchResultClick = (type: 'unit' | 'customer', id: string) => {
-    onSearchResultClick(type, id);
-    setShowResults(false);
-    onSearchChange(""); // Clear the search query after a result is clicked
-  };
-
-  // Filter search results based on query
-  const filteredUnits = units.filter(unit => 
-    unit.unit_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    unit.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    unit.size?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredCustomers = customers.filter(customer => 
-    customer.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    customer.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    customer.phone?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+export const DashboardHeader = ({ searchQuery, onSearchChange, onAdminClick }: DashboardHeaderProps) => {
   return (
-    <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-      <div className="flex h-16 items-center justify-between px-4 lg:px-6">
+    <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <SidebarTrigger />
-          <Separator orientation="vertical" className="h-6" />
-          
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search units, customers..."
-                value={searchQuery}
-                onChange={(e) => {
-                  onSearchChange(e.target.value);
-                  setShowResults(e.target.value.length > 0);
-                }}
-                onFocus={() => setShowResults(searchQuery.length > 0)}
-                className="pl-10 w-64 lg:w-80"
-              />
-              {showResults && (
-                <SearchResults
-                  searchQuery={searchQuery}
-                  searchResults={{
-                    units: filteredUnits,
-                    customers: filteredCustomers
-                  }}
-                  onResultClick={(type, id) => {
-                    handleSearchResultClick(type, id);
-                    setShowResults(false);
-                    onSearchChange("");
-                  }}
-                />
-              )}
-            </div>
-            
-            <MultiSiteSelector
-              selectedSites={selectedSites}
-              onSitesChange={onSitesChange}
-            />
+          <CompanyLogo size="md" />
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">StorageFlow</h1>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onFloorPlanClick}
-            className="hidden sm:flex items-center gap-2"
-          >
-            <Map className="h-4 w-4" />
-            Floor Plan
-          </Button>
+        
+        <div className="flex items-center space-x-4">
+          
+          <Input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="max-w-md rounded-full pl-10"
+          />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           
           <NotificationDropdown />
           <UserMenu onAdminClick={onAdminClick} />

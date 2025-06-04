@@ -32,6 +32,7 @@ export interface CompanyInfo {
   email: string;
   vat_number: string;
   logo_url?: string;
+  currency?: string;
 }
 
 export interface CreateInvoiceData {
@@ -90,7 +91,7 @@ export const useInvoices = () => {
         .select('*')
         .single();
 
-      if (companyError) {
+      if (companyError && companyError.code !== 'PGRST116') {
         console.error('Error fetching company info:', companyError);
         return;
       }
@@ -101,23 +102,41 @@ export const useInvoices = () => {
     }
   };
 
+  const getCurrencySymbol = (currency: string) => {
+    const symbols: Record<string, string> = {
+      EUR: '€',
+      USD: '$',
+      SEK: 'kr'
+    };
+    return symbols[currency] || currency;
+  };
+
   const generateInvoicePDF = async (invoice: Invoice) => {
     try {
       const pdf = new jsPDF();
+      const currency = invoice.currency || companyInfo?.currency || 'EUR';
+      const currencySymbol = getCurrencySymbol(currency);
       
       // Company logo and header
       pdf.setFontSize(20);
       pdf.setFont('helvetica', 'bold');
       pdf.text(companyInfo?.company_name || 'StorageFlow Solutions', 20, 30);
       
+      // Company information
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(companyInfo?.address || '123 Business Street', 20, 40);
-      pdf.text(`${companyInfo?.city || 'Stockholm'}, ${companyInfo?.postal_code || '12345'}`, 20, 45);
-      pdf.text(companyInfo?.country || 'Sweden', 20, 50);
-      pdf.text(`Phone: ${companyInfo?.phone || '+46 8 123 456 78'}`, 20, 55);
-      pdf.text(`Email: ${companyInfo?.email || 'billing@storageflow.com'}`, 20, 60);
-      pdf.text(`VAT: ${companyInfo?.vat_number || 'SE123456789001'}`, 20, 65);
+      const companyLines = [
+        companyInfo?.address || '123 Business Street',
+        `${companyInfo?.city || 'Stockholm'}, ${companyInfo?.postal_code || '12345'}`,
+        companyInfo?.country || 'Sweden',
+        `Phone: ${companyInfo?.phone || '+46 8 123 456 78'}`,
+        `Email: ${companyInfo?.email || 'billing@storageflow.com'}`,
+        `VAT: ${companyInfo?.vat_number || 'SE123456789001'}`
+      ];
+      
+      companyLines.forEach((line, index) => {
+        pdf.text(line, 20, 40 + (index * 5));
+      });
 
       // Invoice details (right side)
       pdf.setFontSize(24);
@@ -130,18 +149,19 @@ export const useInvoices = () => {
       pdf.text(`Issue Date: ${invoice.issue_date}`, 150, 45);
       pdf.text(`Due Date: ${invoice.due_date}`, 150, 50);
       pdf.text(`Status: ${invoice.status.toUpperCase()}`, 150, 55);
+      pdf.text(`Currency: ${currency}`, 150, 60);
 
       // Customer information
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('Bill To:', 20, 80);
+      pdf.text('Bill To:', 20, 85);
       
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`Customer ID: ${invoice.customer_id}`, 20, 90);
+      pdf.text(`Customer ID: ${invoice.customer_id}`, 20, 95);
 
       // Items table
-      const tableStartY = 110;
+      const tableStartY = 115;
       
       // Table headers
       pdf.setFont('helvetica', 'bold');
@@ -152,23 +172,23 @@ export const useInvoices = () => {
       // Table line
       pdf.line(20, tableStartY + 2, 190, tableStartY + 2);
       
-      // Table content - Use the description from the invoice
+      // Table content
       pdf.setFont('helvetica', 'normal');
       const description = invoice.description || 'Storage Unit Rental';
       pdf.text(description, 20, tableStartY + 10);
       pdf.text(`${invoice.issue_date} - ${invoice.due_date}`, 80, tableStartY + 10);
-      pdf.text(`€${invoice.subtotal.toFixed(2)}`, 150, tableStartY + 10);
+      pdf.text(`${currencySymbol}${invoice.subtotal.toFixed(2)}`, 150, tableStartY + 10);
       
       // Table bottom line
       pdf.line(20, tableStartY + 15, 190, tableStartY + 15);
 
       // Totals
       const totalsY = tableStartY + 30;
-      pdf.text(`Subtotal: €${invoice.subtotal.toFixed(2)}`, 130, totalsY);
-      pdf.text(`VAT (${invoice.vat_rate}%): €${invoice.vat_amount.toFixed(2)}`, 130, totalsY + 8);
+      pdf.text(`Subtotal: ${currencySymbol}${invoice.subtotal.toFixed(2)}`, 130, totalsY);
+      pdf.text(`VAT (${invoice.vat_rate}%): ${currencySymbol}${invoice.vat_amount.toFixed(2)}`, 130, totalsY + 8);
       
       pdf.setFont('helvetica', 'bold');
-      pdf.text(`Total: €${invoice.total_amount.toFixed(2)}`, 130, totalsY + 16);
+      pdf.text(`Total: ${currencySymbol}${invoice.total_amount.toFixed(2)}`, 130, totalsY + 16);
 
       // Payment terms
       pdf.setFont('helvetica', 'normal');
@@ -181,8 +201,8 @@ export const useInvoices = () => {
       
       // Upload to Supabase storage
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('invoices')
-        .upload(fileName, pdfBlob, {
+        .from('company-assets')
+        .upload(`invoices/${fileName}`, pdfBlob, {
           cacheControl: '3600',
           upsert: true,
           contentType: 'application/pdf'
@@ -223,7 +243,7 @@ export const useInvoices = () => {
 
       // Get the PDF from storage
       const { data, error } = await supabase.storage
-        .from('invoices')
+        .from('company-assets')
         .download(pdfPath);
 
       if (error) {
@@ -253,7 +273,7 @@ export const useInvoices = () => {
       }
 
       const { data, error } = await supabase.storage
-        .from('invoices')
+        .from('company-assets')
         .download(pdfPath);
 
       if (error) {
@@ -336,6 +356,7 @@ export const useInvoices = () => {
     generateInvoicePDF,
     previewInvoicePDF,
     downloadInvoicePDF,
-    refreshInvoices: fetchInvoices
+    refreshInvoices: fetchInvoices,
+    getCurrencySymbol
   };
 };

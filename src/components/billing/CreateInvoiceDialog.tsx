@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Plus, Calculator } from "lucide-react";
 import { useRealtimeSupabaseData } from "@/hooks/useRealtimeSupabaseData";
 import { CreateInvoiceData } from "@/hooks/useInvoices";
 import { toast } from "sonner";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 
 interface CreateInvoiceDialogProps {
   onCreateInvoice: (data: CreateInvoiceData) => Promise<any>;
@@ -18,6 +18,7 @@ interface CreateInvoiceDialogProps {
 export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProps) => {
   const [open, setOpen] = useState(false);
   const { customers, unitRentals, units } = useRealtimeSupabaseData();
+  const { companyInfo } = useCompanySettings();
   
   const [formData, setFormData] = useState({
     customer_id: "",
@@ -30,6 +31,8 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
     status: 'draft' as const
   });
 
+  const currency = companyInfo?.currency || 'EUR';
+  const currencySymbol = getCurrencySymbol(currency);
   const vatAmount = (formData.subtotal * formData.vat_rate) / 100;
   const totalAmount = formData.subtotal + vatAmount;
 
@@ -92,6 +95,15 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
     return `Customer ${customer.id?.slice(0, 8)}...`;
   };
 
+  const getCurrencySymbol = (currency: string) => {
+    const symbols: Record<string, string> = {
+      EUR: '€',
+      USD: '$',
+      SEK: 'kr'
+    };
+    return symbols[currency] || currency;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -112,7 +124,8 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
         vat_amount: vatAmount,
         total_amount: totalAmount,
         status: formData.status,
-        description: formData.description
+        description: formData.description,
+        currency: currency
       };
 
       const result = await onCreateInvoice(invoiceData);
@@ -237,7 +250,7 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
             </div>
 
             <div>
-              <Label htmlFor="subtotal">Subtotal (€) *</Label>
+              <Label htmlFor="subtotal">Subtotal ({currencySymbol}) *</Label>
               <Input 
                 type="number" 
                 step="0.01" 
@@ -302,15 +315,15 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">Subtotal:</span>
-                <div className="font-medium">€{formData.subtotal.toFixed(2)}</div>
+                <div className="font-medium">{currencySymbol}{formData.subtotal.toFixed(2)}</div>
               </div>
               <div>
                 <span className="text-gray-600">VAT ({formData.vat_rate}%):</span>
-                <div className="font-medium">€{vatAmount.toFixed(2)}</div>
+                <div className="font-medium">{currencySymbol}{vatAmount.toFixed(2)}</div>
               </div>
               <div>
                 <span className="text-gray-600">Total:</span>
-                <div className="font-bold text-lg">€{totalAmount.toFixed(2)}</div>
+                <div className="font-bold text-lg">{currencySymbol}{totalAmount.toFixed(2)}</div>
               </div>
             </div>
           </div>
