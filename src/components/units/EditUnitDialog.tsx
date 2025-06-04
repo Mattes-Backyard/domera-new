@@ -127,7 +127,7 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] 
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="" disabled>No facilities available</SelectItem>
+                    <SelectItem value="no-facilities" disabled>No facilities available</SelectItem>
                   )}
                 </SelectContent>
               </Select>
