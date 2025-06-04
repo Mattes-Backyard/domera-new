@@ -4,15 +4,15 @@ import { TenantHeader } from "./TenantHeader";
 import { TenantInfoCard } from "./TenantInfoCard";
 import { TenantUnitsCard } from "./TenantUnitsCard";
 import { TenantLedgerTabs } from "./TenantLedgerTabs";
-import { Tenant } from "@/types/customer";
+import { DatabaseCustomer } from "@/types/customer";
 
 interface TenantDetailsPageProps {
-  tenant: Tenant;
+  tenant: DatabaseCustomer;
   onBack: () => void;
 }
 
 export const TenantDetailsPage = ({ tenant, onBack }: TenantDetailsPageProps) => {
-  const [selectedUnit, setSelectedUnit] = useState<string>(tenant.units[0]?.unitId || "");
+  const [selectedUnit, setSelectedUnit] = useState<string>("");
 
   return (
     <div className="p-6">
@@ -25,7 +25,7 @@ export const TenantDetailsPage = ({ tenant, onBack }: TenantDetailsPageProps) =>
 
         <div className="space-y-6">
           <TenantUnitsCard 
-            units={tenant.units} 
+            units={[]} 
             selectedUnit={selectedUnit}
             onUnitSelect={setSelectedUnit}
           />
@@ -35,7 +35,7 @@ export const TenantDetailsPage = ({ tenant, onBack }: TenantDetailsPageProps) =>
       <div className="mt-8">
         <TenantLedgerTabs 
           tenantId={tenant.id}
-          units={tenant.units}
+          units={[]}
           selectedUnit={selectedUnit}
         />
       </div>

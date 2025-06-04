@@ -47,7 +47,13 @@ export const BillingView = () => {
 
   const getCustomerName = (customerId: string) => {
     const customer = customers.find(c => c.id === customerId);
-    return customer?.name || "Unknown Customer";
+    if (!customer) return "Unknown Customer";
+    
+    // Create name from available fields
+    const firstName = customer.first_name || '';
+    const lastName = customer.last_name || '';
+    const name = `${firstName} ${lastName}`.trim();
+    return name || customer.email || `Customer ${customerId.slice(0, 8)}`;
   };
 
   const filteredInvoices = invoices.filter(invoice => {

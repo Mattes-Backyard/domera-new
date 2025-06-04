@@ -39,11 +39,15 @@ export const useSupabaseData = () => {
         let customerId = null;
         
         if (unit.status === 'occupied' && customer) {
-          customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
+          const firstName = customer.first_name || '';
+          const lastName = customer.last_name || '';
+          customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
           customerId = customer.user_id || customer.id;
         } else if (activeRental && customer) {
           unitStatus = 'occupied';
-          customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
+          const firstName = customer.first_name || '';
+          const lastName = customer.last_name || '';
+          customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
           customerId = customer.user_id || customer.id;
         }
         
@@ -71,8 +75,25 @@ export const useSupabaseData = () => {
           )
         `);
 
+      // Transform customers to match our type interface
+      const transformedCustomers = customersData?.map(customer => ({
+        ...customer,
+        // Add computed fields for compatibility
+        first_name: customer.first_name || customer.emergency_contact_name?.split(' ')[0] || '',
+        last_name: customer.last_name || customer.emergency_contact_name?.split(' ').slice(1).join(' ') || '',
+        email: customer.email || `customer${customer.id.slice(0, 8)}@storage.com`,
+        phone: customer.phone || customer.emergency_contact_phone || '',
+        address: customer.address || '',
+        city: customer.city || '',
+        state: customer.state || '',
+        zip_code: customer.zip_code || '',
+        ssn: customer.ssn || '',
+        status: customer.status || 'active',
+        join_date: customer.join_date || customer.move_in_date || new Date().toISOString().split('T')[0]
+      })) || [];
+
       setUnits(transformedUnits);
-      setCustomers(customersData || []);
+      setCustomers(transformedCustomers);
 
       // Fetch facilities
       const { data: facilitiesData } = await supabase
