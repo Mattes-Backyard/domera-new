@@ -32,6 +32,7 @@ export const useRealtimeSupabaseData = () => {
   const [units, setUnits] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [facilities, setFacilities] = useState([]);
+  const [unitRentals, setUnitRentals] = useState([]);
   const [loading, setLoading] = useState(true);
   const channelsRef = useRef<any[]>([]);
   const setupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -56,6 +57,13 @@ export const useRealtimeSupabaseData = () => {
             )
           )
         `);
+
+      // Fetch unit rentals separately for the invoice dialog
+      const { data: unitRentalsData } = await supabase
+        .from('unit_rentals')
+        .select('*');
+
+      setUnitRentals(unitRentalsData || []);
 
       // Transform units data
       const transformedUnits = unitsData?.map(unit => {
@@ -515,6 +523,7 @@ export const useRealtimeSupabaseData = () => {
     units,
     customers,
     facilities,
+    unitRentals,
     loading,
     addUnit,
     updateUnit,
