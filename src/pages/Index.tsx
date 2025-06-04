@@ -1,3 +1,4 @@
+
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -166,13 +167,13 @@ const Index = () => {
     <NotificationProvider>
       <TaskProvider>
         <SidebarProvider>
-          <div className="flex h-screen bg-gray-50 w-full overflow-hidden">
+          <div className="flex min-h-screen bg-gray-50 w-full">
             <DashboardSidebar 
               activeView={activeView} 
               setActiveView={setActiveView}
             />
             
-            <div className="flex-1 flex flex-col h-full overflow-hidden">
+            <div className="flex-1 flex flex-col min-h-screen">
               <DashboardHeader 
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
@@ -185,7 +186,7 @@ const Index = () => {
                 onSitesChange={setSelectedSites}
               />
               
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-auto">
                 <ContentRenderer
                   activeView={activeView}
                   searchQuery={searchQuery}

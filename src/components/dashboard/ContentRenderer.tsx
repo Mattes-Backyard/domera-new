@@ -88,25 +88,29 @@ export const ContentRenderer = ({
   // Show floor plan if requested
   if (showFloorPlan) {
     return (
-      <FloorPlanView 
-        units={units}
-        onBack={onBackFromFloorPlan}
-        onUnitClick={onUnitSelect}
-        onUnitUpdate={onUnitUpdate}
-      />
+      <div className="h-full overflow-auto">
+        <FloorPlanView 
+          units={units}
+          onBack={onBackFromFloorPlan}
+          onUnitClick={onUnitSelect}
+          onUnitUpdate={onUnitUpdate}
+        />
+      </div>
     );
   }
 
   // Show unit details if viewing a specific unit
   if (viewingUnitDetails) {
     return (
-      <UnitDetailsPage
-        unit={viewingUnitDetails}
-        onBack={onBackFromUnit}
-        onUnitUpdate={onUnitUpdate}
-        customers={databaseCustomers}
-        facilities={facilities}
-      />
+      <div className="h-full overflow-auto">
+        <UnitDetailsPage
+          unit={viewingUnitDetails}
+          onBack={onBackFromUnit}
+          onUnitUpdate={onUnitUpdate}
+          customers={databaseCustomers}
+          facilities={facilities}
+        />
+      </div>
     );
   }
 
@@ -114,69 +118,99 @@ export const ContentRenderer = ({
   if (viewingTenantDetails) {
     const transformedTenant = transformCustomerToTenant(viewingTenantDetails);
     return (
-      <TenantDetailsPage
-        tenant={transformedTenant}
-        onBack={onBackFromTenant}
-      />
+      <div className="h-full overflow-auto">
+        <TenantDetailsPage
+          tenant={transformedTenant}
+          onBack={onBackFromTenant}
+        />
+      </div>
     );
   }
 
-  // Regular view rendering
+  // Regular view rendering with proper scrolling containers
   switch (activeView) {
     case "units":
       return (
-        <UnitGrid
-          searchQuery={searchQuery}
-          selectedUnitId={selectedUnitId}
-          onClearSelection={onClearUnitSelection}
-          units={units}
-          onUnitSelect={onUnitSelect}
-          onUnitAdd={onUnitAdd}
-          onTenantClick={onTenantClick}
-          facilities={facilities}
-        />
+        <div className="h-full overflow-auto">
+          <UnitGrid
+            searchQuery={searchQuery}
+            selectedUnitId={selectedUnitId}
+            onClearSelection={onClearUnitSelection}
+            units={units}
+            onUnitSelect={onUnitSelect}
+            onUnitAdd={onUnitAdd}
+            onTenantClick={onTenantClick}
+            facilities={facilities}
+          />
+        </div>
       );
     case "customers":
       return (
-        <CustomerList
-          searchQuery={searchQuery}
-          selectedCustomerId={selectedCustomerId}
-          onClearSelection={onClearCustomerSelection}
-          customers={databaseCustomers}
-          onCustomerAdd={onCustomerAdd}
-          onTenantClick={onTenantClick}
-        />
+        <div className="h-full overflow-auto">
+          <CustomerList
+            searchQuery={searchQuery}
+            selectedCustomerId={selectedCustomerId}
+            onClearSelection={onClearCustomerSelection}
+            customers={databaseCustomers}
+            onCustomerAdd={onCustomerAdd}
+            onTenantClick={onTenantClick}
+          />
+        </div>
       );
     case "reports":
-      return <ReportsDashboard />;
+      return (
+        <div className="h-full overflow-auto">
+          <ReportsDashboard />
+        </div>
+      );
     case "tasks":
-      return <TasksView />;
+      return (
+        <div className="h-full overflow-auto">
+          <TasksView />
+        </div>
+      );
     case "billing":
-      return <BillingView />;
+      return (
+        <div className="h-full overflow-auto">
+          <BillingView />
+        </div>
+      );
     case "operations":
       return (
-        <OperationsView
-          units={units}
-          onTenantClick={onTenantClick}
-          selectedSites={selectedSites}
-        />
+        <div className="h-full overflow-auto">
+          <OperationsView
+            units={units}
+            onTenantClick={onTenantClick}
+            selectedSites={selectedSites}
+          />
+        </div>
       );
     case "admin":
-      return <AdminInterface />;
+      return (
+        <div className="h-full overflow-auto">
+          <AdminInterface />
+        </div>
+      );
     case "integrations":
-      return <IntegrationsView />;
+      return (
+        <div className="h-full overflow-auto">
+          <IntegrationsView />
+        </div>
+      );
     default:
       return (
-        <UnitGrid
-          searchQuery={searchQuery}
-          selectedUnitId={selectedUnitId}
-          onClearSelection={onClearUnitSelection}
-          units={units}
-          onUnitSelect={onUnitSelect}
-          onUnitAdd={onUnitAdd}
-          onTenantClick={onTenantClick}
-          facilities={facilities}
-        />
+        <div className="h-full overflow-auto">
+          <UnitGrid
+            searchQuery={searchQuery}
+            selectedUnitId={selectedUnitId}
+            onClearSelection={onClearUnitSelection}
+            units={units}
+            onUnitSelect={onUnitSelect}
+            onUnitAdd={onUnitAdd}
+            onTenantClick={onTenantClick}
+            facilities={facilities}
+          />
+        </div>
       );
   }
 };
