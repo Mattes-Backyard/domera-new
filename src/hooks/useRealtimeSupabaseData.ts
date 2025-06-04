@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -16,51 +17,73 @@ export const useRealtimeSupabaseData = () => {
     setLoading(true);
     
     try {
-      // Fetch units based on user role
+      // Fetch units with detailed rental and customer information
       const { data: unitsData } = await supabase
         .from('units')
         .select(`
           *,
           facility:facilities(name, city),
-          unit_rentals(
+          unit_rentals!inner(
             *,
-            customer:customers(
+            customer:customers!inner(
               *,
-              profile:profiles(first_name, last_name)
+              profile:profiles(first_name, last_name, email, phone)
             )
           )
         `);
 
-      // Transform units data to match existing format
-      const transformedUnits = unitsData?.map(unit => ({
-        id: unit.unit_number,
-        size: unit.size,
-        type: unit.type,
-        status: unit.status,
-        tenant: unit.unit_rentals?.[0]?.customer?.profile ? 
-          `${unit.unit_rentals[0].customer.profile.first_name} ${unit.unit_rentals[0].customer.profile.last_name}`.trim() : 
-          null,
-        tenantId: unit.unit_rentals?.[0]?.customer?.user_id || unit.unit_rentals?.[0]?.customer?.id || null,
-        rate: Number(unit.monthly_rate),
-        climate: unit.climate_controlled,
-        site: unit.facility?.city?.toLowerCase() || 'unknown'
-      })) || [];
+      // Also fetch units without active rentals
+      const { data: unoccupiedUnitsData } = await supabase
+        .from('units')
+        .select(`
+          *,
+          facility:facilities(name, city)
+        `)
+        .not('id', 'in', `(${unitsData?.map(u => `'${u.id}'`).join(',') || "''"} )`);
 
-      // Fetch customers - now handle both with and without profiles
+      // Combine and transform units data
+      const allUnitsData = [...(unitsData || []), ...(unoccupiedUnitsData || [])];
+      
+      const transformedUnits = allUnitsData?.map(unit => {
+        const activeRental = unit.unit_rentals?.find(rental => rental.is_active);
+        const customer = activeRental?.customer;
+        
+        // Determine actual unit status based on rental data
+        let unitStatus = unit.status;
+        if (activeRental && customer) {
+          unitStatus = 'occupied';
+        }
+        
+        return {
+          id: unit.unit_number,
+          size: unit.size,
+          type: unit.type,
+          status: unitStatus,
+          tenant: customer?.profile ? 
+            `${customer.profile.first_name || ''} ${customer.profile.last_name || ''}`.trim() : 
+            null,
+          tenantId: customer?.user_id || customer?.id || null,
+          rate: Number(unit.monthly_rate),
+          climate: unit.climate_controlled,
+          site: unit.facility?.city?.toLowerCase() || 'unknown'
+        };
+      }) || [];
+
+      // Fetch customers with their rental information
       const { data: customersData } = await supabase
         .from('customers')
         .select(`
           *,
           profile:profiles(first_name, last_name, email, phone),
           unit_rentals(
+            *,
             unit:units(unit_number)
           ),
           payments(amount, status)
         `);
 
-      // Transform customers data to ensure consistency with unit data
+      // Transform customers data
       const transformedCustomers = customersData?.map(customer => {
-        // Use profile data if available, otherwise create a placeholder name
         const customerName = customer.profile ? 
           `${customer.profile.first_name || ''} ${customer.profile.last_name || ''}`.trim() : 
           `Customer ${customer.id.slice(-4)}`;
@@ -68,12 +91,16 @@ export const useRealtimeSupabaseData = () => {
         const customerEmail = customer.profile?.email || `customer${customer.id.slice(-4)}@placeholder.com`;
         const customerPhone = customer.profile?.phone || customer.emergency_contact_phone || 'No phone';
 
+        // Get active units for this customer
+        const activeUnits = customer.unit_rentals?.filter(rental => rental.is_active)
+          ?.map(rental => rental.unit?.unit_number) || [];
+
         return {
           id: customer.user_id || customer.id,
           name: customerName,
           email: customerEmail,
           phone: customerPhone,
-          units: customer.unit_rentals?.map(rental => rental.unit?.unit_number) || [],
+          units: activeUnits,
           balance: Number(customer.balance) || 0,
           status: customer.balance > 0 ? 'overdue' : 'good',
           moveInDate: customer.move_in_date,
@@ -276,6 +303,34 @@ export const useRealtimeSupabaseData = () => {
       console.error('Error updating unit:', error);
       toast.error('Failed to update unit');
       return;
+    }
+
+    // If tenant information is being updated, handle rental records
+    if (updatedUnit.tenant && updatedUnit.tenantId) {
+      // Find or create customer record
+      const customer = customers.find(c => c.id === updatedUnit.tenantId);
+      if (!customer) {
+        console.error('Customer not found for tenant ID:', updatedUnit.tenantId);
+        toast.error('Customer not found');
+        return;
+      }
+
+      // Create or update unit rental
+      const { error: rentalError } = await supabase
+        .from('unit_rentals')
+        .upsert({
+          unit_id: units.find(u => u.id === updatedUnit.id)?.id,
+          customer_id: customer.id,
+          start_date: new Date().toISOString().split('T')[0],
+          monthly_rate: updatedUnit.rate,
+          is_active: true
+        });
+
+      if (rentalError) {
+        console.error('Error updating rental:', rentalError);
+        toast.error('Failed to update rental information');
+        return;
+      }
     }
 
     toast.success('Unit updated successfully');

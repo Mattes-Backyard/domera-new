@@ -1,12 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 
 interface Unit {
   id: string;
@@ -29,13 +28,22 @@ interface EditUnitDialogProps {
 export const EditUnitDialog = ({ unit, isOpen, onClose, onSave }: EditUnitDialogProps) => {
   const [formData, setFormData] = useState<Unit>(unit);
 
+  // Update form data when unit prop changes or dialog opens
+  useEffect(() => {
+    if (isOpen && unit) {
+      setFormData({ ...unit });
+    }
+  }, [unit, isOpen]);
+
   const handleSave = () => {
+    console.log('Saving unit data:', formData);
     onSave(formData);
     onClose();
   };
 
   const handleCancel = () => {
-    setFormData(unit);
+    // Reset to original unit data
+    setFormData({ ...unit });
     onClose();
   };
 
@@ -54,6 +62,8 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave }: EditUnitDialog
                 id="unitId"
                 value={formData.id}
                 onChange={(e) => setFormData(prev => ({ ...prev, id: e.target.value }))}
+                disabled
+                className="bg-gray-50"
               />
             </div>
             
