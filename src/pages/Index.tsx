@@ -1,4 +1,3 @@
-
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -10,7 +9,7 @@ import { useRealtimeSupabaseData } from "@/hooks/useRealtimeSupabaseData";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useAppState } from "@/hooks/useAppState";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { DatabaseCustomer, transformDatabaseCustomerToCustomer } from "@/types/customer";
+import { Customer, DatabaseCustomer, transformDatabaseCustomerToCustomer } from "@/types/customer";
 import { useState } from "react";
 
 const Index = () => {
@@ -99,8 +98,7 @@ const Index = () => {
     // Find customer in the transformed customers array
     const customer = customers.find(c => c.id === tenantId);
     if (customer) {
-      // We need to find the original DatabaseCustomer or create one
-      // For now, we'll create a minimal DatabaseCustomer from the Customer data
+      // Convert Customer back to DatabaseCustomer for tenant details view
       const nameParts = customer.name.split(' ');
       const databaseCustomer: DatabaseCustomer = {
         id: customer.id,
