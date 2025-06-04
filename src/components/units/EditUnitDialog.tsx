@@ -127,11 +127,7 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] 
                       </SelectItem>
                     ))
                   ) : (
-                    <>
-                      <SelectItem value="helsingborg">Helsingborg</SelectItem>
-                      <SelectItem value="lund">Lund</SelectItem>
-                      <SelectItem value="malmö">Malmö</SelectItem>
-                    </>
+                    <SelectItem value="" disabled>No facilities available</SelectItem>
                   )}
                 </SelectContent>
               </Select>

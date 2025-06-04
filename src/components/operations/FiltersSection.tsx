@@ -12,9 +12,10 @@ interface FiltersSectionProps {
     site: string;
   };
   onFiltersChange: (filters: { status: string; type: string; size: string; site: string }) => void;
+  facilities?: Array<{ id: string; name: string }>;
 }
 
-export const FiltersSection = ({ filters, onFiltersChange }: FiltersSectionProps) => {
+export const FiltersSection = ({ filters, onFiltersChange, facilities = [] }: FiltersSectionProps) => {
   const handleFilterChange = (key: string, value: string) => {
     onFiltersChange({ ...filters, [key]: value });
   };
@@ -93,9 +94,11 @@ export const FiltersSection = ({ filters, onFiltersChange }: FiltersSectionProps
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All facilities</SelectItem>
-              <SelectItem value="helsingborg">Helsingborg</SelectItem>
-              <SelectItem value="lund">Lund</SelectItem>
-              <SelectItem value="malmö">Malmö</SelectItem>
+              {facilities.map((facility) => (
+                <SelectItem key={facility.id} value={facility.id}>
+                  {facility.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

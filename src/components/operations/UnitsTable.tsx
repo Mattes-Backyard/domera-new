@@ -14,7 +14,7 @@ interface Unit {
   rate: number;
   climate: boolean;
   site: string;
-  facility?: { name: string };
+  facility?: { id: string; name: string };
 }
 
 interface UnitsTableProps {
@@ -43,16 +43,20 @@ export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, on
   };
 
   const getFacilityColor = (facilityName: string) => {
-    switch (facilityName.toLowerCase()) {
-      case "helsingborg":
-        return "bg-blue-100 text-blue-800";
-      case "lund":
-        return "bg-green-100 text-green-800";
-      case "malmö":
-        return "bg-purple-100 text-purple-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+    // Generate color based on facility name for consistency
+    const colors = [
+      "bg-blue-100 text-blue-800",
+      "bg-green-100 text-green-800",
+      "bg-purple-100 text-purple-800",
+      "bg-orange-100 text-orange-800",
+      "bg-pink-100 text-pink-800",
+      "bg-indigo-100 text-indigo-800"
+    ];
+    const hash = facilityName.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return colors[Math.abs(hash) % colors.length];
   };
 
   const getFacilityName = (unit: Unit) => {
@@ -61,14 +65,14 @@ export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, on
       return unit.facility.name;
     }
     
-    // Fallback to facilities prop
+    // Fallback to facilities prop using the site (facility_id)
     const facility = facilities.find(f => f.id === unit.site);
     if (facility) {
       return facility.name;
     }
     
-    // Last fallback to site value with capitalization
-    return unit.site.charAt(0).toUpperCase() + unit.site.slice(1);
+    // Last fallback - show the site ID if no facility name found
+    return unit.site || 'Unknown Facility';
   };
 
   const handleTenantClick = (tenantId: string) => {
