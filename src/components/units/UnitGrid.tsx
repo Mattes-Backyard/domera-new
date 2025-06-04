@@ -29,6 +29,11 @@ interface Unit {
   site: string;
 }
 
+interface Facility {
+  id: string;
+  name: string;
+}
+
 interface UnitGridProps {
   searchQuery?: string;
   selectedUnitId?: string | null;
@@ -39,6 +44,7 @@ interface UnitGridProps {
   triggerAddDialog?: boolean;
   onAddDialogClose?: () => void;
   onTenantClick?: (tenantId: string) => void;
+  facilities?: Facility[];
 }
 
 export const UnitGrid = ({ 
@@ -50,7 +56,8 @@ export const UnitGrid = ({
   onUnitAdd,
   triggerAddDialog = false,
   onAddDialogClose,
-  onTenantClick
+  onTenantClick,
+  facilities = []
 }: UnitGridProps) => {
   const isMobile = useIsMobile();
   const [localSearchQuery, setLocalSearchQuery] = useState("");
@@ -82,6 +89,11 @@ export const UnitGrid = ({
     }
   };
 
+  const getFacilityName = (site: string) => {
+    const facility = facilities.find(f => f.id === site);
+    return facility ? facility.name : site.charAt(0).toUpperCase() + site.slice(1);
+  };
+
   const getFacilityColor = (site: string) => {
     switch (site) {
       case "helsingborg":
@@ -102,12 +114,13 @@ export const UnitGrid = ({
     
     const query = (searchQuery || localSearchQuery).toLowerCase();
     return units.filter(unit => {
+      const facilityName = getFacilityName(unit.site);
       const matchesSearch = !query || 
         unit.id.toLowerCase().includes(query) ||
         unit.size.toLowerCase().includes(query) ||
         unit.type.toLowerCase().includes(query) ||
         unit.status.toLowerCase().includes(query) ||
-        unit.site.toLowerCase().includes(query) ||
+        facilityName.toLowerCase().includes(query) ||
         (unit.tenant && unit.tenant.toLowerCase().includes(query));
       
       const matchesStatus = statusFilter === "all" || unit.status === statusFilter;
@@ -117,7 +130,7 @@ export const UnitGrid = ({
       
       return matchesSearch && matchesStatus && matchesType && matchesSize && matchesFacility;
     });
-  }, [searchQuery, localSearchQuery, selectedUnitId, units, statusFilter, typeFilter, sizeFilter, facilityFilter]);
+  }, [searchQuery, localSearchQuery, selectedUnitId, units, statusFilter, typeFilter, sizeFilter, facilityFilter, facilities]);
 
   useEffect(() => {
     if (selectedUnitId && filteredUnits.length === 0) {
@@ -147,9 +160,13 @@ export const UnitGrid = ({
 
   // Get unique facilities for the filter dropdown
   const availableFacilities = useMemo(() => {
+    if (facilities.length > 0) {
+      return facilities;
+    }
+    // Fallback to unique sites from units if facilities prop is empty
     const sites = [...new Set(units.map(unit => unit.site))];
-    return sites.sort();
-  }, [units]);
+    return sites.map(site => ({ id: site, name: site.charAt(0).toUpperCase() + site.slice(1) }));
+  }, [units, facilities]);
 
   const FilterContent = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
@@ -217,9 +234,9 @@ export const UnitGrid = ({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All facilities</SelectItem>
-          {availableFacilities.map((site) => (
-            <SelectItem key={site} value={site}>
-              {site.charAt(0).toUpperCase() + site.slice(1)}
+          {availableFacilities.map((facility) => (
+            <SelectItem key={facility.id} value={facility.id}>
+              {facility.name}
             </SelectItem>
           ))}
         </SelectContent>
@@ -250,7 +267,7 @@ export const UnitGrid = ({
           <div>
             <span className="text-gray-600">Facility:</span>
             <Badge className={`${getFacilityColor(unit.site)} ml-1`} variant="outline">
-              {unit.site.charAt(0).toUpperCase() + unit.site.slice(1)}
+              {getFacilityName(unit.site)}
             </Badge>
           </div>
           <div>
@@ -440,7 +457,7 @@ export const UnitGrid = ({
 
                     <TableCell>
                       <Badge className={getFacilityColor(unit.site)} variant="outline">
-                        {unit.site.charAt(0).toUpperCase() + unit.site.slice(1)}
+                        {getFacilityName(unit.site)}
                       </Badge>
                     </TableCell>
                     
@@ -519,6 +536,7 @@ export const UnitGrid = ({
         isOpen={isAddDialogOpen}
         onClose={handleAddDialogClose}
         onSave={handleUnitAdd}
+        facilities={facilities}
       />
     </div>
   );

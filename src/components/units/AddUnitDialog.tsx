@@ -16,15 +16,22 @@ interface Unit {
   tenantId: string | null;
   rate: number;
   climate: boolean;
+  site: string;
+}
+
+interface Facility {
+  id: string;
+  name: string;
 }
 
 interface AddUnitDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (newUnit: Unit) => void;
+  facilities?: Facility[];
 }
 
-export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) => {
+export const AddUnitDialog = ({ isOpen, onClose, onSave, facilities = [] }: AddUnitDialogProps) => {
   const [formData, setFormData] = useState<Unit>({
     id: "",
     size: "",
@@ -34,10 +41,11 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
     tenantId: null,
     rate: 0,
     climate: false,
+    site: "",
   });
 
   const handleSave = () => {
-    if (!formData.id || !formData.size || !formData.rate) {
+    if (!formData.id || !formData.size || !formData.rate || !formData.site) {
       return; // Basic validation
     }
     
@@ -54,6 +62,7 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
       tenantId: null,
       rate: 0,
       climate: false,
+      site: "",
     });
   };
 
@@ -67,6 +76,7 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
       tenantId: null,
       rate: 0,
       climate: false,
+      site: "",
     });
     onClose();
   };
@@ -126,6 +136,26 @@ export const AddUnitDialog = ({ isOpen, onClose, onSave }: AddUnitDialogProps) =
                   <SelectItem value="occupied">Occupied</SelectItem>
                   <SelectItem value="reserved">Reserved</SelectItem>
                   <SelectItem value="maintenance">Maintenance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="facility">Facility *</Label>
+              <Select value={formData.site} onValueChange={(value) => setFormData(prev => ({ ...prev, site: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select facility" />
+                </SelectTrigger>
+                <SelectContent>
+                  {facilities.length > 0 ? (
+                    facilities.map((facility) => (
+                      <SelectItem key={facility.id} value={facility.id}>
+                        {facility.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-facilities" disabled>No facilities available</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
