@@ -44,6 +44,20 @@ interface DatabaseCustomer {
   facility_id: string;
 }
 
+// Transform DatabaseCustomer to display format for CustomerList
+interface TransformedCustomer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  units: string[];
+  balance: number;
+  status: string;
+  moveInDate?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+}
+
 interface Facility {
   id: string;
   name: string;
@@ -73,6 +87,22 @@ interface ContentRendererProps {
   onQuickAddUnit: () => void;
   selectedSites: string[];
 }
+
+// Transform DatabaseCustomer to the format expected by CustomerList
+const transformDatabaseCustomerToCustomer = (dbCustomer: DatabaseCustomer): TransformedCustomer => {
+  return {
+    id: dbCustomer.id,
+    name: `${dbCustomer.first_name} ${dbCustomer.last_name}`,
+    email: dbCustomer.email,
+    phone: dbCustomer.phone,
+    units: [], // This would need to be populated from unit_rentals
+    balance: dbCustomer.balance || 0,
+    status: dbCustomer.balance && dbCustomer.balance > 0 ? 'overdue' : 'good',
+    moveInDate: dbCustomer.move_in_date,
+    emergencyContact: dbCustomer.emergency_contact_name,
+    emergencyPhone: dbCustomer.emergency_contact_phone
+  };
+};
 
 // Transform DatabaseCustomer to tenant format for TenantDetailsPage
 const transformCustomerToTenant = (customer: DatabaseCustomer) => {
@@ -168,12 +198,14 @@ export const ContentRenderer = ({
         />
       );
     case "customers":
+      // Transform DatabaseCustomer[] to Customer[] for CustomerList
+      const transformedCustomers = customers.map(transformDatabaseCustomerToCustomer);
       return (
         <CustomerList
           searchQuery={searchQuery}
           selectedCustomerId={selectedCustomerId}
           onClearSelection={onClearCustomerSelection}
-          customers={customers}
+          customers={transformedCustomers}
           onCustomerAdd={onCustomerAdd}
           onTenantClick={onTenantClick}
         />
