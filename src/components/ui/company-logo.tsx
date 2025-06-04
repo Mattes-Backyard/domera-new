@@ -32,15 +32,19 @@ export const CompanyLogo = ({
     lg: 'text-xl'
   };
 
+  // Use uploaded logo if available, otherwise show default Domera icon
+  const logoSrc = companyInfo?.logo_url || '/lovable-uploads/aa4e4530-c735-48d1-93c8-a9372425fab5.png';
+  const fallbackText = companyInfo?.company_name?.charAt(0) || 'D';
+
   return (
     <Avatar className={`${sizeClasses[size]} ${className}`}>
       <AvatarImage 
         key={logoKey}
-        src={companyInfo?.logo_url} 
-        alt={companyInfo?.company_name || 'Company Logo'} 
+        src={logoSrc} 
+        alt={companyInfo?.company_name || 'Domera Logo'} 
       />
       <AvatarFallback className={`${textSizeClasses[size]} font-semibold bg-blue-100 text-blue-600`}>
-        {companyInfo?.company_name?.charAt(0) || 'C'}
+        {fallbackText}
       </AvatarFallback>
     </Avatar>
   );
