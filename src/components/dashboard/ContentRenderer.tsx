@@ -198,7 +198,6 @@ export const ContentRenderer = ({
       const transformedCustomers = customers.map(transformDatabaseCustomerToCustomer);
       return (
         <CustomerList
-          searchQuery={searchQuery}
           selectedCustomerId={selectedCustomerId}
           onClearSelection={onClearCustomerSelection}
           customers={transformedCustomers}
