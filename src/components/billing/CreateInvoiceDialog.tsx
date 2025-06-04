@@ -39,28 +39,47 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
     return `INV-${year}-${timestamp}`;
   };
 
-  const getCustomerUnitRentals = () => {
+  const getCustomerUnits = () => {
     if (!formData.customer_id) return [];
-    return units.filter(unit => unit.tenantId === formData.customer_id && unit.status === 'occupied');
+    
+    // Find the selected customer
+    const selectedCustomer = customers.find(c => c.id === formData.customer_id);
+    if (!selectedCustomer) return [];
+    
+    // Filter units that belong to this customer (occupied units with matching tenantId)
+    return units.filter(unit => 
+      unit.status === 'occupied' && 
+      unit.tenantId === formData.customer_id
+    );
   };
 
-  const handleUnitRentalChange = (unitId: string) => {
+  const handleUnitChange = (unitId: string) => {
     const unit = units.find(u => u.id === unitId);
     if (unit) {
       setFormData(prev => ({ 
         ...prev, 
         unit_rental_id: unitId, 
-        subtotal: unit.monthly_rate || unit.rate || 0,
-        description: `Storage unit rental - Unit ${unit.unit_number}`
+        subtotal: unit.rate || 0,
+        description: `Storage unit rental - Unit ${unit.id}`
       }));
     }
+  };
+
+  const handleCustomerChange = (customerId: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      customer_id: customerId,
+      unit_rental_id: "", // Reset unit selection when customer changes
+      subtotal: 0,
+      description: "Storage unit rental"
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.customer_id || formData.subtotal <= 0) {
-      toast.error("Please fill in all required fields");
+    if (!formData.customer_id || !formData.unit_rental_id || formData.subtotal <= 0) {
+      toast.error("Please fill in all required fields including unit selection");
       return;
     }
 
@@ -68,7 +87,7 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
       const invoiceData: CreateInvoiceData = {
         invoice_number: generateInvoiceNumber(),
         customer_id: formData.customer_id,
-        unit_rental_id: formData.unit_rental_id || undefined,
+        unit_rental_id: formData.unit_rental_id,
         issue_date: formData.issue_date,
         due_date: formData.due_date,
         subtotal: formData.subtotal,
@@ -102,6 +121,8 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
     }
   };
 
+  const customerUnits = getCustomerUnits();
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -121,7 +142,7 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
               <Label htmlFor="customer">Customer *</Label>
               <Select 
                 value={formData.customer_id} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, customer_id: value, unit_rental_id: "" }))}
+                onValueChange={handleCustomerChange}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select customer" />
@@ -137,23 +158,36 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
             </div>
 
             <div>
-              <Label htmlFor="unit">Unit (Optional)</Label>
+              <Label htmlFor="unit">Unit *</Label>
               <Select 
                 value={formData.unit_rental_id} 
-                onValueChange={handleUnitRentalChange}
+                onValueChange={handleUnitChange}
                 disabled={!formData.customer_id}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select unit" />
+                  <SelectValue placeholder={!formData.customer_id ? "Select customer first" : "Select unit"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {getCustomerUnitRentals().map((unit) => (
-                    <SelectItem key={unit.id} value={unit.id}>
-                      Unit {unit.unit_number} - €{unit.monthly_rate || unit.rate || 0}/month
-                    </SelectItem>
-                  ))}
+                  {customerUnits.length > 0 ? (
+                    customerUnits.map((unit) => (
+                      <SelectItem key={unit.id} value={unit.id}>
+                        Unit {unit.id} - €{unit.rate || 0}/month
+                      </SelectItem>
+                    ))
+                  ) : (
+                    formData.customer_id && (
+                      <SelectItem value="" disabled>
+                        No units found for this customer
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
+              {formData.customer_id && customerUnits.length === 0 && (
+                <p className="text-sm text-gray-500 mt-1">
+                  This customer has no active unit rentals
+                </p>
+              )}
             </div>
 
             <div>

@@ -37,7 +37,7 @@ export interface CompanyInfo {
 export interface CreateInvoiceData {
   invoice_number: string;
   customer_id: string;
-  unit_rental_id?: string;
+  unit_rental_id: string; // Made required - no longer optional
   issue_date: string;
   due_date: string;
   subtotal: number;
