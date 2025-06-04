@@ -2,7 +2,7 @@
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { NavigationMenu as DashboardNavigationMenu } from "@/components/dashboard/NavigationMenu";
+import { DashboardNavigationMenu } from "@/components/dashboard/NavigationMenu";
 import { ContentRenderer } from "@/components/dashboard/ContentRenderer";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { TaskProvider } from "@/contexts/TaskContext";
