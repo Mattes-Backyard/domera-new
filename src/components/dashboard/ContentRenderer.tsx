@@ -91,6 +91,7 @@ export const ContentRenderer = ({
     // Handle access method assignment logic here
   };
 
+  // Check for special views first
   if (showFloorPlan) {
     return (
       <div className="h-full overflow-auto">
@@ -144,56 +145,55 @@ export const ContentRenderer = ({
     );
   }
 
-  if (activeView === "admin") {
-    return (
-      <div className="h-full overflow-auto">
-        <AdminInterface />
-      </div>
-    );
-  }
-
-  if (activeView === "reservations") {
-    return (
-      <div className="h-full overflow-auto">
-        <ReservationSystem 
-          units={units} 
-          onReserveUnit={handleReserveUnit}
-        />
-      </div>
-    );
-  }
-
-  if (activeView === "access-control") {
-    return (
-      <div className="h-full overflow-auto">
-        <AccessControlPanel 
-          onAccessMethodAssigned={handleAccessMethodAssigned}
-        />
-      </div>
-    );
-  }
-
-  if (activeView === "reports") {
-    return (
-      <div className="h-full overflow-auto">
-        <ReportsDashboard />
-      </div>
-    );
-  }
-
+  // Handle specific views
   switch (activeView) {
+    case "admin":
+      return (
+        <div className="h-full overflow-auto">
+          <AdminInterface />
+        </div>
+      );
+      
+    case "reservations":
+      return (
+        <div className="h-full overflow-auto">
+          <ReservationSystem 
+            units={units} 
+            onReserveUnit={handleReserveUnit}
+          />
+        </div>
+      );
+      
+    case "access-control":
+      return (
+        <div className="h-full overflow-auto">
+          <AccessControlPanel 
+            onAccessMethodAssigned={handleAccessMethodAssigned}
+          />
+        </div>
+      );
+      
+    case "reports":
+      return (
+        <div className="h-full overflow-auto">
+          <ReportsDashboard />
+        </div>
+      );
+
     case "billing":
       return (
         <div className="h-full overflow-auto">
           <BillingView />
         </div>
       );
+      
     case "integrations":
       return (
         <div className="h-full overflow-auto">
           <IntegrationsView />
         </div>
       );
+      
     case "units":
       return (
         <div className="h-full overflow-auto">
@@ -210,6 +210,7 @@ export const ContentRenderer = ({
           />
         </div>
       );
+      
     case "customers":
       return (
         <div className="h-full overflow-auto">
@@ -224,12 +225,14 @@ export const ContentRenderer = ({
           />
         </div>
       );
+      
     case "tasks":
       return (
         <div className="h-full overflow-auto">
           <TasksView units={units} customers={customers} />
         </div>
       );
+      
     case "operations":
       return (
         <div className="h-full overflow-auto">
@@ -241,8 +244,10 @@ export const ContentRenderer = ({
           />
         </div>
       );
+      
     case "dashboard":
     default:
+      // Always show the dashboard view as the default
       return (
         <div className="h-full overflow-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-full">
