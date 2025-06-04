@@ -1,3 +1,4 @@
+
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -119,24 +120,21 @@ const Index = () => {
     // Find customer in the customers array from Supabase
     const customer = customers.find(c => c.id === tenantId);
     if (customer) {
-      // Convert Customer to DatabaseCustomer format
-      const databaseCustomer: DatabaseCustomer = {
+      // Convert Customer to the format expected by viewingTenantDetails
+      const tenantCustomer = {
         id: customer.id,
-        first_name: customer.name.split(' ')[0] || '',
-        last_name: customer.name.split(' ').slice(1).join(' ') || '',
+        name: customer.name,
         email: customer.email,
         phone: customer.phone,
-        address: '', // Not available in Customer type
-        city: '', // Not available in Customer type
-        state: '', // Not available in Customer type
-        zip_code: '', // Not available in Customer type
-        emergency_contact_name: customer.emergencyContact,
-        emergency_contact_phone: customer.emergencyPhone,
-        move_in_date: customer.moveInDate,
+        units: customer.units || [],
+        status: customer.status,
+        joinDate: customer.joinDate,
         balance: customer.balance,
-        facility_id: '', // This should be set based on the facility
+        emergencyContact: customer.emergencyContact,
+        emergencyPhone: customer.emergencyPhone,
+        moveInDate: customer.moveInDate,
       };
-      setViewingTenantDetails(databaseCustomer);
+      setViewingTenantDetails(tenantCustomer);
     }
   };
 
