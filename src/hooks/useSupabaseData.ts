@@ -39,14 +39,15 @@ export const useSupabaseData = () => {
         let customerId = null;
         
         if (unit.status === 'occupied' && customer) {
-          const firstName = customer.first_name || '';
-          const lastName = customer.last_name || '';
+          // Use safe property access
+          const firstName = (customer as any).first_name || '';
+          const lastName = (customer as any).last_name || '';
           customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
           customerId = customer.user_id || customer.id;
         } else if (activeRental && customer) {
           unitStatus = 'occupied';
-          const firstName = customer.first_name || '';
-          const lastName = customer.last_name || '';
+          const firstName = (customer as any).first_name || '';
+          const lastName = (customer as any).last_name || '';
           customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
           customerId = customer.user_id || customer.id;
         }
@@ -75,10 +76,10 @@ export const useSupabaseData = () => {
           )
         `);
 
-      // Transform customers to match our type interface
-      const transformedCustomers = customersData?.map(customer => ({
+      // Transform customers to match our type interface with safe property access
+      const transformedCustomers = customersData?.map((customer: any) => ({
         ...customer,
-        // Add computed fields for compatibility
+        // Add computed fields for compatibility using safe property access
         first_name: customer.first_name || customer.emergency_contact_name?.split(' ')[0] || '',
         last_name: customer.last_name || customer.emergency_contact_name?.split(' ').slice(1).join(' ') || '',
         email: customer.email || `customer${customer.id.slice(0, 8)}@storage.com`,
