@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -59,15 +58,15 @@ export const useRealtimeSupabaseData = () => {
           payments(amount, status)
         `);
 
-      // Transform customers data with fallback for customers without profiles
+      // Transform customers data to ensure consistency with unit data
       const transformedCustomers = customersData?.map(customer => {
-        // Extract name from emergency contact or use placeholder if no profile
+        // Use profile data if available, otherwise create a placeholder name
         const customerName = customer.profile ? 
-          `${customer.profile.first_name} ${customer.profile.last_name}`.trim() : 
-          customer.emergency_contact_name?.split(' ')[0] + ' (Contact)' || 'Unknown Customer';
+          `${customer.profile.first_name || ''} ${customer.profile.last_name || ''}`.trim() : 
+          `Customer ${customer.id.slice(-4)}`;
         
-        const customerEmail = customer.profile?.email || `customer${customer.id.slice(-4)}@email.se`;
-        const customerPhone = customer.profile?.phone || customer.emergency_contact_phone || '';
+        const customerEmail = customer.profile?.email || `customer${customer.id.slice(-4)}@placeholder.com`;
+        const customerPhone = customer.profile?.phone || customer.emergency_contact_phone || 'No phone';
 
         return {
           id: customer.user_id || customer.id,
