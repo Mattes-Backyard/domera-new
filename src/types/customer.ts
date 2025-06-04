@@ -34,6 +34,18 @@ export interface Customer {
   moveInDate?: string;
   emergencyContact?: string;
   emergencyPhone?: string;
+  joinDate?: string; // Added for CustomerList compatibility
+}
+
+// TenantUnit type for TenantDetailsPage
+export interface TenantUnit {
+  unitId: string;
+  unitNumber: string;
+  status: "good" | "overdue" | "pending";
+  monthlyRate: number;
+  leaseStart: string;
+  leaseEnd?: string;
+  balance: number;
 }
 
 // Tenant type for TenantDetailsPage
@@ -46,5 +58,5 @@ export interface Tenant {
   ssn: string;
   status: string;
   joinDate: string;
-  units: string[];
+  units: TenantUnit[];
 }

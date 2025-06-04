@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,41 +7,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Mail, Phone, MapPin, Calendar, X, Search, Filter } from "lucide-react";
 import { AddCustomerDialog } from "./AddCustomerDialog";
+import { Customer, DatabaseCustomer } from "@/types/customer";
 import { useState } from "react";
 
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  units: string[];
-  status: string;
-  joinDate: string;
-  balance: number;
-}
-
 interface CustomerListProps {
+  searchQuery?: string;
   selectedCustomerId?: string | null;
   onClearSelection?: () => void;
   customers?: Customer[];
-  onAddCustomer?: (customer: Customer) => void;
-  onViewDetails?: (customerId: string) => void;
+  onCustomerAdd?: (customer: DatabaseCustomer) => void;
+  onTenantClick?: (customerId: string) => void;
   triggerAddDialog?: boolean;
   onAddDialogClose?: () => void;
 }
 
 export const CustomerList = ({ 
+  searchQuery = "",
   selectedCustomerId, 
   onClearSelection, 
   customers = [], 
-  onAddCustomer, 
-  onViewDetails,
+  onCustomerAdd, 
+  onTenantClick,
   triggerAddDialog = false,
   onAddDialogClose
 }: CustomerListProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [balanceFilter, setBalanceFilter] = useState("all");
+
+  // Use either the passed searchQuery or local search query
+  const effectiveSearchQuery = searchQuery || localSearchQuery;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -62,10 +58,10 @@ export const CustomerList = ({
   };
 
   const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         customer.phone.includes(searchQuery) ||
-                         customer.units.some(unit => unit.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesSearch = customer.name.toLowerCase().includes(effectiveSearchQuery.toLowerCase()) ||
+                         customer.email.toLowerCase().includes(effectiveSearchQuery.toLowerCase()) ||
+                         customer.phone.includes(effectiveSearchQuery) ||
+                         customer.units.some(unit => unit.toLowerCase().includes(effectiveSearchQuery.toLowerCase()));
     
     const matchesStatus = statusFilter === "all" || customer.status === statusFilter;
     
@@ -79,7 +75,7 @@ export const CustomerList = ({
 
   const handleCustomerClick = (customer: Customer) => {
     console.log("Customer clicked:", customer.id);
-    onViewDetails?.(customer.id);
+    onTenantClick?.(customer.id);
   };
 
   return (
@@ -98,65 +94,67 @@ export const CustomerList = ({
               Clear Selection
             </Button>
           )}
-          <AddCustomerDialog onSave={onAddCustomer} />
+          <AddCustomerDialog onSave={onCustomerAdd} />
         </div>
       </div>
 
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters & Search
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search customers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="All statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="reserved">Reserved</SelectItem>
-              <SelectItem value="former">Former</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* Filters - only show if no external search query is provided */}
+      {!searchQuery && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filters & Search
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search customers..."
+                value={localSearchQuery}
+                onChange={(e) => setLocalSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="reserved">Reserved</SelectItem>
+                <SelectItem value="former">Former</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Select value={balanceFilter} onValueChange={setBalanceFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="All balances" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All balances</SelectItem>
-              <SelectItem value="positive">Credit balance</SelectItem>
-              <SelectItem value="negative">Overdue</SelectItem>
-              <SelectItem value="zero">Zero balance</SelectItem>
-            </SelectContent>
-          </Select>
+            <Select value={balanceFilter} onValueChange={setBalanceFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All balances" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All balances</SelectItem>
+                <SelectItem value="positive">Credit balance</SelectItem>
+                <SelectItem value="negative">Overdue</SelectItem>
+                <SelectItem value="zero">Zero balance</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              setSearchQuery("");
-              setStatusFilter("all");
-              setBalanceFilter("all");
-            }}
-          >
-            Clear Filters
-          </Button>
-        </CardContent>
-      </Card>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setLocalSearchQuery("");
+                setStatusFilter("all");
+                setBalanceFilter("all");
+              }}
+            >
+              Clear Filters
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Customer Table */}
       <Card>
@@ -221,7 +219,7 @@ export const CustomerList = ({
                 <TableCell>
                   <div className="flex items-center text-sm text-gray-600">
                     <Calendar className="h-3 w-3 mr-1" />
-                    {customer.joinDate}
+                    {customer.joinDate || customer.moveInDate || "N/A"}
                   </div>
                 </TableCell>
                 

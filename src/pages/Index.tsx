@@ -10,7 +10,7 @@ import { useRealtimeSupabaseData } from "@/hooks/useRealtimeSupabaseData";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useAppState } from "@/hooks/useAppState";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { DatabaseCustomer } from "@/types/customer";
+import { DatabaseCustomer, Customer } from "@/types/customer";
 import { useState } from "react";
 
 const Index = () => {

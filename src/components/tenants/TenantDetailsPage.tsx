@@ -4,28 +4,7 @@ import { TenantHeader } from "./TenantHeader";
 import { TenantInfoCard } from "./TenantInfoCard";
 import { TenantUnitsCard } from "./TenantUnitsCard";
 import { TenantLedgerTabs } from "./TenantLedgerTabs";
-
-interface Tenant {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  ssn: string;
-  status: string;
-  joinDate: string;
-  units: TenantUnit[];
-}
-
-interface TenantUnit {
-  unitId: string;
-  unitNumber: string;
-  status: "good" | "overdue" | "pending";
-  monthlyRate: number;
-  leaseStart: string;
-  leaseEnd?: string;
-  balance: number;
-}
+import { Tenant } from "@/types/customer";
 
 interface TenantDetailsPageProps {
   tenant: Tenant;
