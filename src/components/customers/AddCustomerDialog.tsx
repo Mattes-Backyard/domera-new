@@ -8,25 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { UserPlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { DatabaseCustomer } from "@/types/customer";
 
 const availableUnits = [
   { id: "A-102", size: "5x5", rate: 85 },
   { id: "C-301", size: "10x20", rate: 280 },
 ];
 
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  units: string[];
-  status: string;
-  joinDate: string;
-  balance: number;
-}
-
 interface AddCustomerDialogProps {
-  onSave?: (customer: Customer) => void;
+  onSave?: (customer: DatabaseCustomer) => void;
   isOpen?: boolean;
   onClose?: () => void;
 }
@@ -73,16 +63,27 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
       return;
     }
 
-    // Create new customer object
-    const newCustomer: Customer = {
+    // Create new customer object as DatabaseCustomer
+    const nameParts = formData.name.split(' ');
+    const newCustomer: DatabaseCustomer = {
       id: formData.name.toLowerCase().replace(/\s+/g, '-'),
-      name: formData.name,
+      first_name: nameParts[0] || '',
+      last_name: nameParts.slice(1).join(' ') || '',
       email: formData.email,
       phone: formData.phone,
-      units: formData.assignedUnit ? [formData.assignedUnit] : [],
-      status: formData.assignedUnit ? "active" : "former",
-      joinDate: new Date().toISOString().split('T')[0],
+      address: formData.address,
+      city: '',
+      state: '',
+      zip_code: '',
+      emergency_contact_name: formData.emergencyContactName,
+      emergency_contact_phone: formData.emergencyContactPhone,
+      move_in_date: new Date().toISOString().split('T')[0],
+      lease_end_date: undefined,
+      security_deposit: undefined,
       balance: 0,
+      notes: formData.notes,
+      facility_id: '',
+      user_id: undefined,
     };
 
     // Call the callback to add customer to the system
@@ -93,15 +94,10 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
     console.log("New customer data:", {
       customer: newCustomer,
       additionalInfo: {
-        address: formData.address,
         personalId: formData.personalId,
         taxId: formData.taxId,
-        emergencyContact: {
-          name: formData.emergencyContactName,
-          phone: formData.emergencyContactPhone,
-          relationship: formData.emergencyContactRelationship,
-        },
-        notes: formData.notes,
+        assignedUnit: formData.assignedUnit,
+        emergencyContactRelationship: formData.emergencyContactRelationship,
       }
     });
     

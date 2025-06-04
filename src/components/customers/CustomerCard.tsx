@@ -3,17 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User, Mail, Phone, Package } from "lucide-react";
-
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  units: string[];
-  status: string;
-  joinDate: string;
-  balance: number;
-}
+import { Customer } from "@/types/customer";
 
 interface CustomerCardProps {
   customer: Customer;
@@ -90,7 +80,7 @@ export const CustomerCard = ({ customer, isSelected, onViewDetails }: CustomerCa
           
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Join Date:</span>
-            <span className="text-sm font-medium">{customer.joinDate}</span>
+            <span className="text-sm font-medium">{customer.joinDate || customer.moveInDate || "N/A"}</span>
           </div>
           
           <Button 

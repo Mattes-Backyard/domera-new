@@ -10,7 +10,7 @@ import { useRealtimeSupabaseData } from "@/hooks/useRealtimeSupabaseData";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useAppState } from "@/hooks/useAppState";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { DatabaseCustomer, Customer, transformCustomerToDatabaseCustomer } from "@/types/customer";
+import { DatabaseCustomer, transformDatabaseCustomerToCustomer } from "@/types/customer";
 import { useState } from "react";
 
 const Index = () => {
@@ -99,8 +99,29 @@ const Index = () => {
     // Find customer in the transformed customers array
     const customer = customers.find(c => c.id === tenantId);
     if (customer) {
-      // Convert Customer type to DatabaseCustomer type for the details view
-      const databaseCustomer = transformCustomerToDatabaseCustomer(customer);
+      // We need to find the original DatabaseCustomer or create one
+      // For now, we'll create a minimal DatabaseCustomer from the Customer data
+      const nameParts = customer.name.split(' ');
+      const databaseCustomer: DatabaseCustomer = {
+        id: customer.id,
+        first_name: nameParts[0] || '',
+        last_name: nameParts.slice(1).join(' ') || '',
+        email: customer.email,
+        phone: customer.phone,
+        address: '',
+        city: '',
+        state: '',
+        zip_code: '',
+        emergency_contact_name: customer.emergencyContact,
+        emergency_contact_phone: customer.emergencyPhone,
+        move_in_date: customer.moveInDate,
+        lease_end_date: undefined,
+        security_deposit: undefined,
+        balance: customer.balance,
+        notes: undefined,
+        facility_id: '',
+        user_id: customer.id,
+      };
       setViewingTenantDetails(databaseCustomer);
     }
   };
