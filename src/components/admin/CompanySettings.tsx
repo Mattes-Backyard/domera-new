@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,21 +59,6 @@ export const CompanySettings = () => {
         vat_number: companyInfo.vat_number || '',
         currency: companyInfo.currency || 'EUR',
         timezone: companyInfo.timezone || 'Europe/Stockholm'
-      });
-    } else {
-      console.log('CompanySettings: No company info found, using defaults');
-      // If no company info exists, set reasonable defaults
-      setFormData({
-        company_name: '',
-        address: '',
-        city: '',
-        postal_code: '',
-        country: '',
-        phone: '',
-        email: '',
-        vat_number: '',
-        currency: 'EUR',
-        timezone: 'Europe/Stockholm'
       });
     }
   }, [companyInfo]);
