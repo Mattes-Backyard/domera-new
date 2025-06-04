@@ -32,7 +32,8 @@ export const CustomerList = ({
   const effectiveSearchQuery = searchQuery || localSearchQuery;
   
   const filteredCustomers = customers.filter(customer => {
-    const customerName = `${customer.first_name} ${customer.last_name}`.trim().toLowerCase();
+    // Use actual database fields for filtering
+    const customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim().toLowerCase();
     const searchLower = effectiveSearchQuery.toLowerCase();
     
     return customerName.includes(searchLower) ||

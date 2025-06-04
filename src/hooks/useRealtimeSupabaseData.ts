@@ -60,17 +60,17 @@ export const useRealtimeSupabaseData = () => {
           let customerId = null;
           
           if (unit.status === 'occupied' && customer) {
-            // Use safe property access and fallbacks
-            const firstName = (customer as any)?.first_name || '';
-            const lastName = (customer as any)?.last_name || '';
-            customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
-            customerId = customer.user_id || customer.id;
+            // Use actual database fields
+            const firstName = customer.first_name || '';
+            const lastName = customer.last_name || '';
+            customerName = `${firstName} ${lastName}`.trim() || 'Unknown Customer';
+            customerId = customer.id;
           } else if (activeRental && customer) {
             unitStatus = 'occupied';
-            const firstName = (customer as any)?.first_name || '';
-            const lastName = (customer as any)?.last_name || '';
-            customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
-            customerId = customer.user_id || customer.id;
+            const firstName = customer.first_name || '';
+            const lastName = customer.last_name || '';
+            customerName = `${firstName} ${lastName}`.trim() || 'Unknown Customer';
+            customerId = customer.id;
           }
           
           return {
@@ -86,7 +86,7 @@ export const useRealtimeSupabaseData = () => {
           };
         }) || [];
 
-        // Fetch customers with their rental information directly from database
+        // Fetch customers directly from database - no transformations needed now
         const { data: customersData } = await supabase
           .from('customers')
           .select(`
@@ -98,25 +98,9 @@ export const useRealtimeSupabaseData = () => {
             payments(amount, status)
           `);
 
-        // Transform customers to match our type interface with safe property access
-        const transformedCustomers = customersData?.map((customer: any) => ({
-          ...customer,
-          // Add computed fields for compatibility using safe property access with fallbacks
-          first_name: (customer as any)?.first_name || customer.emergency_contact_name?.split(' ')[0] || '',
-          last_name: (customer as any)?.last_name || customer.emergency_contact_name?.split(' ').slice(1).join(' ') || '',
-          email: (customer as any)?.email || `customer${customer.id.slice(0, 8)}@storage.com`,
-          phone: (customer as any)?.phone || customer.emergency_contact_phone || '',
-          address: (customer as any)?.address || '',
-          city: (customer as any)?.city || '',
-          state: (customer as any)?.state || '',
-          zip_code: (customer as any)?.zip_code || '',
-          ssn: (customer as any)?.ssn || '',
-          status: (customer as any)?.status || 'active',
-          join_date: (customer as any)?.join_date || customer.move_in_date || new Date().toISOString().split('T')[0]
-        })) || [];
-
+        // Just set the customers data directly since all fields now exist in the database
+        setCustomers(customersData || []);
         setUnits(transformedUnits);
-        setCustomers(transformedCustomers);
 
         // Fetch facilities
         const { data: facilitiesData } = await supabase

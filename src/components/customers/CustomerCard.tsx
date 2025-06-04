@@ -32,8 +32,9 @@ export const CustomerCard = ({ customer, isSelected, onViewDetails, units = [] }
     return "text-gray-600";
   };
 
-  const customerName = `${customer.first_name} ${customer.last_name}`.trim() || 'Unknown Customer';
-  const customerAddress = `${customer.address}, ${customer.city}, ${customer.state} ${customer.zip_code}`;
+  // Use actual database fields instead of fallback logic
+  const customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Unknown Customer';
+  const customerAddress = `${customer.address || ''}, ${customer.city || ''}, ${customer.state || ''} ${customer.zip_code || ''}`;
 
   return (
     <Card className={`hover:shadow-lg transition-shadow duration-200 ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
@@ -49,7 +50,7 @@ export const CustomerCard = ({ customer, isSelected, onViewDetails, units = [] }
         <div className="flex items-center space-x-4 text-sm text-gray-600">
           <div className="flex items-center space-x-1">
             <Mail className="h-4 w-4" />
-            <span>{customer.email}</span>
+            <span>{customer.email || 'No email'}</span>
           </div>
         </div>
       </CardHeader>
@@ -57,7 +58,7 @@ export const CustomerCard = ({ customer, isSelected, onViewDetails, units = [] }
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
             <Phone className="h-4 w-4 text-gray-400" />
-            <span className="text-sm">{customer.phone}</span>
+            <span className="text-sm">{customer.phone || 'No phone'}</span>
           </div>
           
           <div className="flex items-center justify-between">

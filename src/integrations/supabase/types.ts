@@ -62,46 +62,79 @@ export type Database = {
       }
       customers: {
         Row: {
+          address: string | null
           balance: number | null
+          city: string | null
           created_at: string | null
+          email: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           facility_id: string
+          first_name: string | null
           id: string
+          join_date: string | null
+          last_name: string | null
           lease_end_date: string | null
           move_in_date: string | null
           notes: string | null
+          phone: string | null
           security_deposit: number | null
+          ssn: string | null
+          state: string | null
+          status: string | null
           updated_at: string | null
           user_id: string | null
+          zip_code: string | null
         }
         Insert: {
+          address?: string | null
           balance?: number | null
+          city?: string | null
           created_at?: string | null
+          email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           facility_id: string
+          first_name?: string | null
           id?: string
+          join_date?: string | null
+          last_name?: string | null
           lease_end_date?: string | null
           move_in_date?: string | null
           notes?: string | null
+          phone?: string | null
           security_deposit?: number | null
+          ssn?: string | null
+          state?: string | null
+          status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          zip_code?: string | null
         }
         Update: {
+          address?: string | null
           balance?: number | null
+          city?: string | null
           created_at?: string | null
+          email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           facility_id?: string
+          first_name?: string | null
           id?: string
+          join_date?: string | null
+          last_name?: string | null
           lease_end_date?: string | null
           move_in_date?: string | null
           notes?: string | null
+          phone?: string | null
           security_deposit?: number | null
+          ssn?: string | null
+          state?: string | null
+          status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          zip_code?: string | null
         }
         Relationships: [
           {
