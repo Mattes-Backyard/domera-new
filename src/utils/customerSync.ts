@@ -1,3 +1,4 @@
+
 import type { Unit } from "@/hooks/useAppState";
 import type { Customer } from "@/types/customer";
 
@@ -10,7 +11,7 @@ export const syncCustomerUnits = (
 ) => {
   const syncedCustomers = customers.map(customer => {
     const customerUnits = updatedUnits
-      .filter(unit => unit.tenantId === customer.id)
+      .filter(unit => unit.tenant?.id === customer.id)
       .map(unit => unit.id);
     
     return {

@@ -24,7 +24,7 @@ export const ReservationSystem = ({ units, onReserveUnit }: ReservationSystemPro
       startDate: new Date().toISOString(),
       status: "pending",
       paymentStatus: "pending",
-      totalAmount: unit.rate,
+      totalAmount: unit.monthly_rate,
     };
     onReserveUnit(unit.id, reservation);
   };
@@ -35,8 +35,8 @@ export const ReservationSystem = ({ units, onReserveUnit }: ReservationSystemPro
     return Math.round(baseRate * demandMultiplier);
   };
 
-  const siteOccupancy = (site: string) => {
-    const siteUnits = units.filter(u => u.site === site);
+  const siteOccupancy = (facilityId: string) => {
+    const siteUnits = units.filter(u => u.facility_id === facilityId);
     const occupiedUnits = siteUnits.filter(u => u.status === "occupied");
     return occupiedUnits.length / siteUnits.length;
   };
@@ -50,22 +50,22 @@ export const ReservationSystem = ({ units, onReserveUnit }: ReservationSystemPro
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {availableUnits.map((unit) => {
-          const occupancyRate = siteOccupancy(unit.site);
-          const dynamicPrice = getDynamicPrice(unit.rate, occupancyRate);
-          const priceIncrease = dynamicPrice > unit.rate;
+          const occupancyRate = siteOccupancy(unit.facility_id);
+          const dynamicPrice = getDynamicPrice(unit.monthly_rate, occupancyRate);
+          const priceIncrease = dynamicPrice > unit.monthly_rate;
 
           return (
             <Card key={unit.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{unit.id}</CardTitle>
+                  <CardTitle className="text-lg">{unit.unit_number}</CardTitle>
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
                     Available
                   </Badge>
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
                   <MapPin className="h-4 w-4 mr-1" />
-                  {unit.site}
+                  {unit.facility_id}
                 </div>
               </CardHeader>
               <CardContent>
@@ -76,18 +76,18 @@ export const ReservationSystem = ({ units, onReserveUnit }: ReservationSystemPro
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Type:</span>
-                    <span className="font-medium">{unit.type}</span>
+                    <span className="font-medium">{unit.type || 'Standard'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Climate:</span>
-                    <span className="font-medium">{unit.climate ? "Yes" : "No"}</span>
+                    <span className="font-medium">{unit.climate_controlled ? "Yes" : "No"}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Price:</span>
                     <div className="text-right">
                       {priceIncrease && (
                         <span className="text-xs text-gray-400 line-through block">
-                          ${unit.rate}/month
+                          ${unit.monthly_rate}/month
                         </span>
                       )}
                       <span className={`font-bold ${priceIncrease ? 'text-orange-600' : 'text-gray-900'}`}>

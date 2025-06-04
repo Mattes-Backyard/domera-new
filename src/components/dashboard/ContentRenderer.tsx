@@ -1,3 +1,4 @@
+
 import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
@@ -15,6 +16,18 @@ import type { Unit } from "@/hooks/useAppState";
 interface Facility {
   id: string;
   name: string;
+}
+
+interface Tenant {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  ssn: string;
+  status: string;
+  joinDate: string;
+  units: string[];
 }
 
 interface ContentRendererProps {
@@ -57,6 +70,21 @@ const transformCustomerToTenant = (customer: DatabaseCustomer): Tenant => {
   };
 };
 
+// Transform Unit from useAppState to FloorPlanView Unit interface
+const transformUnitForFloorPlan = (unit: Unit) => {
+  return {
+    id: unit.id,
+    size: unit.size,
+    type: unit.type || 'Standard',
+    status: unit.status,
+    tenant: unit.tenant?.name || null,
+    tenantId: unit.tenant?.id || null,
+    rate: unit.monthly_rate,
+    climate: unit.climate_controlled || false,
+    site: unit.facility_id
+  };
+};
+
 export const ContentRenderer = ({
   activeView,
   searchQuery,
@@ -84,15 +112,36 @@ export const ContentRenderer = ({
   // Transform Customer[] to DatabaseCustomer[] for CustomerList
   const databaseCustomers = customers.map(transformCustomerToDatabaseCustomer);
 
+  // Transform units for floor plan view
+  const transformedUnitsForFloorPlan = units.map(transformUnitForFloorPlan);
+
   // Show floor plan if requested
   if (showFloorPlan) {
     return (
       <div className="h-full overflow-auto">
         <FloorPlanView 
-          units={units}
+          units={transformedUnitsForFloorPlan}
           onBack={onBackFromFloorPlan}
-          onUnitClick={onUnitSelect}
-          onUnitUpdate={onUnitUpdate}
+          onUnitClick={(unit) => {
+            // Find original unit and call onUnitSelect
+            const originalUnit = units.find(u => u.id === unit.id);
+            if (originalUnit) {
+              onUnitSelect(originalUnit);
+            }
+          }}
+          onUnitUpdate={(updatedUnit) => {
+            // Find original unit and transform back
+            const originalUnit = units.find(u => u.id === updatedUnit.id);
+            if (originalUnit) {
+              const transformedUnit = {
+                ...originalUnit,
+                monthly_rate: updatedUnit.rate,
+                climate_controlled: updatedUnit.climate,
+                status: updatedUnit.status as any
+              };
+              onUnitUpdate(transformedUnit);
+            }
+          }}
         />
       </div>
     );
@@ -184,7 +233,7 @@ export const ContentRenderer = ({
       return (
         <div className="h-full overflow-auto">
           <OperationsView
-            units={units}
+            units={transformedUnitsForFloorPlan}
             onTenantClick={onTenantClick}
             selectedSites={selectedSites}
           />
