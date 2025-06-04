@@ -1,4 +1,3 @@
-
 import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
@@ -21,6 +20,20 @@ interface Unit {
   rate: number;
   climate: boolean;
   site: string;
+}
+
+// Customer type that matches the transformed data from useRealtimeSupabaseData
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  units: string[];
+  balance: number;
+  status: string;
+  moveInDate?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
 }
 
 // Supabase Customer type
@@ -58,7 +71,7 @@ interface ContentRendererProps {
   viewingTenantDetails: DatabaseCustomer | null;
   showFloorPlan: boolean;
   units: Unit[];
-  customers: DatabaseCustomer[];
+  customers: Customer[];
   facilities: Facility[];
   onUnitSelect: (unit: Unit) => void;
   onUnitUpdate: (unit: Unit) => void;

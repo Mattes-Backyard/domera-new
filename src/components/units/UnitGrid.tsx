@@ -90,21 +90,45 @@ export const UnitGrid = ({
   };
 
   const getFacilityName = (site: string) => {
+    // First try to find the facility by ID in the facilities prop (from admin panel)
     const facility = facilities.find(f => f.id === site);
-    return facility ? facility.name : site.charAt(0).toUpperCase() + site.slice(1);
+    if (facility) {
+      return facility.name;
+    }
+    
+    // Fallback: try to match by city name if site is a city name
+    const facilityByCity = facilities.find(f => 
+      f.name.toLowerCase().includes(site.toLowerCase()) || 
+      site.toLowerCase().includes(f.name.toLowerCase())
+    );
+    if (facilityByCity) {
+      return facilityByCity.name;
+    }
+    
+    // Last fallback: capitalize the site string
+    return site.charAt(0).toUpperCase() + site.slice(1);
   };
 
   const getFacilityColor = (site: string) => {
-    switch (site) {
-      case "helsingborg":
-        return "bg-blue-100 text-blue-800";
-      case "lund":
-        return "bg-green-100 text-green-800";
-      case "malmö":
-        return "bg-purple-100 text-purple-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+    // Use the facility name for consistent coloring
+    const facilityName = getFacilityName(site);
+    
+    // Generate consistent colors based on facility name hash
+    const hash = facilityName.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    
+    const colors = [
+      "bg-blue-100 text-blue-800",
+      "bg-green-100 text-green-800",
+      "bg-purple-100 text-purple-800",
+      "bg-orange-100 text-orange-800",
+      "bg-pink-100 text-pink-800",
+      "bg-indigo-100 text-indigo-800"
+    ];
+    
+    return colors[Math.abs(hash) % colors.length];
   };
 
   const filteredUnits = useMemo(() => {

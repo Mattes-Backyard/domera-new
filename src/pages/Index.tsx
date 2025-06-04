@@ -1,4 +1,3 @@
-
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -116,10 +115,27 @@ const Index = () => {
   };
 
   const handleTenantClick = (tenantId: string) => {
-    // Find customer in the DatabaseCustomer array from Supabase
+    // Find customer in the transformed customers array
     const customer = customers.find(c => c.id === tenantId);
     if (customer) {
-      setViewingTenantDetails(customer);
+      // Convert Customer type to DatabaseCustomer type for the details view
+      const databaseCustomer: DatabaseCustomer = {
+        id: customer.id,
+        first_name: customer.name.split(' ')[0] || '',
+        last_name: customer.name.split(' ').slice(1).join(' ') || '',
+        email: customer.email,
+        phone: customer.phone,
+        address: '', // Not available in Customer type
+        city: '', // Not available in Customer type
+        state: '', // Not available in Customer type
+        zip_code: '', // Not available in Customer type
+        emergency_contact_name: customer.emergencyContact,
+        emergency_contact_phone: customer.emergencyPhone,
+        move_in_date: customer.moveInDate,
+        balance: customer.balance,
+        facility_id: '' // Not available in Customer type
+      };
+      setViewingTenantDetails(databaseCustomer);
     }
   };
 
