@@ -23,7 +23,8 @@ interface Unit {
   site: string;
 }
 
-interface Customer {
+// Supabase Customer type
+interface DatabaseCustomer {
   id: string;
   first_name: string;
   last_name: string;
@@ -43,6 +44,18 @@ interface Customer {
   facility_id: string;
 }
 
+// App State Customer type  
+interface AppStateCustomer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  units: string[];
+  status: string;
+  joinDate: string;
+  balance: number;
+}
+
 interface Facility {
   id: string;
   name: string;
@@ -54,15 +67,15 @@ interface ContentRendererProps {
   selectedUnitId: string | null;
   selectedCustomerId: string | null;
   viewingUnitDetails: Unit | null;
-  viewingTenantDetails: Customer | null;
+  viewingTenantDetails: DatabaseCustomer | null;
   showFloorPlan: boolean;
   units: Unit[];
-  customers: Customer[];
+  customers: DatabaseCustomer[];
   facilities: Facility[];
   onUnitSelect: (unit: Unit) => void;
   onUnitUpdate: (unit: Unit) => void;
   onUnitAdd: (unit: Unit) => void;
-  onCustomerAdd: (customer: Customer) => void;
+  onCustomerAdd: (customer: DatabaseCustomer) => void;
   onTenantClick: (tenantId: string) => void;
   onClearUnitSelection: () => void;
   onClearCustomerSelection: () => void;
@@ -74,7 +87,7 @@ interface ContentRendererProps {
 }
 
 // Transform database customer to tenant format for TenantDetailsPage
-const transformCustomerToTenant = (customer: Customer) => {
+const transformCustomerToTenant = (customer: DatabaseCustomer) => {
   return {
     id: customer.id,
     name: `${customer.first_name} ${customer.last_name}`,
@@ -85,6 +98,20 @@ const transformCustomerToTenant = (customer: Customer) => {
     status: "active", // Default status
     joinDate: customer.move_in_date || new Date().toISOString().split('T')[0],
     units: [] // Would need to be populated from unit rentals
+  };
+};
+
+// Transform database customer to app state customer format
+const transformToAppStateCustomer = (customer: DatabaseCustomer): AppStateCustomer => {
+  return {
+    id: customer.id,
+    name: `${customer.first_name} ${customer.last_name}`,
+    email: customer.email,
+    phone: customer.phone,
+    units: [], // Would need to be populated from unit rentals
+    status: "active", // Default status
+    joinDate: customer.move_in_date || new Date().toISOString().split('T')[0],
+    balance: customer.balance || 0
   };
 };
 
