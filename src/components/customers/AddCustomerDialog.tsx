@@ -14,19 +14,29 @@ const availableUnits = [
   { id: "C-301", size: "10x20", rate: 280 },
 ];
 
-interface Customer {
+// DatabaseCustomer type from Supabase
+interface DatabaseCustomer {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   phone: string;
-  units: string[];
-  status: string;
-  joinDate: string;
-  balance: number;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  move_in_date?: string;
+  lease_end_date?: string;
+  security_deposit?: number;
+  balance?: number;
+  notes?: string;
+  facility_id: string;
 }
 
 interface AddCustomerDialogProps {
-  onSave?: (customer: Customer) => void;
+  onSave?: (customer: DatabaseCustomer) => void;
   isOpen?: boolean;
   onClose?: () => void;
 }
@@ -34,16 +44,16 @@ interface AddCustomerDialogProps {
 export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustomerDialogProps) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     address: "",
-    personalId: "",
-    taxId: "",
-    assignedUnit: "",
+    city: "",
+    state: "",
+    zipCode: "",
     emergencyContactName: "",
     emergencyContactPhone: "",
-    emergencyContactRelationship: "",
     notes: "",
   });
 
@@ -64,7 +74,7 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
     e.preventDefault();
     
     // Basic validation
-    if (!formData.name || !formData.email || !formData.phone) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -73,16 +83,23 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
       return;
     }
 
-    // Create new customer object
-    const newCustomer: Customer = {
-      id: formData.name.toLowerCase().replace(/\s+/g, '-'),
-      name: formData.name,
+    // Create new DatabaseCustomer object
+    const newCustomer: DatabaseCustomer = {
+      id: crypto.randomUUID(),
+      first_name: formData.firstName,
+      last_name: formData.lastName,
       email: formData.email,
       phone: formData.phone,
-      units: formData.assignedUnit ? [formData.assignedUnit] : [],
-      status: formData.assignedUnit ? "active" : "former",
-      joinDate: new Date().toISOString().split('T')[0],
+      address: formData.address,
+      city: formData.city,
+      state: formData.state,
+      zip_code: formData.zipCode,
+      emergency_contact_name: formData.emergencyContactName || undefined,
+      emergency_contact_phone: formData.emergencyContactPhone || undefined,
+      move_in_date: new Date().toISOString().split('T')[0],
       balance: 0,
+      notes: formData.notes || undefined,
+      facility_id: crypto.randomUUID(), // This should be set to actual facility ID
     };
 
     // Call the callback to add customer to the system
@@ -90,38 +107,25 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
       onSave(newCustomer);
     }
 
-    console.log("New customer data:", {
-      customer: newCustomer,
-      additionalInfo: {
-        address: formData.address,
-        personalId: formData.personalId,
-        taxId: formData.taxId,
-        emergencyContact: {
-          name: formData.emergencyContactName,
-          phone: formData.emergencyContactPhone,
-          relationship: formData.emergencyContactRelationship,
-        },
-        notes: formData.notes,
-      }
-    });
+    console.log("New customer data:", newCustomer);
     
     toast({
       title: "Success",
-      description: `Customer ${formData.name} has been added successfully${formData.assignedUnit ? ` and assigned to unit ${formData.assignedUnit}` : ""}`,
+      description: `Customer ${formData.firstName} ${formData.lastName} has been added successfully`,
     });
 
     // Reset form and close dialog
     setFormData({
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       phone: "",
       address: "",
-      personalId: "",
-      taxId: "",
-      assignedUnit: "",
+      city: "",
+      state: "",
+      zipCode: "",
       emergencyContactName: "",
       emergencyContactPhone: "",
-      emergencyContactRelationship: "",
       notes: "",
     });
     setOpen(false);
@@ -151,11 +155,20 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
             <h3 className="text-lg font-semibold">Basic Information</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Full Name *</Label>
+                <Label htmlFor="firstName">First Name *</Label>
                 <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name *</Label>
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                   required
                 />
               </div>
@@ -187,41 +200,29 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
                 />
               </div>
               <div>
-                <Label htmlFor="personalId">Personal ID</Label>
+                <Label htmlFor="city">City</Label>
                 <Input
-                  id="personalId"
-                  value={formData.personalId}
-                  onChange={(e) => setFormData({ ...formData, personalId: e.target.value })}
+                  id="city"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                 />
               </div>
               <div>
-                <Label htmlFor="taxId">Tax ID</Label>
+                <Label htmlFor="state">State</Label>
                 <Input
-                  id="taxId"
-                  value={formData.taxId}
-                  onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
+                  id="state"
+                  value={formData.state}
+                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                 />
               </div>
-            </div>
-          </div>
-
-          {/* Unit Assignment */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Unit Assignment (Optional)</h3>
-            <div>
-              <Label htmlFor="assignedUnit">Assign Unit</Label>
-              <Select value={formData.assignedUnit} onValueChange={(value) => setFormData({ ...formData, assignedUnit: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a unit (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableUnits.map((unit) => (
-                    <SelectItem key={unit.id} value={unit.id}>
-                      {unit.id} - {unit.size} (${unit.rate}/month)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div>
+                <Label htmlFor="zipCode">Zip Code</Label>
+                <Input
+                  id="zipCode"
+                  value={formData.zipCode}
+                  onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
+                />
+              </div>
             </div>
           </div>
 
@@ -243,15 +244,6 @@ export const AddCustomerDialog = ({ onSave, isOpen = false, onClose }: AddCustom
                   id="emergencyContactPhone"
                   value={formData.emergencyContactPhone}
                   onChange={(e) => setFormData({ ...formData, emergencyContactPhone: e.target.value })}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label htmlFor="emergencyContactRelationship">Relationship</Label>
-                <Input
-                  id="emergencyContactRelationship"
-                  value={formData.emergencyContactRelationship}
-                  onChange={(e) => setFormData({ ...formData, emergencyContactRelationship: e.target.value })}
-                  placeholder="e.g., Spouse, Parent, Sibling"
                 />
               </div>
             </div>

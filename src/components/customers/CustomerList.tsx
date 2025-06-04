@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -103,6 +104,12 @@ export const CustomerList = ({
     onTenantClick?.(customer.id);
   };
 
+  // Wrapper function to handle the type conversion
+  const handleAddCustomer = (dbCustomer: DatabaseCustomer) => {
+    console.log("Adding customer:", dbCustomer);
+    onCustomerAdd?.(dbCustomer);
+  };
+
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -119,7 +126,7 @@ export const CustomerList = ({
               Clear Selection
             </Button>
           )}
-          <AddCustomerDialog onSave={onCustomerAdd} />
+          <AddCustomerDialog onSave={handleAddCustomer} />
         </div>
       </div>
 
