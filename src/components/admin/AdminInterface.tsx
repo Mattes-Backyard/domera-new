@@ -1,7 +1,9 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompanySettings } from "./CompanySettings";
 import { FacilityManagement } from "./FacilityManagement";
 import { AddUserDialog } from "./AddUserDialog";
+import { UserList } from "./UserList";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 
 export const AdminInterface = () => {
@@ -32,6 +34,7 @@ export const AdminInterface = () => {
             <AddUserDialog facilities={facilities} onUserAdded={handleUserAdded} />
           </div>
           
+          <UserList />
         </TabsContent>
 
         <TabsContent value="company">
