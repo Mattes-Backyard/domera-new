@@ -1,4 +1,3 @@
-
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -141,12 +140,14 @@ const Index = () => {
       <TaskProvider>
         <SidebarProvider>
           <div className="flex h-screen bg-gray-50 w-full overflow-hidden">
-            <DashboardSidebar 
-              activeView={activeView} 
-              setActiveView={setActiveView}
-            />
+            <div className="relative z-40">
+              <DashboardSidebar 
+                activeView={activeView} 
+                setActiveView={setActiveView}
+              />
+            </div>
             
-            <div className="flex-1 flex flex-col h-full overflow-hidden">
+            <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
               <DashboardHeader 
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}

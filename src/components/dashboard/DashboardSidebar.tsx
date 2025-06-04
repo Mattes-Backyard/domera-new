@@ -87,8 +87,13 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
 
+  const handleMenuClick = (viewId: string) => {
+    console.log('Sidebar menu clicked:', viewId);
+    setActiveView(viewId);
+  };
+
   return (
-    <Sidebar className="border-r border-gray-200 bg-white">
+    <Sidebar className="border-r border-gray-200 bg-white relative z-40">
       <SidebarHeader className="p-6">
         <div className="flex items-center space-x-2">
           <img 
@@ -111,9 +116,9 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
-                    onClick={() => setActiveView(item.id)}
+                    onClick={() => handleMenuClick(item.id)}
                     isActive={activeView === item.id}
-                    className="w-full justify-start"
+                    className="w-full justify-start cursor-pointer hover:bg-sidebar-accent"
                   >
                     <item.icon className="h-4 w-4" />
                     <span>{item.title}</span>
@@ -131,7 +136,7 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
               <Collapsible>
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton>
+                    <SidebarMenuButton className="cursor-pointer hover:bg-sidebar-accent">
                       <Settings className="h-4 w-4" />
                       <span>System Settings</span>
                       <ChevronDown className="ml-auto h-4 w-4" />
@@ -141,8 +146,9 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
                     <SidebarMenuSub>
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton 
-                          onClick={() => setActiveView("integrations")}
+                          onClick={() => handleMenuClick("integrations")}
                           isActive={activeView === "integrations"}
+                          className="cursor-pointer hover:bg-sidebar-accent"
                         >
                           <Plug className="h-4 w-4" />
                           <span>Integrations</span>
@@ -151,8 +157,9 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
                       {isAdmin && (
                         <SidebarMenuSubItem>
                           <SidebarMenuSubButton 
-                            onClick={() => setActiveView("admin")}
+                            onClick={() => handleMenuClick("admin")}
                             isActive={activeView === "admin"}
+                            className="cursor-pointer hover:bg-sidebar-accent"
                           >
                             <UserCog className="h-4 w-4" />
                             <span>Admin Panel</span>
