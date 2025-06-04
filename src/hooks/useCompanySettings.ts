@@ -84,22 +84,54 @@ export const useCompanySettings = () => {
     if (!user) return false;
 
     try {
-      const { data, error } = await supabase
+      // Check if a company record already exists
+      const { data: existingCompany, error: fetchError } = await supabase
         .from('company_info')
-        .upsert({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+        .select('id')
+        .maybeSingle();
 
-      if (error) {
-        console.error('Error updating company info:', error);
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error checking existing company:', fetchError);
+        toast.error('Failed to check existing company information');
+        return false;
+      }
+
+      let result;
+      
+      if (existingCompany) {
+        // Update existing company record
+        const { data, error } = await supabase
+          .from('company_info')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingCompany.id)
+          .select()
+          .single();
+
+        result = { data, error };
+      } else {
+        // Create new company record (only if none exists)
+        const { data, error } = await supabase
+          .from('company_info')
+          .insert({
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        result = { data, error };
+      }
+
+      if (result.error) {
+        console.error('Error updating company info:', result.error);
         toast.error('Failed to update company information');
         return false;
       }
 
-      setCompanyInfo(data);
+      setCompanyInfo(result.data);
       toast.success('Company information updated successfully');
       return true;
     } catch (error) {
