@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -240,20 +241,19 @@ export const useInvoices = () => {
       pdf.text('Payment Terms: Net 30 days', 20, totalsY + 35);
       pdf.text('Thank you for your business!', 20, totalsY + 45);
 
-      // Convert PDF to blob
-      const pdfOutput = pdf.output('arraybuffer');
-      const pdfBlob = new Blob([pdfOutput], { type: 'application/pdf' });
+      // Convert PDF to blob - use binary string instead of arraybuffer
+      const pdfOutput = pdf.output('blob');
       const fileName = `invoice-${invoice.invoice_number}.pdf`;
       
       console.log('Uploading PDF to storage:', fileName);
       
-      // Upload to Supabase storage
+      // Upload to Supabase storage with binary content type
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('company-assets')
-        .upload(`invoices/${fileName}`, pdfBlob, {
+        .upload(`invoices/${fileName}`, pdfOutput, {
           cacheControl: '3600',
           upsert: true,
-          contentType: 'application/pdf'
+          contentType: 'application/octet-stream'
         });
 
       if (uploadError) {
