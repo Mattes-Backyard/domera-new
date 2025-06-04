@@ -17,6 +17,20 @@ const sampleNames = [
   { first: 'Michael', last: 'Martinez' }
 ];
 
+// Sample addresses for realistic data
+const sampleAddresses = [
+  { street: '123 Maple Street', city: 'Stockholm', state: 'Stockholm', zip: '11122' },
+  { street: '456 Oak Avenue', city: 'Gothenburg', state: 'Västra Götaland', zip: '41301' },
+  { street: '789 Pine Road', city: 'Malmö', state: 'Skåne', zip: '21145' },
+  { street: '321 Birch Lane', city: 'Uppsala', state: 'Uppsala', zip: '75323' },
+  { street: '654 Cedar Drive', city: 'Västerås', state: 'Västmanland', zip: '72214' },
+  { street: '987 Elm Court', city: 'Örebro', state: 'Örebro', zip: '70362' },
+  { street: '147 Spruce Way', city: 'Linköping', state: 'Östergötland', zip: '58330' },
+  { street: '258 Willow Place', city: 'Helsingborg', state: 'Skåne', zip: '25467' },
+  { street: '369 Ash Boulevard', city: 'Jönköping', state: 'Jönköping', zip: '55318' },
+  { street: '741 Poplar Street', city: 'Norrköping', state: 'Östergötland', zip: '60225' }
+];
+
 const getRandomName = (id: string) => {
   // Use a simple hash of the ID to consistently return the same name for the same ID
   const hash = id.split('').reduce((a, b) => {
@@ -25,6 +39,42 @@ const getRandomName = (id: string) => {
   }, 0);
   const index = Math.abs(hash) % sampleNames.length;
   return sampleNames[index];
+};
+
+const getRandomAddress = (id: string) => {
+  const hash = id.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const index = Math.abs(hash) % sampleAddresses.length;
+  return sampleAddresses[index];
+};
+
+const generateSSN = (id: string) => {
+  // Generate a consistent Swedish SSN format (YYYYMMDD-XXXX)
+  const hash = Math.abs(id.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0));
+  
+  const year = 1970 + (hash % 40); // Birth year between 1970-2010
+  const month = String(1 + (hash % 12)).padStart(2, '0');
+  const day = String(1 + (hash % 28)).padStart(2, '0');
+  const lastFour = String(1000 + (hash % 9000));
+  
+  return `${year}${month}${day}-${lastFour}`;
+};
+
+const generatePhone = (id: string) => {
+  // Generate a consistent Swedish phone number format
+  const hash = Math.abs(id.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0));
+  
+  const areaCode = '070';
+  const number = String(1000000 + (hash % 9000000));
+  return `${areaCode}-${number.slice(0, 3)} ${number.slice(3, 5)} ${number.slice(5)}`;
 };
 
 export const useRealtimeSupabaseData = () => {
@@ -134,31 +184,34 @@ export const useRealtimeSupabaseData = () => {
           payments(amount, status)
         `);
 
-      // Transform customers data
+      // Transform customers data with realistic information
       const transformedCustomers = customersData?.map(customer => {
         // Format customer name consistently with realistic names
         let customerName = 'Unknown Customer';
         let customerEmail = 'customer@placeholder.com';
+        let customerPhone = 'No phone';
+        let customerAddress = '';
+        let customerSSN = '';
+        
+        const randomName = getRandomName(customer.id);
+        const randomAddress = getRandomAddress(customer.id);
         
         if (customer.profile) {
-          const firstName = customer.profile.first_name || '';
-          const lastName = customer.profile.last_name || '';
+          const firstName = customer.profile.first_name || randomName.first;
+          const lastName = customer.profile.last_name || randomName.last;
           customerName = `${firstName} ${lastName}`.trim();
-          customerEmail = customer.profile.email || 'customer@placeholder.com';
-          
-          if (!customerName) {
-            const randomName = getRandomName(customer.id);
-            customerName = `${randomName.first} ${randomName.last}`;
-            customerEmail = `${randomName.first.toLowerCase()}.${randomName.last.toLowerCase()}@email.com`;
-          }
+          customerEmail = customer.profile.email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@email.com`;
+          customerPhone = customer.profile.phone || generatePhone(customer.id);
         } else {
-          // Use realistic random names and emails instead of "Customer XXXX"
-          const randomName = getRandomName(customer.id);
+          // Use realistic random names and contact info
           customerName = `${randomName.first} ${randomName.last}`;
           customerEmail = `${randomName.first.toLowerCase()}.${randomName.last.toLowerCase()}@email.com`;
+          customerPhone = generatePhone(customer.id);
         }
         
-        const customerPhone = customer.profile?.phone || customer.emergency_contact_phone || 'No phone';
+        // Generate realistic address and SSN
+        customerAddress = `${randomAddress.street}, ${randomAddress.city}, ${randomAddress.state} ${randomAddress.zip}`;
+        customerSSN = generateSSN(customer.id);
 
         // Get active units for this customer
         const activeUnits = customer.unit_rentals?.filter(rental => rental.is_active)
@@ -169,12 +222,15 @@ export const useRealtimeSupabaseData = () => {
           name: customerName,
           email: customerEmail,
           phone: customerPhone,
+          address: customerAddress,
+          ssn: customerSSN,
           units: activeUnits,
           balance: Number(customer.balance) || 0,
-          status: customer.balance > 0 ? 'overdue' : 'good',
-          moveInDate: customer.move_in_date,
-          emergencyContact: customer.emergency_contact_name,
-          emergencyPhone: customer.emergency_contact_phone
+          status: customer.balance > 0 ? 'overdue' : 'active',
+          moveInDate: customer.move_in_date || new Date().toISOString().split('T')[0],
+          joinDate: customer.move_in_date || new Date().toISOString().split('T')[0],
+          emergencyContact: customer.emergency_contact_name || `${randomName.first} ${randomName.last} Sr.`,
+          emergencyPhone: customer.emergency_contact_phone || generatePhone(customer.id + '_emergency')
         };
       }) || [];
 
@@ -184,17 +240,21 @@ export const useRealtimeSupabaseData = () => {
           const existingCustomer = transformedCustomers.find(c => c.id === unit.tenantId);
           if (!existingCustomer) {
             const randomName = getRandomName(unit.id);
+            const randomAddress = getRandomAddress(unit.id);
             transformedCustomers.push({
               id: unit.tenantId,
               name: unit.tenant,
               email: `${randomName.first.toLowerCase()}.${randomName.last.toLowerCase()}@email.com`,
-              phone: '555-0000',
+              phone: generatePhone(unit.id),
+              address: `${randomAddress.street}, ${randomAddress.city}, ${randomAddress.state} ${randomAddress.zip}`,
+              ssn: generateSSN(unit.id),
               units: [unit.id],
               balance: 0,
-              status: 'good',
+              status: 'active',
               moveInDate: new Date().toISOString().split('T')[0],
-              emergencyContact: '',
-              emergencyPhone: ''
+              joinDate: new Date().toISOString().split('T')[0],
+              emergencyContact: `${randomName.first} ${randomName.last} Sr.`,
+              emergencyPhone: generatePhone(unit.id + '_emergency')
             });
           }
         }

@@ -29,13 +29,15 @@ export interface Customer {
   name: string;
   email: string;
   phone: string;
+  address: string;
+  ssn: string;
   units: string[];
   balance: number;
   status: string;
   moveInDate?: string;
+  joinDate?: string;
   emergencyContact?: string;
   emergencyPhone?: string;
-  joinDate?: string;
 }
 
 // TenantUnit type for TenantDetailsPage
@@ -69,29 +71,32 @@ export const transformDatabaseCustomerToCustomer = (dbCustomer: DatabaseCustomer
     name: `${dbCustomer.first_name} ${dbCustomer.last_name}`.trim(),
     email: dbCustomer.email,
     phone: dbCustomer.phone,
+    address: dbCustomer.address,
+    ssn: '', // Would need to be added to database schema
     units,
     balance: dbCustomer.balance || 0,
-    status: (dbCustomer.balance || 0) > 0 ? 'overdue' : 'good',
+    status: (dbCustomer.balance || 0) > 0 ? 'overdue' : 'active',
     moveInDate: dbCustomer.move_in_date,
+    joinDate: dbCustomer.move_in_date,
     emergencyContact: dbCustomer.emergency_contact_name,
-    emergencyPhone: dbCustomer.emergency_contact_phone,
-    joinDate: dbCustomer.move_in_date
+    emergencyPhone: dbCustomer.emergency_contact_phone
   };
 };
 
 // Helper function to transform Customer to DatabaseCustomer
 export const transformCustomerToDatabaseCustomer = (customer: Customer): DatabaseCustomer => {
   const nameParts = customer.name.split(' ');
+  const addressParts = customer.address.split(', ');
   return {
     id: customer.id,
     first_name: nameParts[0] || '',
     last_name: nameParts.slice(1).join(' ') || '',
     email: customer.email,
     phone: customer.phone,
-    address: '', // Not available in Customer type
-    city: '', // Not available in Customer type
-    state: '', // Not available in Customer type
-    zip_code: '', // Not available in Customer type
+    address: addressParts[0] || customer.address,
+    city: addressParts[1] || '',
+    state: addressParts[2]?.split(' ')[0] || '',
+    zip_code: addressParts[2]?.split(' ')[1] || '',
     emergency_contact_name: customer.emergencyContact,
     emergency_contact_phone: customer.emergencyPhone,
     move_in_date: customer.moveInDate,
