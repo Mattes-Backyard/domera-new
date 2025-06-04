@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,7 @@ const TIMEZONES = [
 ];
 
 export const CompanySettings = () => {
-  const { companyInfo, loading, updateCompanyInfo, uploadLogo } = useCompanySettings();
+  const { companyInfo, loading, updateCompanyInfo, uploadLogo, refreshData } = useCompanySettings();
   const [formData, setFormData] = useState({
     company_name: '',
     address: '',
@@ -39,9 +38,16 @@ export const CompanySettings = () => {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Load data when component mounts or when companyInfo changes
+  useEffect(() => {
+    console.log('CompanySettings: Loading company data', companyInfo);
+    refreshData(); // Ensure we have fresh data
+  }, []);
+
   // Sync form data with company info when it loads or changes
   useEffect(() => {
     if (companyInfo) {
+      console.log('CompanySettings: Syncing form data with company info', companyInfo);
       setFormData({
         company_name: companyInfo.company_name || '',
         address: companyInfo.address || '',
@@ -66,7 +72,13 @@ export const CompanySettings = () => {
     setSaving(true);
     
     try {
-      await updateCompanyInfo(formData);
+      console.log('CompanySettings: Saving company data', formData);
+      const success = await updateCompanyInfo(formData);
+      if (success) {
+        // Refresh data after successful save to ensure UI is in sync
+        await refreshData();
+        console.log('CompanySettings: Data saved and refreshed successfully');
+      }
     } catch (error) {
       console.error('Error saving company settings:', error);
     } finally {
@@ -80,7 +92,13 @@ export const CompanySettings = () => {
 
     setUploading(true);
     try {
-      await uploadLogo(file);
+      console.log('CompanySettings: Uploading logo', file.name);
+      const logoUrl = await uploadLogo(file);
+      if (logoUrl) {
+        // Refresh data after successful logo upload
+        await refreshData();
+        console.log('CompanySettings: Logo uploaded and data refreshed');
+      }
     } catch (error) {
       console.error('Error uploading logo:', error);
     } finally {
@@ -89,7 +107,14 @@ export const CompanySettings = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center p-8">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="flex flex-col items-center space-y-2">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <p className="text-sm text-gray-600">Loading company settings...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -14,6 +14,14 @@ export const AdminInterface = () => {
     refreshData();
   };
 
+  const handleTabChange = (value: string) => {
+    console.log('AdminInterface: Tab changed to', value);
+    // Refresh data when switching to company tab to ensure fresh data
+    if (value === 'company') {
+      refreshData();
+    }
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6 flex items-center gap-4">
@@ -26,7 +34,7 @@ export const AdminInterface = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="users" className="space-y-6">
+      <Tabs defaultValue="users" className="space-y-6" onValueChange={handleTabChange}>
         <TabsList className="grid grid-cols-4 w-full max-w-md">
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="company">Company</TabsTrigger>
