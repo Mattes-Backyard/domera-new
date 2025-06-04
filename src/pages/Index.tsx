@@ -95,6 +95,7 @@ const Index = () => {
   };
 
   const handleTenantClick = (tenantId: string) => {
+    // Find customer in the DatabaseCustomer array from Supabase
     const customer = customers.find(c => c.id === tenantId);
     if (customer) {
       setViewingTenantDetails(customer);
