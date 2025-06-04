@@ -1,8 +1,8 @@
+
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { ContentRenderer } from "@/components/dashboard/ContentRenderer";
-import { MultiSiteSelector } from "@/components/dashboard/MultiSiteSelector";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { TaskProvider } from "@/contexts/TaskContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -161,15 +161,6 @@ const Index = () => {
                 selectedSites={selectedSites}
                 onSitesChange={setSelectedSites}
               />
-              
-              {(activeView === "dashboard" || activeView === "operations") && (
-                <div className="px-6 py-2 border-b bg-white flex-shrink-0">
-                  <MultiSiteSelector 
-                    selectedSites={selectedSites}
-                    onSitesChange={setSelectedSites}
-                  />
-                </div>
-              )}
               
               <div className="flex-1 overflow-hidden">
                 <ContentRenderer
