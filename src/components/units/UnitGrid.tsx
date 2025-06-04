@@ -57,7 +57,7 @@ export const UnitGrid = ({
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [sizeFilter, setSizeFilter] = useState("all");
-  const [siteFilter, setSiteFilter] = useState("all");
+  const [facilityFilter, setFacilityFilter] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -82,7 +82,7 @@ export const UnitGrid = ({
     }
   };
 
-  const getSiteColor = (site: string) => {
+  const getFacilityColor = (site: string) => {
     switch (site) {
       case "helsingborg":
         return "bg-blue-100 text-blue-800";
@@ -113,11 +113,11 @@ export const UnitGrid = ({
       const matchesStatus = statusFilter === "all" || unit.status === statusFilter;
       const matchesType = typeFilter === "all" || unit.type === typeFilter;
       const matchesSize = sizeFilter === "all" || unit.size === sizeFilter;
-      const matchesSite = siteFilter === "all" || unit.site === siteFilter;
+      const matchesFacility = facilityFilter === "all" || unit.site === facilityFilter;
       
-      return matchesSearch && matchesStatus && matchesType && matchesSize && matchesSite;
+      return matchesSearch && matchesStatus && matchesType && matchesSize && matchesFacility;
     });
-  }, [searchQuery, localSearchQuery, selectedUnitId, units, statusFilter, typeFilter, sizeFilter, siteFilter]);
+  }, [searchQuery, localSearchQuery, selectedUnitId, units, statusFilter, typeFilter, sizeFilter, facilityFilter]);
 
   useEffect(() => {
     if (selectedUnitId && filteredUnits.length === 0) {
@@ -145,8 +145,8 @@ export const UnitGrid = ({
     onAddDialogClose?.();
   };
 
-  // Get unique sites for the filter dropdown
-  const availableSites = useMemo(() => {
+  // Get unique facilities for the filter dropdown
+  const availableFacilities = useMemo(() => {
     const sites = [...new Set(units.map(unit => unit.site))];
     return sites.sort();
   }, [units]);
@@ -211,13 +211,13 @@ export const UnitGrid = ({
         </SelectContent>
       </Select>
 
-      <Select value={siteFilter} onValueChange={setSiteFilter}>
+      <Select value={facilityFilter} onValueChange={setFacilityFilter}>
         <SelectTrigger>
-          <SelectValue placeholder="All sites" />
+          <SelectValue placeholder="All facilities" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All sites</SelectItem>
-          {availableSites.map((site) => (
+          <SelectItem value="all">All facilities</SelectItem>
+          {availableFacilities.map((site) => (
             <SelectItem key={site} value={site}>
               {site.charAt(0).toUpperCase() + site.slice(1)}
             </SelectItem>
@@ -248,8 +248,8 @@ export const UnitGrid = ({
         
         <div className="grid grid-cols-2 gap-2 text-sm mb-3">
           <div>
-            <span className="text-gray-600">Site:</span>
-            <Badge className={`${getSiteColor(unit.site)} ml-1`} variant="outline">
+            <span className="text-gray-600">Facility:</span>
+            <Badge className={`${getFacilityColor(unit.site)} ml-1`} variant="outline">
               {unit.site.charAt(0).toUpperCase() + unit.site.slice(1)}
             </Badge>
           </div>
@@ -353,7 +353,7 @@ export const UnitGrid = ({
                         setStatusFilter("all");
                         setTypeFilter("all");
                         setSizeFilter("all");
-                        setSiteFilter("all");
+                        setFacilityFilter("all");
                       }}
                       className="w-full mt-4"
                     >
@@ -375,7 +375,7 @@ export const UnitGrid = ({
                 setStatusFilter("all");
                 setTypeFilter("all");
                 setSizeFilter("all");
-                setSiteFilter("all");
+                setFacilityFilter("all");
               }}
               className="mt-4"
             >
@@ -405,7 +405,7 @@ export const UnitGrid = ({
                 <TableRow>
                   <TableHead>Unit</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Site</TableHead>
+                  <TableHead>Facility</TableHead>
                   <TableHead>Details</TableHead>
                   <TableHead>Tenant</TableHead>
                   <TableHead>Rate</TableHead>
@@ -439,7 +439,7 @@ export const UnitGrid = ({
                     </TableCell>
 
                     <TableCell>
-                      <Badge className={getSiteColor(unit.site)} variant="outline">
+                      <Badge className={getFacilityColor(unit.site)} variant="outline">
                         {unit.site.charAt(0).toUpperCase() + unit.site.slice(1)}
                       </Badge>
                     </TableCell>

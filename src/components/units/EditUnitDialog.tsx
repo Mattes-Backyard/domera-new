@@ -16,6 +16,12 @@ interface Unit {
   tenantId: string | null;
   rate: number;
   climate: boolean;
+  site: string;
+}
+
+interface Facility {
+  id: string;
+  name: string;
 }
 
 interface EditUnitDialogProps {
@@ -23,9 +29,10 @@ interface EditUnitDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (updatedUnit: Unit) => void;
+  facilities?: Facility[];
 }
 
-export const EditUnitDialog = ({ unit, isOpen, onClose, onSave }: EditUnitDialogProps) => {
+export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] }: EditUnitDialogProps) => {
   const [formData, setFormData] = useState<Unit>(unit);
 
   // Update form data when unit prop changes or dialog opens
@@ -102,6 +109,30 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave }: EditUnitDialog
                   <SelectItem value="occupied">Occupied</SelectItem>
                   <SelectItem value="reserved">Reserved</SelectItem>
                   <SelectItem value="maintenance">Maintenance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="facility">Facility</Label>
+              <Select value={formData.site} onValueChange={(value) => setFormData(prev => ({ ...prev, site: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select facility" />
+                </SelectTrigger>
+                <SelectContent>
+                  {facilities.length > 0 ? (
+                    facilities.map((facility) => (
+                      <SelectItem key={facility.id} value={facility.id}>
+                        {facility.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <>
+                      <SelectItem value="helsingborg">Helsingborg</SelectItem>
+                      <SelectItem value="lund">Lund</SelectItem>
+                      <SelectItem value="malmö">Malmö</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>

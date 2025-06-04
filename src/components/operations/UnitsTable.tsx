@@ -14,6 +14,7 @@ interface Unit {
   rate: number;
   climate: boolean;
   site: string;
+  facility?: { name: string };
 }
 
 interface UnitsTableProps {
@@ -22,9 +23,10 @@ interface UnitsTableProps {
   onSelectUnit: (unitId: string) => void;
   onSelectAll: () => void;
   onTenantClick?: (tenantId: string) => void;
+  facilities?: Array<{ id: string; name: string }>;
 }
 
-export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, onTenantClick }: UnitsTableProps) => {
+export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, onTenantClick, facilities = [] }: UnitsTableProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
@@ -40,8 +42,8 @@ export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, on
     }
   };
 
-  const getSiteColor = (site: string) => {
-    switch (site) {
+  const getFacilityColor = (facilityName: string) => {
+    switch (facilityName.toLowerCase()) {
       case "helsingborg":
         return "bg-blue-100 text-blue-800";
       case "lund":
@@ -51,6 +53,22 @@ export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, on
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const getFacilityName = (unit: Unit) => {
+    // Try to get facility name from the unit's facility object first
+    if (unit.facility?.name) {
+      return unit.facility.name;
+    }
+    
+    // Fallback to facilities prop
+    const facility = facilities.find(f => f.id === unit.site);
+    if (facility) {
+      return facility.name;
+    }
+    
+    // Last fallback to site value with capitalization
+    return unit.site.charAt(0).toUpperCase() + unit.site.slice(1);
   };
 
   const handleTenantClick = (tenantId: string) => {
@@ -76,41 +94,44 @@ export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, on
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {units.map((unit) => (
-            <div key={unit.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-              <div className="flex items-center space-x-4">
-                <Checkbox
-                  checked={selectedUnits.includes(unit.id)}
-                  onCheckedChange={() => onSelectUnit(unit.id)}
-                />
+          {units.map((unit) => {
+            const facilityName = getFacilityName(unit);
+            return (
+              <div key={unit.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                 <div className="flex items-center space-x-4">
-                  <div className="font-semibold">{unit.id}</div>
-                  <Badge className={getStatusColor(unit.status)}>{unit.status}</Badge>
-                  <Badge className={getSiteColor(unit.site)} variant="outline">
-                    {unit.site.charAt(0).toUpperCase() + unit.site.slice(1)}
-                  </Badge>
-                  <div className="text-sm text-gray-600">{unit.size} • {unit.type}</div>
-                  {unit.tenant && unit.tenantId && (
-                    <button
-                      onClick={() => handleTenantClick(unit.tenantId!)}
-                      className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
-                    >
-                      {unit.tenant}
-                    </button>
-                  )}
-                  {unit.tenant && !unit.tenantId && (
-                    <div className="text-sm text-blue-600">{unit.tenant}</div>
+                  <Checkbox
+                    checked={selectedUnits.includes(unit.id)}
+                    onCheckedChange={() => onSelectUnit(unit.id)}
+                  />
+                  <div className="flex items-center space-x-4">
+                    <div className="font-semibold">{unit.id}</div>
+                    <Badge className={getStatusColor(unit.status)}>{unit.status}</Badge>
+                    <Badge className={getFacilityColor(facilityName)} variant="outline">
+                      {facilityName}
+                    </Badge>
+                    <div className="text-sm text-gray-600">{unit.size} • {unit.type}</div>
+                    {unit.tenant && unit.tenantId && (
+                      <button
+                        onClick={() => handleTenantClick(unit.tenantId!)}
+                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                      >
+                        {unit.tenant}
+                      </button>
+                    )}
+                    {unit.tenant && !unit.tenantId && (
+                      <div className="text-sm text-blue-600">{unit.tenant}</div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="font-semibold">${unit.rate}/month</div>
+                  {unit.climate && (
+                    <Badge variant="outline" className="text-xs">Climate</Badge>
                   )}
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="font-semibold">${unit.rate}/month</div>
-                {unit.climate && (
-                  <Badge variant="outline" className="text-xs">Climate</Badge>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>

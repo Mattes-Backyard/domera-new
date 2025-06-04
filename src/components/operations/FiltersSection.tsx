@@ -86,13 +86,13 @@ export const FiltersSection = ({ filters, onFiltersChange }: FiltersSectionProps
         </div>
 
         <div className="space-y-2">
-          <Label>Site</Label>
+          <Label>Facility</Label>
           <Select value={filters.site} onValueChange={(value) => handleFilterChange('site', value)}>
             <SelectTrigger>
-              <SelectValue placeholder="All sites" />
+              <SelectValue placeholder="All facilities" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All sites</SelectItem>
+              <SelectItem value="all">All facilities</SelectItem>
               <SelectItem value="helsingborg">Helsingborg</SelectItem>
               <SelectItem value="lund">Lund</SelectItem>
               <SelectItem value="malmö">Malmö</SelectItem>
