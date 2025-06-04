@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -117,6 +116,8 @@ export const useInvoices = () => {
 
   const generateInvoicePDF = async (invoice: Invoice) => {
     try {
+      console.log('Starting PDF generation for invoice:', invoice.invoice_number);
+      
       const pdf = new jsPDF();
       const currency = invoice.currency || companyInfo?.currency || 'EUR';
       const currencySymbol = getCurrencySymbol(currency);
@@ -124,25 +125,38 @@ export const useInvoices = () => {
       // Add company logo if available
       if (companyInfo?.logo_url) {
         try {
-          // Create an image element to load the logo
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
+          console.log('Loading company logo:', companyInfo.logo_url);
           
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = companyInfo.logo_url!;
-          });
+          // Get the full URL for the logo
+          const { data: logoData } = await supabase.storage
+            .from('company-assets')
+            .download(companyInfo.logo_url.replace('company-assets/', ''));
           
-          // Add logo to PDF (top left, 30x30 size)
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx?.drawImage(img, 0, 0);
-          
-          const imageData = canvas.toDataURL('image/jpeg', 0.8);
-          pdf.addImage(imageData, 'JPEG', 20, 10, 25, 25);
+          if (logoData) {
+            const logoBlob = new Blob([logoData]);
+            const logoUrl = URL.createObjectURL(logoBlob);
+            
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+              img.src = logoUrl;
+            });
+            
+            // Add logo to PDF (top left, 25x25 size)
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx?.drawImage(img, 0, 0);
+            
+            const imageData = canvas.toDataURL('image/jpeg', 0.8);
+            pdf.addImage(imageData, 'JPEG', 20, 10, 25, 25);
+            
+            URL.revokeObjectURL(logoUrl);
+          }
         } catch (error) {
           console.log('Could not load company logo for PDF:', error);
         }
@@ -227,8 +241,11 @@ export const useInvoices = () => {
       pdf.text('Thank you for your business!', 20, totalsY + 45);
 
       // Convert PDF to blob
-      const pdfBlob = pdf.output('blob');
+      const pdfOutput = pdf.output('arraybuffer');
+      const pdfBlob = new Blob([pdfOutput], { type: 'application/pdf' });
       const fileName = `invoice-${invoice.invoice_number}.pdf`;
+      
+      console.log('Uploading PDF to storage:', fileName);
       
       // Upload to Supabase storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -241,8 +258,10 @@ export const useInvoices = () => {
 
       if (uploadError) {
         console.error('Error uploading PDF:', uploadError);
-        return null;
+        throw new Error(`Failed to upload PDF: ${uploadError.message}`);
       }
+
+      console.log('PDF uploaded successfully:', uploadData.path);
 
       // Update invoice record with file path
       const { error: updateError } = await supabase
@@ -252,25 +271,35 @@ export const useInvoices = () => {
 
       if (updateError) {
         console.error('Error updating invoice with PDF path:', updateError);
-        return null;
+        throw new Error(`Failed to update invoice: ${updateError.message}`);
       }
 
+      console.log('Invoice updated with PDF path');
+      await fetchInvoices(); // Refresh the invoices list
+      
       return uploadData.path;
     } catch (error) {
       console.error('Error generating PDF:', error);
-      return null;
+      throw error;
     }
   };
 
   const previewInvoicePDF = async (invoice: Invoice) => {
     try {
+      console.log('Preview requested for invoice:', invoice.invoice_number);
+      
       let pdfPath = invoice.pdf_file_path;
       
       // Generate PDF if it doesn't exist
       if (!pdfPath) {
+        console.log('PDF does not exist, generating...');
         pdfPath = await generateInvoicePDF(invoice);
-        if (!pdfPath) return;
+        if (!pdfPath) {
+          throw new Error('Failed to generate PDF');
+        }
       }
+
+      console.log('Downloading PDF from path:', pdfPath);
 
       // Get the PDF from storage
       const { data, error } = await supabase.storage
@@ -279,29 +308,54 @@ export const useInvoices = () => {
 
       if (error) {
         console.error('Error downloading PDF for preview:', error);
-        return;
+        throw new Error(`Failed to download PDF: ${error.message}`);
       }
 
+      if (!data) {
+        throw new Error('No PDF data received');
+      }
+
+      console.log('PDF downloaded successfully, opening preview');
+
       // Create blob URL and open in new tab
-      const url = URL.createObjectURL(data);
-      window.open(url, '_blank');
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const newWindow = window.open(url, '_blank');
+      
+      if (!newWindow) {
+        // Fallback: create download if popup blocked
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `invoice-${invoice.invoice_number}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
       
       // Clean up the URL after a delay
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (error) {
       console.error('Error previewing PDF:', error);
+      throw error;
     }
   };
 
   const downloadInvoicePDF = async (invoice: Invoice) => {
     try {
+      console.log('Download requested for invoice:', invoice.invoice_number);
+      
       let pdfPath = invoice.pdf_file_path;
       
       // Generate PDF if it doesn't exist
       if (!pdfPath) {
+        console.log('PDF does not exist, generating...');
         pdfPath = await generateInvoicePDF(invoice);
-        if (!pdfPath) return;
+        if (!pdfPath) {
+          throw new Error('Failed to generate PDF');
+        }
       }
+
+      console.log('Downloading PDF from path:', pdfPath);
 
       const { data, error } = await supabase.storage
         .from('company-assets')
@@ -309,11 +363,18 @@ export const useInvoices = () => {
 
       if (error) {
         console.error('Error downloading PDF:', error);
-        return;
+        throw new Error(`Failed to download PDF: ${error.message}`);
       }
 
+      if (!data) {
+        throw new Error('No PDF data received');
+      }
+
+      console.log('PDF downloaded successfully, initiating download');
+
       // Create download link
-      const url = URL.createObjectURL(data);
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `invoice-${invoice.invoice_number}.pdf`;
@@ -323,6 +384,7 @@ export const useInvoices = () => {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading PDF:', error);
+      throw error;
     }
   };
 

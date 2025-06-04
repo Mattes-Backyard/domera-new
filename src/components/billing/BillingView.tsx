@@ -21,6 +21,7 @@ export const BillingView = () => {
   const [dateFilter, setDateFilter] = useState("all");
   const [showPaymentProcessor, setShowPaymentProcessor] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [processingPDFs, setProcessingPDFs] = useState<Set<string>>(new Set());
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -95,29 +96,59 @@ export const BillingView = () => {
   };
 
   const handleDownloadPDF = async (invoice: Invoice) => {
+    if (processingPDFs.has(invoice.id)) return;
+    
+    setProcessingPDFs(prev => new Set(prev).add(invoice.id));
     try {
       await downloadInvoicePDF(invoice);
-      toast.success("Invoice PDF downloaded");
+      toast.success("Invoice PDF downloaded successfully");
     } catch (error) {
-      toast.error("Failed to download PDF");
+      console.error('Download error:', error);
+      toast.error(`Failed to download PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setProcessingPDFs(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(invoice.id);
+        return newSet;
+      });
     }
   };
 
   const handleGeneratePDF = async (invoice: Invoice) => {
+    if (processingPDFs.has(invoice.id)) return;
+    
+    setProcessingPDFs(prev => new Set(prev).add(invoice.id));
     try {
       await generateInvoicePDF(invoice);
-      toast.success("Invoice PDF generated");
+      toast.success("Invoice PDF generated successfully");
     } catch (error) {
-      toast.error("Failed to generate PDF");
+      console.error('Generation error:', error);
+      toast.error(`Failed to generate PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setProcessingPDFs(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(invoice.id);
+        return newSet;
+      });
     }
   };
 
   const handlePreviewPDF = async (invoice: Invoice) => {
+    if (processingPDFs.has(invoice.id)) return;
+    
+    setProcessingPDFs(prev => new Set(prev).add(invoice.id));
     try {
       await previewInvoicePDF(invoice);
       toast.success("Opening invoice preview");
     } catch (error) {
-      toast.error("Failed to preview PDF");
+      console.error('Preview error:', error);
+      toast.error(`Failed to preview PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setProcessingPDFs(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(invoice.id);
+        return newSet;
+      });
     }
   };
 
@@ -357,11 +388,29 @@ export const BillingView = () => {
                     
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => handlePreviewPDF(invoice)}>
-                          <Eye className="h-4 w-4" />
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handlePreviewPDF(invoice)}
+                          disabled={processingPDFs.has(invoice.id)}
+                        >
+                          {processingPDFs.has(invoice.id) ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDownloadPDF(invoice)}>
-                          <Download className="h-4 w-4" />
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleDownloadPDF(invoice)}
+                          disabled={processingPDFs.has(invoice.id)}
+                        >
+                          {processingPDFs.has(invoice.id) ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
                         </Button>
                         {(invoice.status === "pending" || invoice.status === "sent") && (
                           <Button 

@@ -1,6 +1,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { useEffect, useState } from "react";
 
 interface CompanyLogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -12,6 +13,12 @@ export const CompanyLogo = ({
   className = ''
 }: CompanyLogoProps) => {
   const { companyInfo } = useCompanySettings();
+  const [logoKey, setLogoKey] = useState(0);
+
+  // Force re-render when logo URL changes
+  useEffect(() => {
+    setLogoKey(prev => prev + 1);
+  }, [companyInfo?.logo_url]);
 
   const sizeClasses = {
     sm: 'h-8 w-8',
@@ -28,6 +35,7 @@ export const CompanyLogo = ({
   return (
     <Avatar className={`${sizeClasses[size]} ${className}`}>
       <AvatarImage 
+        key={logoKey}
         src={companyInfo?.logo_url} 
         alt={companyInfo?.company_name || 'Company Logo'} 
       />
