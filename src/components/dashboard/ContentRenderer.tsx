@@ -23,7 +23,7 @@ interface Unit {
   site: string;
 }
 
-// Customer type that matches the transformed data from useRealtimeSupabaseData
+// Use the Customer type from useRealtimeSupabaseData (transformed data)
 interface Customer {
   id: string;
   name: string;
@@ -69,6 +69,17 @@ interface ContentRendererProps {
 
 // Transform customer to tenant format for TenantDetailsPage
 const transformCustomerToTenant = (customer: Customer) => {
+  // Transform unit IDs to TenantUnit objects
+  const tenantUnits = customer.units.map(unitId => ({
+    unitId: unitId,
+    unitNumber: unitId,
+    status: "good" as const,
+    monthlyRate: 0, // Would need to be fetched from unit data
+    leaseStart: customer.moveInDate || new Date().toISOString().split('T')[0],
+    leaseEnd: undefined,
+    balance: customer.balance || 0
+  }));
+
   return {
     id: customer.id,
     name: customer.name,
@@ -78,7 +89,7 @@ const transformCustomerToTenant = (customer: Customer) => {
     ssn: "", // Not available in current customer data
     status: customer.status || "active",
     joinDate: customer.moveInDate || new Date().toISOString().split('T')[0],
-    units: customer.units || []
+    units: tenantUnits
   };
 };
 
