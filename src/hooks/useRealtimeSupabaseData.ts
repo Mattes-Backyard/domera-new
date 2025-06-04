@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -33,6 +33,8 @@ export const useRealtimeSupabaseData = () => {
   const [customers, setCustomers] = useState([]);
   const [facilities, setFacilities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const channelsRef = useRef<any[]>([]);
+  const setupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchData = async () => {
     if (!user || !profile) return;
@@ -211,20 +213,41 @@ export const useRealtimeSupabaseData = () => {
 
   // Set up real-time subscriptions with better error handling
   useEffect(() => {
-    if (!user) return;
-
-    let channels = [];
+    if (!user) {
+      // Clean up existing channels when user logs out
+      channelsRef.current.forEach(channel => {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.log('Error removing channel:', error);
+        }
+      });
+      channelsRef.current = [];
+      return;
+    }
 
     const setupChannels = () => {
+      // Clear any existing timeout
+      if (setupTimeoutRef.current) {
+        clearTimeout(setupTimeoutRef.current);
+        setupTimeoutRef.current = null;
+      }
+
       // Clean up existing channels first
-      channels.forEach(channel => {
-        supabase.removeChannel(channel);
+      channelsRef.current.forEach(channel => {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.log('Error removing channel:', error);
+        }
       });
-      channels = [];
+      channelsRef.current = [];
 
       try {
+        const timestamp = Date.now();
+
         const unitsChannel = supabase
-          .channel('units-changes')
+          .channel(`units-changes-${timestamp}`)
           .on(
             'postgres_changes',
             {
@@ -241,14 +264,15 @@ export const useRealtimeSupabaseData = () => {
             }
           )
           .subscribe((status) => {
+            console.log('Units channel status:', status);
             if (status === 'CHANNEL_ERROR') {
-              console.log('Units channel error, retrying...');
-              setTimeout(setupChannels, 5000);
+              console.log('Units channel error, retrying in 10 seconds...');
+              setupTimeoutRef.current = setTimeout(setupChannels, 10000);
             }
           });
 
         const customersChannel = supabase
-          .channel('customers-changes')
+          .channel(`customers-changes-${timestamp}`)
           .on(
             'postgres_changes',
             {
@@ -265,14 +289,15 @@ export const useRealtimeSupabaseData = () => {
             }
           )
           .subscribe((status) => {
+            console.log('Customers channel status:', status);
             if (status === 'CHANNEL_ERROR') {
-              console.log('Customers channel error, retrying...');
-              setTimeout(setupChannels, 5000);
+              console.log('Customers channel error, retrying in 10 seconds...');
+              setupTimeoutRef.current = setTimeout(setupChannels, 10000);
             }
           });
 
         const paymentsChannel = supabase
-          .channel('payments-changes')
+          .channel(`payments-changes-${timestamp}`)
           .on(
             'postgres_changes',
             {
@@ -289,14 +314,15 @@ export const useRealtimeSupabaseData = () => {
             }
           )
           .subscribe((status) => {
+            console.log('Payments channel status:', status);
             if (status === 'CHANNEL_ERROR') {
-              console.log('Payments channel error, retrying...');
-              setTimeout(setupChannels, 5000);
+              console.log('Payments channel error, retrying in 10 seconds...');
+              setupTimeoutRef.current = setTimeout(setupChannels, 10000);
             }
           });
 
         const rentalsChannel = supabase
-          .channel('rentals-changes')
+          .channel(`rentals-changes-${timestamp}`)
           .on(
             'postgres_changes',
             {
@@ -313,14 +339,15 @@ export const useRealtimeSupabaseData = () => {
             }
           )
           .subscribe((status) => {
+            console.log('Rentals channel status:', status);
             if (status === 'CHANNEL_ERROR') {
-              console.log('Rentals channel error, retrying...');
-              setTimeout(setupChannels, 5000);
+              console.log('Rentals channel error, retrying in 10 seconds...');
+              setupTimeoutRef.current = setTimeout(setupChannels, 10000);
             }
           });
 
         const maintenanceChannel = supabase
-          .channel('maintenance-changes')
+          .channel(`maintenance-changes-${timestamp}`)
           .on(
             'postgres_changes',
             {
@@ -337,14 +364,15 @@ export const useRealtimeSupabaseData = () => {
             }
           )
           .subscribe((status) => {
+            console.log('Maintenance channel status:', status);
             if (status === 'CHANNEL_ERROR') {
-              console.log('Maintenance channel error, retrying...');
-              setTimeout(setupChannels, 5000);
+              console.log('Maintenance channel error, retrying in 10 seconds...');
+              setupTimeoutRef.current = setTimeout(setupChannels, 10000);
             }
           });
 
         const tasksChannel = supabase
-          .channel('tasks-changes')
+          .channel(`tasks-changes-${timestamp}`)
           .on(
             'postgres_changes',
             {
@@ -361,27 +389,41 @@ export const useRealtimeSupabaseData = () => {
             }
           )
           .subscribe((status) => {
+            console.log('Tasks channel status:', status);
             if (status === 'CHANNEL_ERROR') {
-              console.log('Tasks channel error, retrying...');
-              setTimeout(setupChannels, 5000);
+              console.log('Tasks channel error, retrying in 10 seconds...');
+              setupTimeoutRef.current = setTimeout(setupChannels, 10000);
             }
           });
 
-        channels = [unitsChannel, customersChannel, paymentsChannel, rentalsChannel, maintenanceChannel, tasksChannel];
+        channelsRef.current = [unitsChannel, customersChannel, paymentsChannel, rentalsChannel, maintenanceChannel, tasksChannel];
+        console.log('Realtime channels set up successfully');
       } catch (error) {
         console.error('Error setting up realtime channels:', error);
-        setTimeout(setupChannels, 10000);
+        setupTimeoutRef.current = setTimeout(setupChannels, 15000);
       }
     };
 
-    setupChannels();
+    // Small delay to ensure user context is fully set up
+    const initTimeout = setTimeout(setupChannels, 1000);
 
     return () => {
-      channels.forEach(channel => {
-        supabase.removeChannel(channel);
+      clearTimeout(initTimeout);
+      if (setupTimeoutRef.current) {
+        clearTimeout(setupTimeoutRef.current);
+        setupTimeoutRef.current = null;
+      }
+      
+      channelsRef.current.forEach(channel => {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.log('Error removing channel on cleanup:', error);
+        }
       });
+      channelsRef.current = [];
     };
-  }, [user]);
+  }, [user?.id]); // Only depend on user.id to prevent unnecessary re-runs
 
   const addUnit = async (unitData) => {
     if (!profile?.facility_id) {
