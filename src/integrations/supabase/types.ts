@@ -11,52 +11,52 @@ export type Database = {
     Tables: {
       company_info: {
         Row: {
-          address: string
-          city: string
-          company_name: string
-          country: string
+          address: string | null
+          city: string | null
+          company_name: string | null
+          country: string | null
           created_at: string
           currency: string
-          email: string
+          email: string | null
           id: string
           logo_url: string | null
-          phone: string
-          postal_code: string
+          phone: string | null
+          postal_code: string | null
           timezone: string
           updated_at: string
-          vat_number: string
+          vat_number: string | null
         }
         Insert: {
-          address?: string
-          city?: string
-          company_name?: string
-          country?: string
+          address?: string | null
+          city?: string | null
+          company_name?: string | null
+          country?: string | null
           created_at?: string
           currency?: string
-          email?: string
+          email?: string | null
           id?: string
           logo_url?: string | null
-          phone?: string
-          postal_code?: string
+          phone?: string | null
+          postal_code?: string | null
           timezone?: string
           updated_at?: string
-          vat_number?: string
+          vat_number?: string | null
         }
         Update: {
-          address?: string
-          city?: string
-          company_name?: string
-          country?: string
+          address?: string | null
+          city?: string | null
+          company_name?: string | null
+          country?: string | null
           created_at?: string
           currency?: string
-          email?: string
+          email?: string | null
           id?: string
           logo_url?: string | null
-          phone?: string
-          postal_code?: string
+          phone?: string | null
+          postal_code?: string | null
           timezone?: string
           updated_at?: string
-          vat_number?: string
+          vat_number?: string | null
         }
         Relationships: []
       }

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,22 +22,26 @@ const TIMEZONES = [
   { value: 'UTC', label: 'UTC' }
 ];
 
+// Default values for the form (UI only, not stored in database)
+const DEFAULT_FORM_VALUES = {
+  company_name: '',
+  address: '',
+  city: '',
+  postal_code: '',
+  country: '',
+  phone: '',
+  email: '',
+  vat_number: '',
+  currency: 'EUR',
+  timezone: 'Europe/Stockholm'
+};
+
 export const CompanySettings = () => {
   const { companyInfo, loading, updateCompanyInfo, uploadLogo, refreshData } = useCompanySettings();
-  const [formData, setFormData] = useState({
-    company_name: '',
-    address: '',
-    city: '',
-    postal_code: '',
-    country: '',
-    phone: '',
-    email: '',
-    vat_number: '',
-    currency: 'EUR',
-    timezone: 'Europe/Stockholm'
-  });
+  const [formData, setFormData] = useState(DEFAULT_FORM_VALUES);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   // Load data when component mounts
   useEffect(() => {
@@ -46,22 +51,31 @@ export const CompanySettings = () => {
 
   // Sync form data with company info when it loads or changes
   useEffect(() => {
-    if (companyInfo) {
-      console.log('CompanySettings: Syncing form data with company info', companyInfo);
-      setFormData({
-        company_name: companyInfo.company_name || '',
-        address: companyInfo.address || '',
-        city: companyInfo.city || '',
-        postal_code: companyInfo.postal_code || '',
-        country: companyInfo.country || '',
-        phone: companyInfo.phone || '',
-        email: companyInfo.email || '',
-        vat_number: companyInfo.vat_number || '',
-        currency: companyInfo.currency || 'EUR',
-        timezone: companyInfo.timezone || 'Europe/Stockholm'
-      });
+    if (!loading && !dataLoaded) {
+      console.log('CompanySettings: Data loaded, initializing form', companyInfo);
+      
+      if (companyInfo) {
+        // Use actual data from database
+        setFormData({
+          company_name: companyInfo.company_name || '',
+          address: companyInfo.address || '',
+          city: companyInfo.city || '',
+          postal_code: companyInfo.postal_code || '',
+          country: companyInfo.country || '',
+          phone: companyInfo.phone || '',
+          email: companyInfo.email || '',
+          vat_number: companyInfo.vat_number || '',
+          currency: companyInfo.currency || 'EUR',
+          timezone: companyInfo.timezone || 'Europe/Stockholm'
+        });
+      } else {
+        // No data exists, use default values for UI
+        setFormData(DEFAULT_FORM_VALUES);
+      }
+      
+      setDataLoaded(true);
     }
-  }, [companyInfo]);
+  }, [companyInfo, loading, dataLoaded]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -76,7 +90,8 @@ export const CompanySettings = () => {
       const success = await updateCompanyInfo(formData);
       if (success) {
         console.log('CompanySettings: Data saved successfully, refreshing');
-        // Refresh data after successful save to ensure UI is in sync
+        // Reset data loaded flag to allow re-sync after save
+        setDataLoaded(false);
         await refreshData();
       }
     } catch (error) {
@@ -96,7 +111,8 @@ export const CompanySettings = () => {
       const logoUrl = await uploadLogo(file);
       if (logoUrl) {
         console.log('CompanySettings: Logo uploaded successfully, refreshing data');
-        // Refresh data after successful logo upload
+        // Reset data loaded flag to allow re-sync after logo upload
+        setDataLoaded(false);
         await refreshData();
       }
     } catch (error) {
@@ -106,7 +122,7 @@ export const CompanySettings = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !dataLoaded) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="flex flex-col items-center space-y-2">
