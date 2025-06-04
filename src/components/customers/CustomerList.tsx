@@ -1,17 +1,16 @@
-
 import { useState } from "react";
 import { CustomerCard } from "./CustomerCard";
 import { AddCustomerDialog } from "./AddCustomerDialog";
 import { Button } from "@/components/ui/button";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Customer, DatabaseCustomer, transformCustomerToDatabaseCustomer } from "@/types/customer";
+import { DatabaseCustomer, transformDatabaseCustomerToCustomer } from "@/types/customer";
 
 interface CustomerListProps {
   searchQuery: string;
   selectedCustomerId: string | null;
   onClearSelection: () => void;
-  customers: Customer[];
+  customers: DatabaseCustomer[];
   onCustomerAdd: (customer: DatabaseCustomer) => void;
   onTenantClick: (tenantId: string) => void;
 }
@@ -29,13 +28,18 @@ export const CustomerList = ({
 
   const effectiveSearchQuery = searchQuery || localSearchQuery;
   
-  const filteredCustomers = customers.filter(customer =>
+  // Transform DatabaseCustomer to Customer for filtering and display
+  const transformedCustomers = customers.map(dbCustomer => 
+    transformDatabaseCustomerToCustomer(dbCustomer, []) // Empty units array for now
+  );
+  
+  const filteredCustomers = transformedCustomers.filter(customer =>
     customer.name.toLowerCase().includes(effectiveSearchQuery.toLowerCase()) ||
     customer.email.toLowerCase().includes(effectiveSearchQuery.toLowerCase()) ||
     customer.phone.includes(effectiveSearchQuery)
   );
 
-  const handleViewDetails = (customer: Customer) => {
+  const handleViewDetails = (customer: any) => {
     onTenantClick(customer.id);
   };
 
