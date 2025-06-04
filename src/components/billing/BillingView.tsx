@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, Download, Eye, DollarSign, FileText, Calendar, CreditCard, Plus } from "lucide-react";
+import { Search, Filter, Download, Eye, DollarSign, FileText, Calendar, CreditCard } from "lucide-react";
 import { PaymentProcessor } from "@/components/payments/PaymentProcessor";
-import { useInvoices, type Invoice, type CreateInvoiceData } from "@/hooks/useInvoices";
+import { CreateInvoiceDialog } from "@/components/billing/CreateInvoiceDialog";
+import { useInvoices, type Invoice } from "@/hooks/useInvoices";
 import { useRealtimeSupabaseData } from "@/hooks/useRealtimeSupabaseData";
 import { toast } from "sonner";
 
@@ -89,26 +90,8 @@ export const BillingView = () => {
     setSelectedInvoice(null);
   };
 
-  const handleGenerateInvoice = async () => {
-    // Create a sample invoice for demonstration
-    const newInvoiceData: CreateInvoiceData = {
-      invoice_number: `INV-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(4, '0')}`,
-      customer_id: customers[0]?.id || 'sample-customer-id',
-      issue_date: new Date().toISOString().split('T')[0],
-      due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
-      subtotal: 200.00,
-      vat_rate: 25.00,
-      vat_amount: 50.00,
-      total_amount: 250.00,
-      status: 'draft'
-    };
-
-    const result = await createInvoice(newInvoiceData);
-    if (result) {
-      toast.success("New invoice created successfully");
-    } else {
-      toast.error("Failed to create invoice");
-    }
+  const handleCreateInvoice = async (invoiceData: any) => {
+    return await createInvoice(invoiceData);
   };
 
   const handleDownloadPDF = async (invoice: Invoice) => {
@@ -176,10 +159,7 @@ export const BillingView = () => {
                 <Download className="h-4 w-4" />
                 Export
               </Button>
-              <Button onClick={handleGenerateInvoice} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                New Invoice
-              </Button>
+              <CreateInvoiceDialog onCreateInvoice={handleCreateInvoice} />
             </div>
           </div>
 
