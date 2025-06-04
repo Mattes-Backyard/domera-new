@@ -12,6 +12,9 @@ export interface DatabaseCustomer {
   city: string;
   state: string;
   zip_code: string;
+  ssn: string;
+  status: string;
+  join_date: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
   move_in_date?: string;
@@ -40,8 +43,8 @@ export interface Customer {
   emergencyPhone?: string;
 }
 
-// TenantUnit type for TenantDetailsPage
-export interface TenantUnit {
+// CustomerUnit type for CustomerDetailsPage
+export interface CustomerUnit {
   unitId: string;
   unitNumber: string;
   status: "good" | "overdue" | "pending";
@@ -51,8 +54,8 @@ export interface TenantUnit {
   balance: number;
 }
 
-// Tenant type for TenantDetailsPage
-export interface Tenant {
+// Customer type for CustomerDetailsPage
+export interface CustomerDetails {
   id: string;
   name: string;
   email: string;
@@ -61,7 +64,7 @@ export interface Tenant {
   ssn: string;
   status: string;
   joinDate: string;
-  units: TenantUnit[];
+  units: CustomerUnit[];
 }
 
 // Helper function to transform DatabaseCustomer to Customer
@@ -71,13 +74,13 @@ export const transformDatabaseCustomerToCustomer = (dbCustomer: DatabaseCustomer
     name: `${dbCustomer.first_name} ${dbCustomer.last_name}`.trim(),
     email: dbCustomer.email,
     phone: dbCustomer.phone,
-    address: dbCustomer.address,
-    ssn: '', // Would need to be added to database schema
+    address: `${dbCustomer.address}, ${dbCustomer.city}, ${dbCustomer.state} ${dbCustomer.zip_code}`,
+    ssn: dbCustomer.ssn,
     units,
     balance: dbCustomer.balance || 0,
-    status: (dbCustomer.balance || 0) > 0 ? 'overdue' : 'active',
+    status: dbCustomer.status || 'active',
     moveInDate: dbCustomer.move_in_date,
-    joinDate: dbCustomer.move_in_date,
+    joinDate: dbCustomer.join_date,
     emergencyContact: dbCustomer.emergency_contact_name,
     emergencyPhone: dbCustomer.emergency_contact_phone
   };
@@ -97,6 +100,9 @@ export const transformCustomerToDatabaseCustomer = (customer: Customer): Databas
     city: addressParts[1] || '',
     state: addressParts[2]?.split(' ')[0] || '',
     zip_code: addressParts[2]?.split(' ')[1] || '',
+    ssn: customer.ssn,
+    status: customer.status,
+    join_date: customer.joinDate || '',
     emergency_contact_name: customer.emergencyContact,
     emergency_contact_phone: customer.emergencyPhone,
     move_in_date: customer.moveInDate,

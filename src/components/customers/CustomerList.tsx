@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { CustomerCard } from "./CustomerCard";
 import { AddCustomerDialog } from "./AddCustomerDialog";
 import { Button } from "@/components/ui/button";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { DatabaseCustomer, transformDatabaseCustomerToCustomer } from "@/types/customer";
+import { DatabaseCustomer } from "@/types/customer";
 
 interface CustomerListProps {
   searchQuery: string;
@@ -12,7 +13,8 @@ interface CustomerListProps {
   onClearSelection: () => void;
   customers: DatabaseCustomer[];
   onCustomerAdd: (customer: DatabaseCustomer) => void;
-  onTenantClick: (tenantId: string) => void;
+  onCustomerClick: (customerId: string) => void;
+  customerUnits?: Record<string, string[]>;
 }
 
 export const CustomerList = ({
@@ -21,26 +23,25 @@ export const CustomerList = ({
   onClearSelection,
   customers,
   onCustomerAdd,
-  onTenantClick,
+  onCustomerClick,
+  customerUnits = {},
 }: CustomerListProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
 
   const effectiveSearchQuery = searchQuery || localSearchQuery;
   
-  // Transform DatabaseCustomer to Customer for filtering and display
-  const transformedCustomers = customers.map(dbCustomer => 
-    transformDatabaseCustomerToCustomer(dbCustomer, []) // Empty units array for now
-  );
-  
-  const filteredCustomers = transformedCustomers.filter(customer =>
-    customer.name.toLowerCase().includes(effectiveSearchQuery.toLowerCase()) ||
-    customer.email.toLowerCase().includes(effectiveSearchQuery.toLowerCase()) ||
-    customer.phone.includes(effectiveSearchQuery)
-  );
+  const filteredCustomers = customers.filter(customer => {
+    const customerName = `${customer.first_name} ${customer.last_name}`.trim().toLowerCase();
+    const searchLower = effectiveSearchQuery.toLowerCase();
+    
+    return customerName.includes(searchLower) ||
+           customer.email?.toLowerCase().includes(searchLower) ||
+           customer.phone?.includes(effectiveSearchQuery);
+  });
 
-  const handleViewDetails = (customer: any) => {
-    onTenantClick(customer.id);
+  const handleViewDetails = (customer: DatabaseCustomer) => {
+    onCustomerClick(customer.id);
   };
 
   return (
@@ -85,6 +86,7 @@ export const CustomerList = ({
             customer={customer}
             isSelected={selectedCustomerId === customer.id}
             onViewDetails={handleViewDetails}
+            units={customerUnits[customer.id] || []}
           />
         ))}
       </div>

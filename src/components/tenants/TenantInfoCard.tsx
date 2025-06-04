@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, Mail, Phone, MapPin, CreditCard, Calendar } from "lucide-react";
 
-interface Tenant {
+interface Customer {
   id: string;
   name: string;
   email: string;
@@ -15,15 +15,15 @@ interface Tenant {
   units: any[];
 }
 
-interface TenantInfoCardProps {
-  tenant: Tenant;
+interface CustomerInfoCardProps {
+  tenant: Customer;
 }
 
-export const TenantInfoCard = ({ tenant }: TenantInfoCardProps) => {
+export const TenantInfoCard = ({ tenant: customer }: CustomerInfoCardProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Tenant Information</CardTitle>
+        <CardTitle>Customer Information</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center space-x-12">
@@ -33,15 +33,15 @@ export const TenantInfoCard = ({ tenant }: TenantInfoCardProps) => {
           <div className="flex-1 space-y-3">
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-600 w-20">Name:</span>
-              <span className="font-medium">{tenant.name}</span>
+              <span className="font-medium">{customer.name}</span>
             </div>
             <div className="flex items-center space-x-2">
               <Mail className="h-4 w-4 text-gray-400" />
-              <span className="text-sm">{tenant.email}</span>
+              <span className="text-sm">{customer.email}</span>
             </div>
             <div className="flex items-center space-x-2">
               <Phone className="h-4 w-4 text-gray-400" />
-              <span className="text-sm">{tenant.phone}</span>
+              <span className="text-sm">{customer.phone}</span>
             </div>
           </div>
         </div>
@@ -51,21 +51,21 @@ export const TenantInfoCard = ({ tenant }: TenantInfoCardProps) => {
             <MapPin className="h-4 w-4 text-gray-400" />
             <div>
               <p className="text-sm text-gray-600">Address</p>
-              <p className="font-medium">{tenant.address}</p>
+              <p className="font-medium">{customer.address}</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
             <CreditCard className="h-4 w-4 text-gray-400" />
             <div>
               <p className="text-sm text-gray-600">SSN</p>
-              <p className="font-medium">{tenant.ssn}</p>
+              <p className="font-medium">{customer.ssn}</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
             <Calendar className="h-4 w-4 text-gray-400" />
             <div>
               <p className="text-sm text-gray-600">Join Date</p>
-              <p className="font-medium">{tenant.joinDate}</p>
+              <p className="font-medium">{customer.joinDate}</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">

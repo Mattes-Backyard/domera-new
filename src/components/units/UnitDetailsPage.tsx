@@ -58,21 +58,21 @@ interface UnitDetailsPageProps {
 export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate, customers = [], facilities = [] }: UnitDetailsPageProps) => {
   const isMobile = useIsMobile();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isAssignTenantDialogOpen, setIsAssignTenantDialogOpen] = useState(false);
+  const [isAssignCustomerDialogOpen, setIsAssignCustomerDialogOpen] = useState(false);
 
   const handleUnitUpdate = (updatedUnit: Unit) => {
     console.log("Unit updated:", updatedUnit);
     onUnitUpdate?.(updatedUnit);
   };
 
-  const handleTenantAssignment = (tenantId: string, tenantName: string) => {
+  const handleCustomerAssignment = (customerId: string, customerName: string) => {
     const updatedUnit = {
       ...unit,
-      tenant: tenantName,
-      tenantId: tenantId,
+      tenant: customerName,
+      tenantId: customerId,
       status: "occupied" as const
     };
-    console.log("Tenant assigned to unit:", updatedUnit);
+    console.log("Customer assigned to unit:", updatedUnit);
     onUnitUpdate?.(updatedUnit);
   };
 
@@ -82,7 +82,7 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate, customers = [], fa
         unit={unit} 
         onBack={onBack} 
         onEdit={() => setIsEditDialogOpen(true)}
-        onAssignTenant={() => setIsAssignTenantDialogOpen(true)}
+        onAssignTenant={() => setIsAssignCustomerDialogOpen(true)}
       />
 
       <div className={`grid grid-cols-1 ${isMobile ? 'gap-4' : 'lg:grid-cols-3 gap-6'}`}>
@@ -111,9 +111,9 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate, customers = [], fa
 
       <AssignTenantDialog
         unit={unit}
-        isOpen={isAssignTenantDialogOpen}
-        onClose={() => setIsAssignTenantDialogOpen(false)}
-        onAssign={handleTenantAssignment}
+        isOpen={isAssignCustomerDialogOpen}
+        onClose={() => setIsAssignCustomerDialogOpen(false)}
+        onAssign={handleCustomerAssignment}
       />
     </div>
   );
