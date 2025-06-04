@@ -10,18 +10,7 @@ import { FloorPlanView } from "@/components/floor-plan/FloorPlanView";
 import { AdminInterface } from "@/components/admin/AdminInterface";
 import { IntegrationsView } from "@/components/integrations/IntegrationsView";
 import { Customer, DatabaseCustomer, Tenant } from "@/types/customer";
-
-interface Unit {
-  id: string;
-  size: string;
-  type: string;
-  status: string;
-  tenant: string | null;
-  tenantId: string | null;
-  rate: number;
-  climate: boolean;
-  site: string;
-}
+import type { Unit } from "@/hooks/useAppState";
 
 interface Facility {
   id: string;

@@ -1,5 +1,5 @@
-
-import type { Unit, Customer } from "@/hooks/useAppState";
+import type { Unit } from "@/hooks/useAppState";
+import type { Customer } from "@/types/customer";
 
 export const syncCustomerUnits = (
   updatedUnits: Unit[], 

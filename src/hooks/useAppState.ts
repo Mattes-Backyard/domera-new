@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { useNotificationEvents } from "./useNotificationEvents";
 import { Customer, DatabaseCustomer } from "@/types/customer";
 
-interface Unit {
+export interface Unit {
   id: string;
   size: string;
   type: string;
@@ -13,17 +12,6 @@ interface Unit {
   rate: number;
   climate: boolean;
   site: string;
-}
-
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  units: string[];
-  status: string;
-  joinDate: string;
-  balance: number;
 }
 
 const initialUnits: Unit[] = [
