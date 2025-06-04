@@ -92,7 +92,7 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
       <SidebarHeader className="p-6">
         <div className="flex items-center space-x-2">
           <img 
-            src="/lovable-uploads/b550ca29-2371-47c5-b9e6-96fc75f41b4d.png" 
+            src="/lovable-uploads/ef3cdb43-d066-4a2d-8139-bec16ef0f18d.png" 
             alt="Domera Logo" 
             className="h-8 w-8"
           />
