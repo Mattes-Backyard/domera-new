@@ -1,4 +1,3 @@
-
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -173,6 +172,7 @@ const Index = () => {
                   showFloorPlan={showFloorPlan}
                   units={units}
                   customers={customers}
+                  facilities={facilities}
                   onUnitSelect={handleUnitSelect}
                   onUnitUpdate={handleUnitUpdate}
                   onUnitAdd={handleUnitAdd}
