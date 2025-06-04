@@ -4,6 +4,7 @@ import { CompanySettings } from "./CompanySettings";
 import { FacilityManagement } from "./FacilityManagement";
 import { AddUserDialog } from "./AddUserDialog";
 import { UserList } from "./UserList";
+import { AdminRoleDebug } from "./AdminRoleDebug";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { CompanyLogo } from "@/components/ui/company-logo";
 
@@ -33,6 +34,8 @@ export const AdminInterface = () => {
           </p>
         </div>
       </div>
+
+      <AdminRoleDebug />
 
       <Tabs defaultValue="users" className="space-y-6" onValueChange={handleTabChange}>
         <TabsList className="grid grid-cols-4 w-full max-w-md">
