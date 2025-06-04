@@ -111,6 +111,7 @@ const Index = () => {
   };
 
   const handleCustomerAdd = (newCustomer: DatabaseCustomer) => {
+    // Use the addCustomer function from useRealtimeSupabaseData which expects DatabaseCustomer
     addCustomer(newCustomer);
   };
 
