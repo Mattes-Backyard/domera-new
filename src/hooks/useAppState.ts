@@ -96,8 +96,8 @@ const initialCustomers: Customer[] = [
     phone: "(555) 123-4567",
     units: ["A-101"],
     status: "active",
-    joinDate: "2024-01-15",
     balance: 0,
+    joinDate: "2024-01-15",
   },
   {
     id: "sarah-johnson",
@@ -106,8 +106,8 @@ const initialCustomers: Customer[] = [
     phone: "(555) 234-5678",
     units: ["A-103"],
     status: "reserved",
-    joinDate: "2024-05-20",
     balance: 120,
+    joinDate: "2024-05-20",
   },
   {
     id: "mike-wilson",
@@ -116,8 +116,8 @@ const initialCustomers: Customer[] = [
     phone: "(555) 345-6789",
     units: ["B-201"],
     status: "active",
-    joinDate: "2023-11-08",
     balance: -85,
+    joinDate: "2023-11-08",
   },
   {
     id: "emily-davis",
@@ -126,8 +126,8 @@ const initialCustomers: Customer[] = [
     phone: "(555) 456-7890",
     units: [],
     status: "former",
-    joinDate: "2023-06-12",
     balance: 0,
+    joinDate: "2023-06-12",
   },
   {
     id: "lisa-brown",
@@ -136,8 +136,8 @@ const initialCustomers: Customer[] = [
     phone: "(555) 567-8901",
     units: ["A-105"],
     status: "active",
-    joinDate: "2024-03-10",
     balance: 0,
+    joinDate: "2024-03-10",
   },
   {
     id: "david-chen",
@@ -146,8 +146,8 @@ const initialCustomers: Customer[] = [
     phone: "(555) 678-9012",
     units: ["A-107"],
     status: "reserved",
-    joinDate: "2024-06-01",
     balance: 120,
+    joinDate: "2024-06-01",
   },
   {
     id: "maria-garcia",
@@ -156,8 +156,8 @@ const initialCustomers: Customer[] = [
     phone: "(555) 789-0123",
     units: ["B-203"],
     status: "active",
-    joinDate: "2024-02-14",
     balance: 0,
+    joinDate: "2024-02-14",
   },
   {
     id: "robert-taylor",
@@ -166,8 +166,8 @@ const initialCustomers: Customer[] = [
     phone: "(555) 890-1234",
     units: ["B-206"],
     status: "active",
-    joinDate: "2023-12-05",
     balance: 0,
+    joinDate: "2023-12-05",
   },
   {
     id: "jennifer-white",
@@ -176,8 +176,8 @@ const initialCustomers: Customer[] = [
     phone: "(555) 901-2345",
     units: ["C-302"],
     status: "active",
-    joinDate: "2024-04-18",
     balance: 0,
+    joinDate: "2024-04-18",
   },
   {
     id: "thomas-anderson",
@@ -186,8 +186,8 @@ const initialCustomers: Customer[] = [
     phone: "(555) 012-3456",
     units: ["C-304"],
     status: "reserved",
-    joinDate: "2024-06-15",
     balance: 300,
+    joinDate: "2024-06-15",
   },
   {
     id: "amanda-rodriguez",
@@ -196,8 +196,8 @@ const initialCustomers: Customer[] = [
     phone: "(555) 123-0987",
     units: ["D-402"],
     status: "active",
-    joinDate: "2024-01-28",
     balance: 0,
+    joinDate: "2024-01-28",
   },
   {
     id: "kevin-oconnor",
@@ -206,8 +206,8 @@ const initialCustomers: Customer[] = [
     phone: "(555) 234-1098",
     units: ["D-405"],
     status: "active",
-    joinDate: "2023-10-12",
     balance: 0,
+    joinDate: "2023-10-12",
   },
 ];
 

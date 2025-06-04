@@ -11,7 +11,8 @@ import { Calendar, User, MessageSquare, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { useTasks } from '@/contexts/TaskContext';
 import type { Task } from '@/types/task';
-import type { Unit, Customer } from '@/hooks/useAppState';
+import type { Unit } from '@/hooks/useAppState';
+import type { Customer } from '@/types/customer';
 
 interface TaskDetailDialogProps {
   task: Task;

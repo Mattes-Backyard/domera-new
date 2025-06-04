@@ -1,7 +1,8 @@
 
 import { useEffect } from 'react';
 import { useNotifications } from '@/contexts/NotificationContext';
-import type { Unit, Customer } from '@/hooks/useAppState';
+import type { Unit } from '@/hooks/useAppState';
+import type { Customer } from '@/types/customer';
 
 export const useNotificationEvents = () => {
   const { addNotification } = useNotifications();

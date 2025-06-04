@@ -10,7 +10,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { useTasks } from '@/contexts/TaskContext';
-import type { Unit, Customer } from '@/hooks/useAppState';
+import type { Unit } from '@/hooks/useAppState';
+import type { Customer } from '@/types/customer';
 
 interface QuickTaskDialogProps {
   trigger?: React.ReactNode;

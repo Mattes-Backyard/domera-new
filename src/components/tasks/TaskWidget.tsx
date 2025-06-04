@@ -7,7 +7,8 @@ import { Plus, CheckSquare } from 'lucide-react';
 import { QuickTaskDialog } from './QuickTaskDialog';
 import { TaskList } from './TaskList';
 import { useTasks } from '@/contexts/TaskContext';
-import type { Unit, Customer } from '@/hooks/useAppState';
+import type { Unit } from '@/hooks/useAppState';
+import type { Customer } from '@/types/customer';
 
 interface TaskWidgetProps {
   resourceType: 'customer' | 'unit';
