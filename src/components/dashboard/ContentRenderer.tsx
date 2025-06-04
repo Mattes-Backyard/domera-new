@@ -1,3 +1,4 @@
+
 import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
@@ -9,6 +10,7 @@ import { OperationsView } from "@/components/operations/OperationsView";
 import { FloorPlanView } from "@/components/floor-plan/FloorPlanView";
 import { AdminInterface } from "@/components/admin/AdminInterface";
 import { IntegrationsView } from "@/components/integrations/IntegrationsView";
+import { Customer, DatabaseCustomer, Tenant } from "@/types/customer";
 
 interface Unit {
   id: string;
@@ -20,41 +22,6 @@ interface Unit {
   rate: number;
   climate: boolean;
   site: string;
-}
-
-// Customer type that matches the transformed data from useRealtimeSupabaseData
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  units: string[];
-  balance: number;
-  status: string;
-  moveInDate?: string;
-  emergencyContact?: string;
-  emergencyPhone?: string;
-}
-
-// Supabase Customer type
-interface DatabaseCustomer {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zip_code: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
-  move_in_date?: string;
-  lease_end_date?: string;
-  security_deposit?: number;
-  balance?: number;
-  notes?: string;
-  facility_id: string;
 }
 
 interface Facility {
@@ -88,7 +55,7 @@ interface ContentRendererProps {
 }
 
 // Transform database customer to tenant format for TenantDetailsPage
-const transformCustomerToTenant = (customer: DatabaseCustomer) => {
+const transformCustomerToTenant = (customer: DatabaseCustomer): Tenant => {
   return {
     id: customer.id,
     name: `${customer.first_name} ${customer.last_name}`,

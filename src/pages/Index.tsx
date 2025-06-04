@@ -1,3 +1,4 @@
+
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -9,28 +10,8 @@ import { useRealtimeSupabaseData } from "@/hooks/useRealtimeSupabaseData";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { useAppState } from "@/hooks/useAppState";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { DatabaseCustomer } from "@/types/customer";
 import { useState } from "react";
-
-// Database Customer type for Supabase
-interface DatabaseCustomer {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zip_code: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
-  move_in_date?: string;
-  lease_end_date?: string;
-  security_deposit?: number;
-  balance?: number;
-  notes?: string;
-  facility_id: string;
-}
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
