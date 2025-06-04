@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ interface InvoiceFormData {
 
 export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProps) => {
   const [open, setOpen] = useState(false);
-  const { customers, unitRentals } = useRealtimeSupabaseData();
+  const { customers, units } = useRealtimeSupabaseData();
   const [vatAmount, setVatAmount] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
   
@@ -69,13 +68,14 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
 
   const getCustomerUnitRentals = () => {
     if (!watchedCustomerId) return [];
-    return unitRentals.filter(rental => rental.customer_id === watchedCustomerId && rental.is_active);
+    // Filter units that belong to the selected customer
+    return units.filter(unit => unit.tenantId === watchedCustomerId && unit.status === 'occupied');
   };
 
-  const handleUnitRentalChange = (unitRentalId: string) => {
-    const rental = unitRentals.find(r => r.id === unitRentalId);
-    if (rental) {
-      form.setValue("subtotal", rental.monthly_rate);
+  const handleUnitRentalChange = (unitId: string) => {
+    const unit = units.find(u => u.id === unitId);
+    if (unit) {
+      form.setValue("subtotal", unit.rate);
     }
   };
 
@@ -155,7 +155,7 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
                 name="unit_rental_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Unit Rental (Optional)</FormLabel>
+                    <FormLabel>Unit (Optional)</FormLabel>
                     <Select 
                       onValueChange={(value) => {
                         field.onChange(value);
@@ -166,13 +166,13 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select unit rental" />
+                          <SelectValue placeholder="Select unit" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {getCustomerUnitRentals().map((rental) => (
-                          <SelectItem key={rental.id} value={rental.id}>
-                            Unit Rental - €{rental.monthly_rate}/month
+                        {getCustomerUnitRentals().map((unit) => (
+                          <SelectItem key={unit.id} value={unit.id}>
+                            Unit {unit.id} - €{unit.rate}/month
                           </SelectItem>
                         ))}
                       </SelectContent>

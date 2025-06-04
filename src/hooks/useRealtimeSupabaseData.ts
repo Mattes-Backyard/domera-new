@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -210,132 +209,177 @@ export const useRealtimeSupabaseData = () => {
     fetchData();
   }, [user, profile]);
 
-  // Set up real-time subscriptions
+  // Set up real-time subscriptions with better error handling
   useEffect(() => {
     if (!user) return;
 
-    const unitsChannel = supabase
-      .channel('units-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'units'
-        },
-        (payload) => {
-          console.log('Units change detected:', payload);
-          toast.info('Unit data updated', {
-            description: 'Storage unit information has been updated in real-time'
-          });
-          fetchData(); // Refetch data when changes occur
-        }
-      )
-      .subscribe();
+    let channels = [];
 
-    const customersChannel = supabase
-      .channel('customers-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'customers'
-        },
-        (payload) => {
-          console.log('Customers change detected:', payload);
-          toast.info('Customer data updated', {
-            description: 'Customer information has been updated in real-time'
-          });
-          fetchData();
-        }
-      )
-      .subscribe();
+    const setupChannels = () => {
+      // Clean up existing channels first
+      channels.forEach(channel => {
+        supabase.removeChannel(channel);
+      });
+      channels = [];
 
-    const paymentsChannel = supabase
-      .channel('payments-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'payments'
-        },
-        (payload) => {
-          console.log('Payments change detected:', payload);
-          toast.success('Payment processed', {
-            description: 'A payment has been processed in real-time'
+      try {
+        const unitsChannel = supabase
+          .channel('units-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'units'
+            },
+            (payload) => {
+              console.log('Units change detected:', payload);
+              toast.info('Unit data updated', {
+                description: 'Storage unit information has been updated in real-time'
+              });
+              fetchData();
+            }
+          )
+          .subscribe((status) => {
+            if (status === 'CHANNEL_ERROR') {
+              console.log('Units channel error, retrying...');
+              setTimeout(setupChannels, 5000);
+            }
           });
-          fetchData();
-        }
-      )
-      .subscribe();
 
-    const rentalsChannel = supabase
-      .channel('rentals-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'unit_rentals'
-        },
-        (payload) => {
-          console.log('Unit rentals change detected:', payload);
-          toast.info('Rental status updated', {
-            description: 'Unit rental information has been updated'
+        const customersChannel = supabase
+          .channel('customers-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'customers'
+            },
+            (payload) => {
+              console.log('Customers change detected:', payload);
+              toast.info('Customer data updated', {
+                description: 'Customer information has been updated in real-time'
+              });
+              fetchData();
+            }
+          )
+          .subscribe((status) => {
+            if (status === 'CHANNEL_ERROR') {
+              console.log('Customers channel error, retrying...');
+              setTimeout(setupChannels, 5000);
+            }
           });
-          fetchData();
-        }
-      )
-      .subscribe();
 
-    const maintenanceChannel = supabase
-      .channel('maintenance-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'maintenance_requests'
-        },
-        (payload) => {
-          console.log('Maintenance request change detected:', payload);
-          toast.warning('Maintenance update', {
-            description: 'A maintenance request has been updated'
+        const paymentsChannel = supabase
+          .channel('payments-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'payments'
+            },
+            (payload) => {
+              console.log('Payments change detected:', payload);
+              toast.success('Payment processed', {
+                description: 'A payment has been processed in real-time'
+              });
+              fetchData();
+            }
+          )
+          .subscribe((status) => {
+            if (status === 'CHANNEL_ERROR') {
+              console.log('Payments channel error, retrying...');
+              setTimeout(setupChannels, 5000);
+            }
           });
-          fetchData();
-        }
-      )
-      .subscribe();
 
-    const tasksChannel = supabase
-      .channel('tasks-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tasks'
-        },
-        (payload) => {
-          console.log('Tasks change detected:', payload);
-          toast.info('Task updated', {
-            description: 'A task has been updated in real-time'
+        const rentalsChannel = supabase
+          .channel('rentals-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'unit_rentals'
+            },
+            (payload) => {
+              console.log('Unit rentals change detected:', payload);
+              toast.info('Rental status updated', {
+                description: 'Unit rental information has been updated'
+              });
+              fetchData();
+            }
+          )
+          .subscribe((status) => {
+            if (status === 'CHANNEL_ERROR') {
+              console.log('Rentals channel error, retrying...');
+              setTimeout(setupChannels, 5000);
+            }
           });
-          fetchData();
-        }
-      )
-      .subscribe();
 
-    // Cleanup subscriptions on unmount
+        const maintenanceChannel = supabase
+          .channel('maintenance-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'maintenance_requests'
+            },
+            (payload) => {
+              console.log('Maintenance request change detected:', payload);
+              toast.warning('Maintenance update', {
+                description: 'A maintenance request has been updated'
+              });
+              fetchData();
+            }
+          )
+          .subscribe((status) => {
+            if (status === 'CHANNEL_ERROR') {
+              console.log('Maintenance channel error, retrying...');
+              setTimeout(setupChannels, 5000);
+            }
+          });
+
+        const tasksChannel = supabase
+          .channel('tasks-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'tasks'
+            },
+            (payload) => {
+              console.log('Tasks change detected:', payload);
+              toast.info('Task updated', {
+                description: 'A task has been updated in real-time'
+              });
+              fetchData();
+            }
+          )
+          .subscribe((status) => {
+            if (status === 'CHANNEL_ERROR') {
+              console.log('Tasks channel error, retrying...');
+              setTimeout(setupChannels, 5000);
+            }
+          });
+
+        channels = [unitsChannel, customersChannel, paymentsChannel, rentalsChannel, maintenanceChannel, tasksChannel];
+      } catch (error) {
+        console.error('Error setting up realtime channels:', error);
+        setTimeout(setupChannels, 10000);
+      }
+    };
+
+    setupChannels();
+
     return () => {
-      supabase.removeChannel(unitsChannel);
-      supabase.removeChannel(customersChannel);
-      supabase.removeChannel(paymentsChannel);
-      supabase.removeChannel(rentalsChannel);
-      supabase.removeChannel(maintenanceChannel);
-      supabase.removeChannel(tasksChannel);
+      channels.forEach(channel => {
+        supabase.removeChannel(channel);
+      });
     };
   }, [user]);
 
