@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,7 +54,7 @@ export const AuthForm = () => {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img 
-              src="/lovable-uploads/542819c4-12f3-4c7e-b419-442c8ce6c4ce.png" 
+              src="/lovable-uploads/ef3cdb43-d066-4a2d-8139-bec16ef0f18d.png" 
               alt="Domera Storage Logo" 
               className="h-16 w-16 object-contain"
             />
