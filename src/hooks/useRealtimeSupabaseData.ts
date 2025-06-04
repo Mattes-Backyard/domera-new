@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -16,6 +17,27 @@ const sampleNames = [
   { first: 'Ashley', last: 'Rodriguez' },
   { first: 'Michael', last: 'Martinez' }
 ];
+
+// DatabaseCustomer type from Supabase
+interface DatabaseCustomer {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  move_in_date?: string;
+  lease_end_date?: string;
+  security_deposit?: number;
+  balance?: number;
+  notes?: string;
+  facility_id: string;
+}
 
 const getRandomName = (id: string) => {
   // Use a simple hash of the ID to consistently return the same name for the same ID
@@ -513,10 +535,64 @@ export const useRealtimeSupabaseData = () => {
     // Data will be updated automatically via real-time subscription
   };
 
-  const addCustomer = async (customerData) => {
-    // This would need to be implemented based on your customer creation flow
-    console.log('Add customer:', customerData);
-    // Data will be updated automatically via real-time subscription
+  const addCustomer = async (customerData: DatabaseCustomer) => {
+    if (!profile?.facility_id) {
+      console.error('No facility assigned to user');
+      toast.error('No facility assigned');
+      return;
+    }
+
+    try {
+      // Insert customer into the customers table
+      const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .insert([{
+          id: customerData.id,
+          user_id: null, // Will be set when user signs up
+          facility_id: profile.facility_id,
+          emergency_contact_name: customerData.emergency_contact_name,
+          emergency_contact_phone: customerData.emergency_contact_phone,
+          move_in_date: customerData.move_in_date,
+          lease_end_date: customerData.lease_end_date,
+          security_deposit: customerData.security_deposit,
+          balance: customerData.balance || 0,
+          notes: customerData.notes
+        }])
+        .select()
+        .single();
+
+      if (customerError) {
+        console.error('Error adding customer:', customerError);
+        toast.error('Failed to add customer');
+        return;
+      }
+
+      // Create a profile entry for the customer
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{
+          id: customerData.id,
+          email: customerData.email,
+          first_name: customerData.first_name,
+          last_name: customerData.last_name,
+          phone: customerData.phone,
+          role: 'customer',
+          facility_id: profile.facility_id
+        }]);
+
+      if (profileError) {
+        console.error('Error creating customer profile:', profileError);
+        // Don't return here, the customer was still created
+      }
+
+      toast.success('Customer added successfully');
+      console.log('Customer added:', customer);
+      
+      // Data will be updated automatically via real-time subscription
+    } catch (error) {
+      console.error('Error in addCustomer:', error);
+      toast.error('Failed to add customer');
+    }
   };
 
   return {
@@ -531,3 +607,4 @@ export const useRealtimeSupabaseData = () => {
     refreshData: fetchData
   };
 };
+

@@ -1,4 +1,3 @@
-
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -111,9 +110,14 @@ const Index = () => {
     addUnit(newUnit);
   };
 
-  const handleCustomerAdd = (newCustomer: DatabaseCustomer) => {
-    // Use the addCustomer function from useRealtimeSupabaseData which expects DatabaseCustomer
-    addCustomer(newCustomer);
+  const handleCustomerAdd = async (newCustomer: DatabaseCustomer) => {
+    try {
+      // The addCustomer function from useRealtimeSupabaseData expects DatabaseCustomer
+      // but we need to ensure it's properly implemented there
+      await addCustomer(newCustomer);
+    } catch (error) {
+      console.error('Error adding customer:', error);
+    }
   };
 
   const handleTenantClick = (tenantId: string) => {
