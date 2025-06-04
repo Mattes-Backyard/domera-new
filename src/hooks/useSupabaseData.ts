@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -60,26 +59,48 @@ export const useSupabaseData = () => {
         const activeRental = unit.unit_rentals?.find(rental => rental.is_active);
         const customer = activeRental?.customer;
         
+        // If unit is marked as occupied but has no rental/customer, create a placeholder
+        let unitStatus = unit.status;
         let tenantName = null;
         let tenantId = null;
         
-        if (customer?.profile) {
-          const firstName = customer.profile.first_name || '';
-          const lastName = customer.profile.last_name || '';
-          tenantName = `${firstName} ${lastName}`.trim() || null;
-          tenantId = customer.user_id || customer.id;
-        } else if (customer) {
-          // Use realistic random names instead of "Customer XXXX"
-          const randomName = getRandomName(customer.id);
-          tenantName = `${randomName.first} ${randomName.last}`;
-          tenantId = customer.user_id || customer.id;
+        if (unit.status === 'occupied') {
+          if (customer?.profile) {
+            const firstName = customer.profile.first_name || '';
+            const lastName = customer.profile.last_name || '';
+            tenantName = `${firstName} ${lastName}`.trim();
+            tenantId = customer.user_id || customer.id;
+          } else if (customer) {
+            // Use realistic random names instead of "Customer XXXX"
+            const randomName = getRandomName(customer.id);
+            tenantName = `${randomName.first} ${randomName.last}`;
+            tenantId = customer.user_id || customer.id;
+          } else {
+            // If unit is occupied but no customer data, create a placeholder
+            const randomName = getRandomName(unit.id || unit.unit_number);
+            tenantName = `${randomName.first} ${randomName.last}`;
+            tenantId = `placeholder-${unit.id}`;
+          }
+        } else if (activeRental && customer) {
+          // Unit has rental but status might not be updated
+          unitStatus = 'occupied';
+          if (customer.profile) {
+            const firstName = customer.profile.first_name || '';
+            const lastName = customer.profile.last_name || '';
+            tenantName = `${firstName} ${lastName}`.trim() || null;
+            tenantId = customer.user_id || customer.id;
+          } else {
+            const randomName = getRandomName(customer.id);
+            tenantName = `${randomName.first} ${randomName.last}`;
+            tenantId = customer.user_id || customer.id;
+          }
         }
         
         return {
           id: unit.unit_number,
           size: unit.size,
           type: unit.type,
-          status: unit.status,
+          status: unitStatus,
           tenant: tenantName,
           tenantId: tenantId,
           rate: Number(unit.monthly_rate),
@@ -136,6 +157,28 @@ export const useSupabaseData = () => {
           emergencyPhone: customer.emergency_contact_phone
         };
       }) || [];
+
+      // Add placeholder customers for units that are occupied but don't have customer records
+      transformedUnits.forEach(unit => {
+        if (unit.status === 'occupied' && unit.tenantId && unit.tenantId.startsWith('placeholder-')) {
+          const existingCustomer = transformedCustomers.find(c => c.id === unit.tenantId);
+          if (!existingCustomer) {
+            const randomName = getRandomName(unit.id);
+            transformedCustomers.push({
+              id: unit.tenantId,
+              name: unit.tenant,
+              email: `${randomName.first.toLowerCase()}.${randomName.last.toLowerCase()}@email.com`,
+              phone: '555-0000',
+              units: [unit.id],
+              balance: 0,
+              status: 'good',
+              moveInDate: new Date().toISOString().split('T')[0],
+              emergencyContact: '',
+              emergencyPhone: ''
+            });
+          }
+        }
+      });
 
       // Fetch facilities
       const { data: facilitiesData } = await supabase
