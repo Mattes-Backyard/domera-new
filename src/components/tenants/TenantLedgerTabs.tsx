@@ -1,8 +1,12 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import { useInvoices } from "@/hooks/useInvoices";
 
 interface TenantUnit {
   unitId: string;
@@ -31,53 +35,56 @@ interface TenantLedgerTabsProps {
   selectedUnit: string;
 }
 
-// Mock data for demonstration
-const mockLedgerData: Record<string, LedgerEntry[]> = {
-  "A-101": [
-    {
-      id: "1",
-      date: "2025-05-02",
-      type: "payment",
-      description: "Payment - #6755",
-      debit: 0,
-      credit: 678,
-      balance: 0
-    },
-    {
-      id: "2",
-      date: "2025-05-01",
-      type: "invoice",
-      description: "Invoice #7333",
-      invoiceNumber: "7333",
-      debit: 678,
-      credit: 0,
-      balance: 678
-    },
-    {
-      id: "3",
-      date: "2025-04-01",
-      type: "payment",
-      description: "Payment - #6358",
-      debit: 0,
-      credit: 678,
-      balance: 0
-    },
-    {
-      id: "4",
-      date: "2025-04-01",
-      type: "invoice",
-      description: "Invoice #6860",
-      invoiceNumber: "6860",
-      debit: 678,
-      credit: 0,
-      balance: 678
-    }
-  ]
-};
-
 export const TenantLedgerTabs = ({ tenantId, units, selectedUnit }: TenantLedgerTabsProps) => {
+  const { invoices, downloadInvoicePDF } = useInvoices();
+  const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);
+  
   const selectedUnitData = units.find(unit => unit.unitId === selectedUnit);
-  const ledgerEntries = mockLedgerData[selectedUnit] || [];
+
+  useEffect(() => {
+    // Filter invoices for this specific tenant and create ledger entries
+    const tenantInvoices = invoices.filter(invoice => invoice.customer_id === tenantId);
+    
+    const entries: LedgerEntry[] = [];
+    let runningBalance = 0;
+
+    // Sort invoices by date
+    tenantInvoices.sort((a, b) => new Date(a.issue_date).getTime() - new Date(b.issue_date).getTime());
+
+    tenantInvoices.forEach((invoice) => {
+      // Add invoice entry (debit)
+      runningBalance += invoice.total_amount;
+      entries.push({
+        id: `inv-${invoice.id}`,
+        date: invoice.issue_date,
+        type: "invoice",
+        description: `Monthly rental - ${invoice.invoice_number}`,
+        invoiceNumber: invoice.invoice_number,
+        debit: invoice.total_amount,
+        credit: 0,
+        balance: runningBalance
+      });
+
+      // If invoice is paid, add payment entry (credit)
+      if (invoice.status === 'paid') {
+        runningBalance -= invoice.total_amount;
+        entries.push({
+          id: `pay-${invoice.id}`,
+          date: invoice.due_date, // Simplified - in real scenario you'd have payment date
+          type: "payment",
+          description: `Payment for ${invoice.invoice_number}`,
+          debit: 0,
+          credit: invoice.total_amount,
+          balance: runningBalance
+        });
+      }
+    });
+
+    // Sort entries by date (most recent first for display)
+    entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    setLedgerEntries(entries);
+  }, [invoices, tenantId]);
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -87,6 +94,13 @@ export const TenantLedgerTabs = ({ tenantId, units, selectedUnit }: TenantLedger
         return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const handleDownloadInvoice = async (invoiceNumber: string) => {
+    const invoice = invoices.find(inv => inv.invoice_number === invoiceNumber);
+    if (invoice) {
+      await downloadInvoicePDF(invoice);
     }
   };
 
@@ -108,17 +122,17 @@ export const TenantLedgerTabs = ({ tenantId, units, selectedUnit }: TenantLedger
           <TabsContent value="ledger" className="mt-6">
             <div className="mb-4">
               <div className="flex items-center justify-between text-sm">
-                <span>Show 10 item(s)</span>
-                <span>Balance: ${selectedUnitData?.balance || 0}</span>
+                <span>Show {ledgerEntries.length} item(s)</span>
+                <span>Current Balance: €{selectedUnitData?.balance || 0}</span>
               </div>
             </div>
             
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Desired Date</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Unit #</TableHead>
-                  <TableHead>Invoice/Receipt Details</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Debit</TableHead>
                   <TableHead>Credit</TableHead>
@@ -135,26 +149,47 @@ export const TenantLedgerTabs = ({ tenantId, units, selectedUnit }: TenantLedger
                       <Badge className={getTypeColor(entry.type)}>
                         {entry.type === "invoice" && entry.invoiceNumber 
                           ? `Invoice - #${entry.invoiceNumber}`
-                          : entry.description.split(" - ")[1] || entry.description
+                          : entry.type === "payment" 
+                          ? "Payment"
+                          : entry.type
                         }
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
                         {entry.description}
-                        <div className="text-blue-600 text-xs cursor-pointer">View More</div>
+                        {entry.type === "invoice" && (
+                          <div className="text-blue-600 text-xs cursor-pointer">View More</div>
+                        )}
                       </div>
                     </TableCell>
-                    <TableCell>{entry.debit > 0 ? `${entry.debit}.00 kr` : "0.00 kr"}</TableCell>
-                    <TableCell>{entry.credit > 0 ? `${entry.credit}.00 kr` : "0.00 kr"}</TableCell>
-                    <TableCell>{entry.balance}.00 kr</TableCell>
+                    <TableCell>{entry.debit > 0 ? `€${entry.debit.toFixed(2)}` : "€0.00"}</TableCell>
+                    <TableCell>{entry.credit > 0 ? `€${entry.credit.toFixed(2)}` : "€0.00"}</TableCell>
+                    <TableCell>€{entry.balance.toFixed(2)}</TableCell>
                     <TableCell>
-                      <button className="text-gray-400 hover:text-gray-600">⋮</button>
+                      <div className="flex items-center gap-1">
+                        {entry.type === "invoice" && entry.invoiceNumber && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDownloadInvoice(entry.invoiceNumber!)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <button className="text-gray-400 hover:text-gray-600">⋮</button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+
+            {ledgerEntries.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                No ledger entries found for this tenant.
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="lease-details" className="mt-6">
@@ -170,19 +205,43 @@ export const TenantLedgerTabs = ({ tenantId, units, selectedUnit }: TenantLedger
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Monthly Rate</p>
-                  <p className="font-medium">${selectedUnitData?.monthlyRate}</p>
+                  <p className="font-medium">€{selectedUnitData?.monthlyRate}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Current Balance</p>
-                  <p className="font-medium">${selectedUnitData?.balance}</p>
+                  <p className="font-medium">€{selectedUnitData?.balance}</p>
                 </div>
               </div>
             </div>
           </TabsContent>
           
           <TabsContent value="documents" className="mt-6">
-            <div className="text-center py-8 text-gray-500">
-              No documents available
+            <div className="space-y-4">
+              <h4 className="font-medium">Available Documents</h4>
+              {ledgerEntries
+                .filter(entry => entry.type === "invoice" && entry.invoiceNumber)
+                .map(entry => (
+                  <div key={entry.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">Invoice {entry.invoiceNumber}</p>
+                      <p className="text-sm text-gray-600">Date: {entry.date}</p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDownloadInvoice(entry.invoiceNumber!)}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download PDF
+                    </Button>
+                  </div>
+                ))}
+              
+              {ledgerEntries.filter(entry => entry.type === "invoice").length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No documents available
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>

@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      company_info: {
+        Row: {
+          address: string
+          city: string
+          company_name: string
+          country: string
+          created_at: string
+          email: string
+          id: string
+          logo_url: string | null
+          phone: string
+          postal_code: string
+          updated_at: string
+          vat_number: string
+        }
+        Insert: {
+          address?: string
+          city?: string
+          company_name?: string
+          country?: string
+          created_at?: string
+          email?: string
+          id?: string
+          logo_url?: string | null
+          phone?: string
+          postal_code?: string
+          updated_at?: string
+          vat_number?: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          company_name?: string
+          country?: string
+          created_at?: string
+          email?: string
+          id?: string
+          logo_url?: string | null
+          phone?: string
+          postal_code?: string
+          updated_at?: string
+          vat_number?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           balance: number | null
@@ -118,6 +163,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      invoices: {
+        Row: {
+          created_at: string
+          customer_id: string
+          due_date: string
+          id: string
+          invoice_number: string
+          issue_date: string
+          pdf_file_path: string | null
+          status: string
+          subtotal: number
+          total_amount: number
+          unit_rental_id: string | null
+          updated_at: string
+          vat_amount: number
+          vat_rate: number
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          due_date: string
+          id?: string
+          invoice_number: string
+          issue_date?: string
+          pdf_file_path?: string | null
+          status?: string
+          subtotal: number
+          total_amount: number
+          unit_rental_id?: string | null
+          updated_at?: string
+          vat_amount: number
+          vat_rate?: number
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          issue_date?: string
+          pdf_file_path?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          unit_rental_id?: string | null
+          updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Relationships: []
       }
       maintenance_requests: {
         Row: {

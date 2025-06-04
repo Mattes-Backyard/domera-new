@@ -1,97 +1,26 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, Download, Eye, DollarSign, FileText, Calendar, CreditCard } from "lucide-react";
+import { Search, Filter, Download, Eye, DollarSign, FileText, Calendar, CreditCard, Plus } from "lucide-react";
 import { PaymentProcessor } from "@/components/payments/PaymentProcessor";
-
-interface Invoice {
-  id: string;
-  invoiceNumber: string;
-  customerId: string;
-  customerName: string;
-  amount: number;
-  status: "paid" | "pending" | "overdue" | "draft";
-  issueDate: string;
-  dueDate: string;
-  unitIds: string[];
-  description: string;
-}
-
-const initialInvoices: Invoice[] = [
-  {
-    id: "INV-001",
-    invoiceNumber: "INV-2024-001",
-    customerId: "C001",
-    customerName: "John Smith",
-    amount: 185.00,
-    status: "paid",
-    issueDate: "2024-01-01",
-    dueDate: "2024-01-31",
-    unitIds: ["A-101"],
-    description: "Monthly storage rental - January 2024"
-  },
-  {
-    id: "INV-002",
-    invoiceNumber: "INV-2024-002",
-    customerId: "C002",
-    customerName: "Sarah Johnson",
-    amount: 240.00,
-    status: "pending",
-    issueDate: "2024-01-01",
-    dueDate: "2024-01-31",
-    unitIds: ["A-103", "B-201"],
-    description: "Monthly storage rental - January 2024"
-  },
-  {
-    id: "INV-003",
-    invoiceNumber: "INV-2024-003",
-    customerId: "C003",
-    customerName: "Mike Wilson",
-    amount: 180.00,
-    status: "overdue",
-    issueDate: "2023-12-01",
-    dueDate: "2023-12-31",
-    unitIds: ["B-201"],
-    description: "Monthly storage rental - December 2023"
-  },
-  {
-    id: "INV-004",
-    invoiceNumber: "INV-2024-004",
-    customerId: "C004",
-    customerName: "Emily Davis",
-    amount: 560.00,
-    status: "draft",
-    issueDate: "2024-01-15",
-    dueDate: "2024-02-15",
-    unitIds: ["C-301", "C-302"],
-    description: "Monthly storage rental - February 2024"
-  },
-  {
-    id: "INV-005",
-    invoiceNumber: "INV-2024-005",
-    customerId: "C001",
-    customerName: "John Smith",
-    amount: 185.00,
-    status: "pending",
-    issueDate: "2024-02-01",
-    dueDate: "2024-02-28",
-    unitIds: ["A-101"],
-    description: "Monthly storage rental - February 2024"
-  }
-];
+import { useInvoices, type Invoice } from "@/hooks/useInvoices";
+import { useRealtimeSupabaseData } from "@/hooks/useRealtimeSupabaseData";
+import { toast } from "sonner";
 
 export const BillingView = () => {
-  const [invoices] = useState<Invoice[]>(initialInvoices);
+  const { invoices, loading, updateInvoiceStatus, downloadInvoicePDF, generateInvoicePDF, createInvoice } = useInvoices();
+  const { customers } = useRealtimeSupabaseData();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [amountFilter, setAmountFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [showPaymentProcessor, setShowPaymentProcessor] = useState(false);
-  const [selectedInvoiceAmount, setSelectedInvoiceAmount] = useState(0);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -103,55 +32,127 @@ export const BillingView = () => {
         return "bg-red-100 text-red-800";
       case "draft":
         return "bg-gray-100 text-gray-800";
+      case "sent":
+        return "bg-blue-100 text-blue-800";
+      case "cancelled":
+        return "bg-gray-100 text-gray-600";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
+  const getCustomerName = (customerId: string) => {
+    const customer = customers.find(c => c.id === customerId);
+    return customer?.name || "Unknown Customer";
+  };
+
   const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = invoice.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         invoice.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         invoice.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         invoice.unitIds.some(unit => unit.toLowerCase().includes(searchQuery.toLowerCase()));
+    const customerName = getCustomerName(invoice.customer_id);
+    const matchesSearch = invoice.invoice_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         invoice.customer_id.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
     
     const matchesAmount = amountFilter === "all" || 
-                         (amountFilter === "under100" && invoice.amount < 100) ||
-                         (amountFilter === "100to300" && invoice.amount >= 100 && invoice.amount <= 300) ||
-                         (amountFilter === "over300" && invoice.amount > 300);
+                         (amountFilter === "under100" && invoice.total_amount < 100) ||
+                         (amountFilter === "100to300" && invoice.total_amount >= 100 && invoice.total_amount <= 300) ||
+                         (amountFilter === "over300" && invoice.total_amount > 300);
     
     const matchesDate = dateFilter === "all" || 
-                       (dateFilter === "thisMonth" && new Date(invoice.issueDate).getMonth() === new Date().getMonth()) ||
-                       (dateFilter === "lastMonth" && new Date(invoice.issueDate).getMonth() === new Date().getMonth() - 1) ||
-                       (dateFilter === "overdue" && new Date(invoice.dueDate) < new Date() && invoice.status !== "paid");
+                       (dateFilter === "thisMonth" && new Date(invoice.issue_date).getMonth() === new Date().getMonth()) ||
+                       (dateFilter === "lastMonth" && new Date(invoice.issue_date).getMonth() === new Date().getMonth() - 1) ||
+                       (dateFilter === "overdue" && new Date(invoice.due_date) < new Date() && invoice.status !== "paid");
     
     return matchesSearch && matchesStatus && matchesAmount && matchesDate;
   });
 
-  const totalAmount = filteredInvoices.reduce((sum, invoice) => sum + invoice.amount, 0);
-  const paidAmount = filteredInvoices.filter(inv => inv.status === "paid").reduce((sum, invoice) => sum + invoice.amount, 0);
-  const pendingAmount = filteredInvoices.filter(inv => inv.status === "pending").reduce((sum, invoice) => sum + invoice.amount, 0);
-  const overdueAmount = filteredInvoices.filter(inv => inv.status === "overdue").reduce((sum, invoice) => sum + invoice.amount, 0);
+  const totalAmount = filteredInvoices.reduce((sum, invoice) => sum + invoice.total_amount, 0);
+  const paidAmount = filteredInvoices.filter(inv => inv.status === "paid").reduce((sum, invoice) => sum + invoice.total_amount, 0);
+  const pendingAmount = filteredInvoices.filter(inv => inv.status === "pending").reduce((sum, invoice) => sum + invoice.total_amount, 0);
+  const overdueAmount = filteredInvoices.filter(inv => inv.status === "overdue").reduce((sum, invoice) => sum + invoice.total_amount, 0);
 
-  const handlePayInvoice = (amount: number) => {
-    setSelectedInvoiceAmount(amount);
+  const handlePayInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
     setShowPaymentProcessor(true);
   };
 
-  const handlePaymentComplete = (paymentData: any) => {
-    console.log("Payment completed for invoice:", paymentData);
+  const handlePaymentComplete = async (paymentData: any) => {
+    if (selectedInvoice) {
+      const success = await updateInvoiceStatus(selectedInvoice.id, 'paid');
+      if (success) {
+        toast.success("Payment processed successfully");
+      } else {
+        toast.error("Failed to update invoice status");
+      }
+    }
     setShowPaymentProcessor(false);
-    // Update invoice status to paid
+    setSelectedInvoice(null);
   };
+
+  const handleGenerateInvoice = async () => {
+    // Create a sample invoice for demonstration
+    const newInvoice = {
+      invoice_number: `INV-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(4, '0')}`,
+      customer_id: customers[0]?.id || 'sample-customer-id',
+      issue_date: new Date().toISOString().split('T')[0],
+      due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+      subtotal: 200.00,
+      vat_rate: 25.00,
+      vat_amount: 50.00,
+      total_amount: 250.00,
+      status: 'draft' as const
+    };
+
+    const result = await createInvoice(newInvoice);
+    if (result) {
+      toast.success("New invoice created successfully");
+    } else {
+      toast.error("Failed to create invoice");
+    }
+  };
+
+  const handleDownloadPDF = async (invoice: Invoice) => {
+    try {
+      await downloadInvoicePDF(invoice);
+      toast.success("Invoice PDF downloaded");
+    } catch (error) {
+      toast.error("Failed to download PDF");
+    }
+  };
+
+  const handleGeneratePDF = async (invoice: Invoice) => {
+    try {
+      await generateInvoicePDF(invoice);
+      toast.success("Invoice PDF generated");
+    } catch (error) {
+      toast.error("Failed to generate PDF");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading invoices...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
-      {showPaymentProcessor ? (
+      {showPaymentProcessor && selectedInvoice ? (
         <PaymentProcessor
-          amount={selectedInvoiceAmount}
+          amount={selectedInvoice.total_amount}
           onPaymentComplete={handlePaymentComplete}
-          onCancel={() => setShowPaymentProcessor(false)}
+          onCancel={() => {
+            setShowPaymentProcessor(false);
+            setSelectedInvoice(null);
+          }}
         />
       ) : (
         <>
@@ -167,8 +168,8 @@ export const BillingView = () => {
                 <Download className="h-4 w-4" />
                 Export
               </Button>
-              <Button className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
+              <Button onClick={handleGenerateInvoice} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
                 New Invoice
               </Button>
             </div>
@@ -181,7 +182,7 @@ export const BillingView = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Total Amount</p>
-                    <p className="text-2xl font-bold">${totalAmount.toFixed(2)}</p>
+                    <p className="text-2xl font-bold">€{totalAmount.toFixed(2)}</p>
                   </div>
                   <DollarSign className="h-8 w-8 text-gray-400" />
                 </div>
@@ -193,7 +194,7 @@ export const BillingView = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Paid</p>
-                    <p className="text-2xl font-bold text-green-600">${paidAmount.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-green-600">€{paidAmount.toFixed(2)}</p>
                   </div>
                   <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
                     <DollarSign className="h-4 w-4 text-green-600" />
@@ -207,7 +208,7 @@ export const BillingView = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Pending</p>
-                    <p className="text-2xl font-bold text-yellow-600">${pendingAmount.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-yellow-600">€{pendingAmount.toFixed(2)}</p>
                   </div>
                   <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
                     <DollarSign className="h-4 w-4 text-yellow-600" />
@@ -221,7 +222,7 @@ export const BillingView = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">Overdue</p>
-                    <p className="text-2xl font-bold text-red-600">${overdueAmount.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-red-600">€{overdueAmount.toFixed(2)}</p>
                   </div>
                   <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
                     <DollarSign className="h-4 w-4 text-red-600" />
@@ -260,6 +261,8 @@ export const BillingView = () => {
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="overdue">Overdue</SelectItem>
                   <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -269,9 +272,9 @@ export const BillingView = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All amounts</SelectItem>
-                  <SelectItem value="under100">Under $100</SelectItem>
-                  <SelectItem value="100to300">$100 - $300</SelectItem>
-                  <SelectItem value="over300">Over $300</SelectItem>
+                  <SelectItem value="under100">Under €100</SelectItem>
+                  <SelectItem value="100to300">€100 - €300</SelectItem>
+                  <SelectItem value="over300">Over €300</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -312,8 +315,8 @@ export const BillingView = () => {
                   <TableHead>Status</TableHead>
                   <TableHead>Issue Date</TableHead>
                   <TableHead>Due Date</TableHead>
-                  <TableHead>Units</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead>VAT</TableHead>
+                  <TableHead className="w-[150px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -321,18 +324,21 @@ export const BillingView = () => {
                   <TableRow key={invoice.id} className="hover:bg-gray-50">
                     <TableCell>
                       <div>
-                        <div className="font-medium text-gray-900">{invoice.invoiceNumber}</div>
-                        <div className="text-sm text-gray-500">{invoice.description}</div>
+                        <div className="font-medium text-gray-900">{invoice.invoice_number}</div>
+                        <div className="text-sm text-gray-500">ID: {invoice.id.slice(0, 8)}...</div>
                       </div>
                     </TableCell>
                     
                     <TableCell>
-                      <div className="font-medium text-gray-900">{invoice.customerName}</div>
-                      <div className="text-sm text-gray-500">ID: {invoice.customerId}</div>
+                      <div className="font-medium text-gray-900">{getCustomerName(invoice.customer_id)}</div>
+                      <div className="text-sm text-gray-500">ID: {invoice.customer_id.slice(0, 8)}...</div>
                     </TableCell>
                     
                     <TableCell>
-                      <span className="font-semibold text-gray-900">${invoice.amount.toFixed(2)}</span>
+                      <div>
+                        <span className="font-semibold text-gray-900">€{invoice.total_amount.toFixed(2)}</span>
+                        <div className="text-sm text-gray-500">Subtotal: €{invoice.subtotal.toFixed(2)}</div>
+                      </div>
                     </TableCell>
                     
                     <TableCell>
@@ -344,36 +350,36 @@ export const BillingView = () => {
                     <TableCell>
                       <div className="flex items-center text-sm text-gray-600">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {invoice.issueDate}
+                        {invoice.issue_date}
                       </div>
                     </TableCell>
                     
                     <TableCell>
                       <div className="flex items-center text-sm text-gray-600">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {invoice.dueDate}
+                        {invoice.due_date}
                       </div>
                     </TableCell>
                     
                     <TableCell>
                       <div className="text-sm text-gray-600">
-                        {invoice.unitIds.join(", ")}
+                        {invoice.vat_rate}% (€{invoice.vat_amount.toFixed(2)})
                       </div>
                     </TableCell>
                     
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleGeneratePDF(invoice)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleDownloadPDF(invoice)}>
                           <Download className="h-4 w-4" />
                         </Button>
-                        {invoice.status === "pending" && (
+                        {(invoice.status === "pending" || invoice.status === "sent") && (
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            onClick={() => handlePayInvoice(invoice.amount)}
+                            onClick={() => handlePayInvoice(invoice)}
                           >
                             <CreditCard className="h-4 w-4" />
                           </Button>
@@ -387,7 +393,7 @@ export const BillingView = () => {
             
             {filteredInvoices.length === 0 && (
               <div className="text-center py-8 text-gray-500">
-                No invoices found matching your criteria.
+                {invoices.length === 0 ? "No invoices found. Create your first invoice!" : "No invoices found matching your criteria."}
               </div>
             )}
           </Card>
