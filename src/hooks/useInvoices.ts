@@ -173,12 +173,33 @@ export const useInvoices = () => {
       const currency = invoice.currency || companyInfo?.currency || 'EUR';
       const currencySymbol = getCurrencySymbol(currency);
       
-      // Set up colors
-      const primaryColor = '#1e40af'; // Blue
-      const secondaryColor = '#64748b'; // Gray
-      const textColor = '#1f2937'; // Dark gray
+      // Set up colors to match the invoice design
+      const darkGreen = '#2d5016'; // Dark green for headings
+      const lightGray = '#f5f5f5'; // Light gray for table headers
+      const blackText = '#000000'; // Black for main text
       
-      // Add company logo
+      // Company information section (left side)
+      pdf.setTextColor(blackText);
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(companyInfo?.company_name || 'Sesam Self Storage Operations AB', 20, 25);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(10);
+      const companyLines = [
+        companyInfo?.address || 'c/o Revisorerna Syd AB,',
+        `${companyInfo?.address || 'Storgatan 22A,'}`,
+        `${companyInfo?.city || 'Malmö'}`,
+        '',
+        `${companyInfo?.phone || '042-44 88 000'}`,
+        `${companyInfo?.email || 'faktura@sesamselfstorage.se'}`
+      ];
+      
+      companyLines.forEach((line, index) => {
+        pdf.text(line, 20, 35 + (index * 5));
+      });
+
+      // Add company logo in upper right corner
       let logoAdded = false;
       const logoUrl = companyInfo?.logo_url || '/lovable-uploads/aa4e4530-c735-48d1-93c8-a9372425fab5.png';
       
@@ -187,178 +208,120 @@ export const useInvoices = () => {
         const logoBase64 = await loadImageAsBase64(logoUrl);
         
         if (logoBase64) {
-          pdf.addImage(logoBase64, 'JPEG', 20, 15, 30, 30);
+          // Position logo in upper right corner
+          pdf.addImage(logoBase64, 'JPEG', 140, 15, 50, 25);
           logoAdded = true;
         }
       } catch (error) {
         console.log('Could not load company logo for PDF:', error);
       }
-      
-      // Header background
-      pdf.setFillColor(248, 250, 252); // Light gray background
-      pdf.rect(0, 0, 210, 60, 'F');
-      
-      // Company information section
-      const companyStartX = logoAdded ? 55 : 20;
-      pdf.setTextColor(textColor);
-      pdf.setFontSize(22);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(companyInfo?.company_name || 'StorageFlow Solutions', companyStartX, 25);
-      
-      // Company details
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(secondaryColor);
-      
-      const companyLines = [
-        companyInfo?.address || 'Alögatan 5',
-        `${companyInfo?.postal_code || '25730'} ${companyInfo?.city || 'Rydebäck'}`,
-        companyInfo?.country || 'Sweden',
-        `Phone: ${companyInfo?.phone || '+46730824768'}`,
-        `Email: ${companyInfo?.email || 'invoice@company.com'}`,
-        `VAT: ${companyInfo?.vat_number || 'SE32321321'}`
-      ];
-      
-      companyLines.forEach((line, index) => {
-        pdf.text(line, companyStartX, 32 + (index * 4));
-      });
 
-      // Invoice title and details (right side)
-      pdf.setTextColor(primaryColor);
-      pdf.setFontSize(32);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('INVOICE', 140, 30);
-      
-      // Invoice details box
-      pdf.setDrawColor(primaryColor);
-      pdf.setLineWidth(0.5);
-      pdf.rect(140, 35, 50, 25);
-      
-      pdf.setFontSize(9);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(textColor);
-      
-      const invoiceDetails = [
-        `Invoice #: ${invoice.invoice_number}`,
-        `Issue Date: ${invoice.issue_date}`,
-        `Due Date: ${invoice.due_date}`,
-        `Currency: ${currency}`
-      ];
-      
-      invoiceDetails.forEach((detail, index) => {
-        pdf.text(detail, 142, 40 + (index * 4));
-      });
-
-      // Status badge
-      const statusColors: Record<string, string> = {
-        draft: '#6b7280',
-        sent: '#3b82f6',
-        paid: '#10b981',
-        overdue: '#ef4444',
-        cancelled: '#6b7280',
-        pending: '#f59e0b'
-      };
-      
-      pdf.setFillColor(statusColors[invoice.status] || '#6b7280');
-      pdf.roundedRect(140, 62, 30, 8, 2, 2, 'F');
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(8);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(invoice.status.toUpperCase(), 142, 67);
-
-      // Bill To section
-      pdf.setTextColor(primaryColor);
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('BILL TO:', 20, 85);
-      
-      pdf.setTextColor(textColor);
+      // Customer information section (left side, below company info)
       pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('CUSTOMER NAME', 20, 90);
+      pdf.text('Address', 20, 96);
+      
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`Customer ID: ${invoice.customer_id}`, 20, 92);
+      pdf.text(`Customer ID: ${invoice.customer_id}`, 20, 110);
 
-      // Items table
-      const tableStartY = 110;
+      // Invoice details section (right side)
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Fakturadatum', 130, 90);
+      pdf.text('Fakturanummer', 130, 96);
+      pdf.text('Avser period', 130, 102);
+
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(invoice.issue_date, 170, 90);
+      pdf.text(invoice.invoice_number, 170, 96);
+      pdf.text(`${invoice.issue_date}`, 170, 102);
+      pdf.text(`${invoice.due_date}`, 170, 108);
+
+      // "Faktura" heading centered
+      pdf.setTextColor(blackText);
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      const pageWidth = pdf.internal.pageSize.width;
+      const textWidth = pdf.getTextWidth('Faktura');
+      pdf.text('Faktura', (pageWidth - textWidth) / 2, 140);
+
+      // Table header
+      const tableStartY = 160;
       const tableWidth = 170;
       const rowHeight = 8;
       
-      // Table header
-      pdf.setFillColor(primaryColor);
+      // Table header background (light gray)
+      pdf.setFillColor(245, 245, 245);
       pdf.rect(20, tableStartY, tableWidth, rowHeight, 'F');
       
-      pdf.setTextColor(255, 255, 252);
+      // Table header text
+      pdf.setTextColor(blackText);
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('DESCRIPTION', 22, tableStartY + 5);
-      pdf.text('PERIOD', 100, tableStartY + 5);
-      pdf.text('AMOUNT', 160, tableStartY + 5);
+      pdf.text('Benämning', 22, tableStartY + 5);
+      pdf.text('Lev ant', 130, tableStartY + 5);
+      pdf.text('Summa', 165, tableStartY + 5);
       
-      // Table content
+      // Table content row
       const contentY = tableStartY + rowHeight;
-      pdf.setFillColor(248, 250, 252);
-      pdf.rect(20, contentY, tableWidth, rowHeight, 'F');
-      
-      pdf.setTextColor(textColor);
       pdf.setFont('helvetica', 'normal');
-      const description = invoice.description || 'Storage Unit Rental';
+      const description = invoice.description || `Hyra Förråd ${invoice.unit_rental_id || '1-A1-10'}`;
       pdf.text(description, 22, contentY + 5);
-      pdf.text(`${invoice.issue_date} - ${invoice.due_date}`, 100, contentY + 5);
-      pdf.text(`${currencySymbol}${invoice.subtotal.toFixed(2)}`, 160, contentY + 5);
+      pdf.text('1', 130, contentY + 5);
+      pdf.text(`${invoice.subtotal.toFixed(2).replace('.', ',')} ${currencySymbol === '€' ? 'kr' : currencySymbol}`, 165, contentY + 5);
       
-      // Table border
-      pdf.setDrawColor(200, 200, 200);
-      pdf.setLineWidth(0.1);
-      pdf.rect(20, tableStartY, tableWidth, rowHeight * 2);
+      // Insurance row if needed
+      if (invoice.vat_amount > 0) {
+        const insuranceY = contentY + rowHeight;
+        pdf.text('Försäkringsvärde upp till: kr 50000,00', 22, insuranceY + 5);
+        pdf.text('1', 130, insuranceY + 5);
+        pdf.text(`${invoice.vat_amount.toFixed(2).replace('.', ',')} kr`, 165, insuranceY + 5);
+      }
 
-      // Totals section
-      const totalsStartY = contentY + 25;
-      const totalsX = 130;
-      
-      // Totals background
-      pdf.setFillColor(248, 250, 252);
-      pdf.rect(totalsX, totalsStartY, 60, 25, 'F');
+      // Table borders
       pdf.setDrawColor(200, 200, 200);
-      pdf.rect(totalsX, totalsStartY, 60, 25);
+      pdf.setLineWidth(0.5);
+      pdf.rect(20, tableStartY, tableWidth, rowHeight * 3);
+      pdf.line(20, tableStartY + rowHeight, 190, tableStartY + rowHeight);
+      pdf.line(20, tableStartY + rowHeight * 2, 190, tableStartY + rowHeight * 2);
       
-      pdf.setTextColor(textColor);
+      // Vertical lines
+      pdf.line(125, tableStartY, 125, tableStartY + rowHeight * 3);
+      pdf.line(160, tableStartY, 160, tableStartY + rowHeight * 3);
+
+      // Totals section (right side)
+      const totalsStartY = tableStartY + 50;
+      
+      // Totals box
+      pdf.setFillColor(245, 245, 245);
+      pdf.rect(130, totalsStartY, 60, 30, 'F');
+      pdf.setDrawColor(200, 200, 200);
+      pdf.rect(130, totalsStartY, 60, 30);
+      
+      pdf.setTextColor(blackText);
       pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      
-      // Subtotal
-      pdf.text('Subtotal:', totalsX + 2, totalsStartY + 6);
-      pdf.text(`${currencySymbol}${invoice.subtotal.toFixed(2)}`, totalsX + 35, totalsStartY + 6);
-      
-      // VAT
-      pdf.text(`VAT (${invoice.vat_rate}%):`, totalsX + 2, totalsStartY + 12);
-      pdf.text(`${currencySymbol}${invoice.vat_amount.toFixed(2)}`, totalsX + 35, totalsStartY + 12);
-      
-      // Total
       pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(12);
-      pdf.text('TOTAL:', totalsX + 2, totalsStartY + 20);
-      pdf.text(`${currencySymbol}${invoice.total_amount.toFixed(2)}`, totalsX + 35, totalsStartY + 20);
+      
+      // Totals text
+      pdf.text('Exkl. moms', 132, totalsStartY + 8);
+      pdf.text(`${invoice.subtotal.toFixed(2).replace('.', ',')} kr`, 165, totalsStartY + 8);
+      
+      pdf.text('Moms', 132, totalsStartY + 16);
+      pdf.text(`${invoice.vat_amount.toFixed(2).replace('.', ',')} kr`, 165, totalsStartY + 16);
+      
+      pdf.text('ATT BETALA', 132, totalsStartY + 24);
+      pdf.text(`${invoice.total_amount.toFixed(2).replace('.', ',')} kr`, 165, totalsStartY + 24);
 
-      // Footer section
+      // Payment terms at bottom
       const footerY = 240;
       
-      // Payment terms
-      pdf.setTextColor(textColor);
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('PAYMENT TERMS:', 20, footerY);
+      pdf.setTextColor(blackText);
+      pdf.setFontSize(9);
       pdf.setFont('helvetica', 'normal');
-      pdf.text('Net 30 days', 20, footerY + 6);
-      
-      // Thank you message
-      pdf.setTextColor(primaryColor);
-      pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Thank you for your business!', 20, footerY + 20);
-      
-      // Footer line
-      pdf.setDrawColor(primaryColor);
-      pdf.setLineWidth(1);
-      pdf.line(20, footerY + 25, 190, footerY + 25);
+      pdf.text('Betalningsvillkor, företag: 30 dagar', 20, footerY);
+      pdf.text('Betalningsvillkor, privatpersoner: betalning sker genom korttransaktion den 1 i aktuell månad', 20, footerY + 5);
+      pdf.text('Enligt ML 3 kap §2 utgår ingen moms för privatpersoner, medan företag betalar 25 % moms.', 20, footerY + 10);
 
       // Convert PDF to blob with correct content type
       const pdfOutput = pdf.output('blob');
