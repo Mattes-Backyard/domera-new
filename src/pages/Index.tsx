@@ -140,14 +140,12 @@ const Index = () => {
       <TaskProvider>
         <SidebarProvider>
           <div className="flex h-screen bg-gray-50 w-full overflow-hidden">
-            <div className="relative z-40">
-              <DashboardSidebar 
-                activeView={activeView} 
-                setActiveView={setActiveView}
-              />
-            </div>
+            <DashboardSidebar 
+              activeView={activeView} 
+              setActiveView={setActiveView}
+            />
             
-            <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
               <DashboardHeader 
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}

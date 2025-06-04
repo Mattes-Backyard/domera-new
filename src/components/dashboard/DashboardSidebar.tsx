@@ -1,4 +1,3 @@
-
 import { Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap, Wrench, CheckSquare, ChevronDown, Plug, Calendar, Shield, UserCog } from "lucide-react";
 import {
   Sidebar,
@@ -93,7 +92,7 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
   };
 
   return (
-    <Sidebar className="border-r border-gray-200 bg-white relative z-40">
+    <Sidebar className="border-r border-gray-200 bg-white">
       <SidebarHeader className="p-6">
         <div className="flex items-center space-x-2">
           <img 
