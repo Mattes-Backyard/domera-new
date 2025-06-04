@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
 import { Plus, Calculator } from "lucide-react";
 import { useRealtimeSupabaseData } from "@/hooks/useRealtimeSupabaseData";
 import { CreateInvoiceData } from "@/hooks/useInvoices";
@@ -16,49 +15,23 @@ interface CreateInvoiceDialogProps {
   onCreateInvoice: (data: CreateInvoiceData) => Promise<any>;
 }
 
-interface InvoiceFormData {
-  customer_id: string;
-  unit_rental_id?: string;
-  issue_date: string;
-  due_date: string;
-  subtotal: number;
-  vat_rate: number;
-  description: string;
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled' | 'pending';
-}
-
 export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProps) => {
   const [open, setOpen] = useState(false);
   const { customers, units } = useRealtimeSupabaseData();
-  const [vatAmount, setVatAmount] = useState(0);
-  const [totalAmount, setTotalAmount] = useState(0);
   
-  const form = useForm<InvoiceFormData>({
-    defaultValues: {
-      customer_id: "",
-      unit_rental_id: "",
-      issue_date: new Date().toISOString().split('T')[0],
-      due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      subtotal: 0,
-      vat_rate: 25.00,
-      description: "Storage unit rental",
-      status: 'draft'
-    }
+  const [formData, setFormData] = useState({
+    customer_id: "",
+    unit_rental_id: "",
+    issue_date: new Date().toISOString().split('T')[0],
+    due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    subtotal: 0,
+    vat_rate: 25.00,
+    description: "Storage unit rental",
+    status: 'draft' as const
   });
 
-  const watchedSubtotal = form.watch("subtotal");
-  const watchedVatRate = form.watch("vat_rate");
-  const watchedCustomerId = form.watch("customer_id");
-
-  useEffect(() => {
-    const subtotal = Number(watchedSubtotal) || 0;
-    const vatRate = Number(watchedVatRate) || 0;
-    const calculatedVatAmount = (subtotal * vatRate) / 100;
-    const calculatedTotal = subtotal + calculatedVatAmount;
-    
-    setVatAmount(calculatedVatAmount);
-    setTotalAmount(calculatedTotal);
-  }, [watchedSubtotal, watchedVatRate]);
+  const vatAmount = (formData.subtotal * formData.vat_rate) / 100;
+  const totalAmount = formData.subtotal + vatAmount;
 
   const generateInvoiceNumber = () => {
     const year = new Date().getFullYear();
@@ -67,38 +40,53 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
   };
 
   const getCustomerUnitRentals = () => {
-    if (!watchedCustomerId) return [];
-    // Filter units that belong to the selected customer
-    return units.filter(unit => unit.tenantId === watchedCustomerId && unit.status === 'occupied');
+    if (!formData.customer_id) return [];
+    return units.filter(unit => unit.tenantId === formData.customer_id && unit.status === 'occupied');
   };
 
   const handleUnitRentalChange = (unitId: string) => {
     const unit = units.find(u => u.id === unitId);
     if (unit) {
-      form.setValue("subtotal", unit.rate);
+      setFormData(prev => ({ ...prev, unit_rental_id: unitId, subtotal: unit.rate }));
     }
   };
 
-  const onSubmit = async (data: InvoiceFormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.customer_id || formData.subtotal <= 0) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     try {
       const invoiceData: CreateInvoiceData = {
         invoice_number: generateInvoiceNumber(),
-        customer_id: data.customer_id,
-        unit_rental_id: data.unit_rental_id || undefined,
-        issue_date: data.issue_date,
-        due_date: data.due_date,
-        subtotal: data.subtotal,
-        vat_rate: data.vat_rate,
+        customer_id: formData.customer_id,
+        unit_rental_id: formData.unit_rental_id || undefined,
+        issue_date: formData.issue_date,
+        due_date: formData.due_date,
+        subtotal: formData.subtotal,
+        vat_rate: formData.vat_rate,
         vat_amount: vatAmount,
         total_amount: totalAmount,
-        status: data.status
+        status: formData.status
       };
 
       const result = await onCreateInvoice(invoiceData);
       if (result) {
         toast.success("Invoice created successfully");
         setOpen(false);
-        form.reset();
+        setFormData({
+          customer_id: "",
+          unit_rental_id: "",
+          issue_date: new Date().toISOString().split('T')[0],
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          subtotal: 0,
+          vat_rate: 25.00,
+          description: "Storage unit rental",
+          status: 'draft' as const
+        });
       } else {
         toast.error("Failed to create invoice");
       }
@@ -121,229 +109,158 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
           <DialogTitle>Create New Invoice</DialogTitle>
         </DialogHeader>
         
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="customer_id"
-                rules={{ required: "Customer is required" }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Customer *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select customer" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {customers.map((customer) => (
-                          <SelectItem key={customer.id} value={customer.id}>
-                            {customer.name || `Customer ${customer.id.slice(0, 8)}...`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="unit_rental_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unit (Optional)</FormLabel>
-                    <Select 
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        handleUnitRentalChange(value);
-                      }} 
-                      defaultValue={field.value}
-                      disabled={!watchedCustomerId}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select unit" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {getCustomerUnitRentals().map((unit) => (
-                          <SelectItem key={unit.id} value={unit.id}>
-                            Unit {unit.id} - €{unit.rate}/month
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="issue_date"
-                rules={{ required: "Issue date is required" }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Issue Date *</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="due_date"
-                rules={{ required: "Due date is required" }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Due Date *</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="subtotal"
-                rules={{ 
-                  required: "Subtotal is required",
-                  min: { value: 0.01, message: "Subtotal must be greater than 0" }
-                }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subtotal (€) *</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        min="0"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="vat_rate"
-                rules={{ 
-                  required: "VAT rate is required",
-                  min: { value: 0, message: "VAT rate cannot be negative" },
-                  max: { value: 100, message: "VAT rate cannot exceed 100%" }
-                }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>VAT Rate (%) *</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        min="0" 
-                        max="100"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="status"
-                rules={{ required: "Status is required" }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="sent">Sent</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="overdue">Overdue</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Invoice description..."
-                      className="min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Calculation Summary */}
-            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-              <div className="flex items-center gap-2 mb-3">
-                <Calculator className="h-4 w-4" />
-                <span className="font-medium">Invoice Summary</span>
-              </div>
-              <div className="grid grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Subtotal:</span>
-                  <div className="font-medium">€{watchedSubtotal?.toFixed(2) || '0.00'}</div>
-                </div>
-                <div>
-                  <span className="text-gray-600">VAT ({watchedVatRate}%):</span>
-                  <div className="font-medium">€{vatAmount.toFixed(2)}</div>
-                </div>
-                <div>
-                  <span className="text-gray-600">Total:</span>
-                  <div className="font-bold text-lg">€{totalAmount.toFixed(2)}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setOpen(false)}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="customer">Customer *</Label>
+              <Select 
+                value={formData.customer_id} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, customer_id: value }))}
               >
-                Cancel
-              </Button>
-              <Button type="submit">
-                Create Invoice
-              </Button>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select customer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.map((customer) => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.name || `Customer ${customer.id.slice(0, 8)}...`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </form>
-        </Form>
+
+            <div>
+              <Label htmlFor="unit">Unit (Optional)</Label>
+              <Select 
+                value={formData.unit_rental_id} 
+                onValueChange={handleUnitRentalChange}
+                disabled={!formData.customer_id}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getCustomerUnitRentals().map((unit) => (
+                    <SelectItem key={unit.id} value={unit.id}>
+                      Unit {unit.id} - €{unit.rate}/month
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="issue_date">Issue Date *</Label>
+              <Input 
+                type="date" 
+                value={formData.issue_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, issue_date: e.target.value }))}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="due_date">Due Date *</Label>
+              <Input 
+                type="date" 
+                value={formData.due_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="subtotal">Subtotal (€) *</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                min="0"
+                value={formData.subtotal}
+                onChange={(e) => setFormData(prev => ({ ...prev, subtotal: Number(e.target.value) }))}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="vat_rate">VAT Rate (%) *</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                min="0" 
+                max="100"
+                value={formData.vat_rate}
+                onChange={(e) => setFormData(prev => ({ ...prev, vat_rate: Number(e.target.value) }))}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="status">Status *</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea 
+              placeholder="Invoice description..."
+              className="min-h-[80px]"
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            />
+          </div>
+
+          {/* Calculation Summary */}
+          <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+            <div className="flex items-center gap-2 mb-3">
+              <Calculator className="h-4 w-4" />
+              <span className="font-medium">Invoice Summary</span>
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600">Subtotal:</span>
+                <div className="font-medium">€{formData.subtotal.toFixed(2)}</div>
+              </div>
+              <div>
+                <span className="text-gray-600">VAT ({formData.vat_rate}%):</span>
+                <div className="font-medium">€{vatAmount.toFixed(2)}</div>
+              </div>
+              <div>
+                <span className="text-gray-600">Total:</span>
+                <div className="font-bold text-lg">€{totalAmount.toFixed(2)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit">
+              Create Invoice
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
