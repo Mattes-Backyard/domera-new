@@ -10,24 +10,12 @@ import { OperationsView } from "@/components/operations/OperationsView";
 import { FloorPlanView } from "@/components/floor-plan/FloorPlanView";
 import { AdminInterface } from "@/components/admin/AdminInterface";
 import { IntegrationsView } from "@/components/integrations/IntegrationsView";
-import { Customer, DatabaseCustomer, transformCustomerToDatabaseCustomer } from "@/types/customer";
+import { Customer, DatabaseCustomer, transformCustomerToDatabaseCustomer, Tenant } from "@/types/customer";
 import type { Unit } from "@/hooks/useAppState";
 
 interface Facility {
   id: string;
   name: string;
-}
-
-interface Tenant {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  ssn: string;
-  status: string;
-  joinDate: string;
-  units: string[];
 }
 
 interface ContentRendererProps {
@@ -55,21 +43,6 @@ interface ContentRendererProps {
   selectedSites: string[];
 }
 
-// Transform database customer to tenant format for TenantDetailsPage
-const transformCustomerToTenant = (customer: DatabaseCustomer): Tenant => {
-  return {
-    id: customer.id,
-    name: `${customer.first_name} ${customer.last_name}`,
-    email: customer.email,
-    phone: customer.phone,
-    address: `${customer.address}, ${customer.city}, ${customer.state} ${customer.zip_code}`,
-    ssn: "", // Not available in current customer data
-    status: "active", // Default status
-    joinDate: customer.move_in_date || new Date().toISOString().split('T')[0],
-    units: [] // Would need to be populated from unit rentals
-  };
-};
-
 // Transform Unit from useAppState to FloorPlanView Unit interface
 const transformUnitForFloorPlan = (unit: Unit) => {
   return {
@@ -82,6 +55,41 @@ const transformUnitForFloorPlan = (unit: Unit) => {
     rate: unit.monthly_rate,
     climate: unit.climate_controlled || false,
     site: unit.facility_id
+  };
+};
+
+// Transform Unit from useAppState to UnitDetailsPage Unit interface
+const transformUnitForDetails = (unit: Unit) => {
+  return {
+    id: unit.id,
+    unit_number: unit.unit_number,
+    size: unit.size,
+    type: unit.type || 'Standard',
+    status: unit.status,
+    tenant: unit.tenant?.name || null,
+    tenantId: unit.tenant?.id || null,
+    monthly_rate: unit.monthly_rate,
+    climate_controlled: unit.climate_controlled || false,
+    facility_id: unit.facility_id,
+    description: unit.description,
+    floor_level: unit.floor_level,
+    created_at: unit.created_at,
+    updated_at: unit.updated_at
+  };
+};
+
+// Transform database customer to tenant format for TenantDetailsPage
+const transformCustomerToTenant = (customer: DatabaseCustomer): Tenant => {
+  return {
+    id: customer.id,
+    name: `${customer.first_name} ${customer.last_name}`,
+    email: customer.email,
+    phone: customer.phone,
+    address: `${customer.address}, ${customer.city}, ${customer.state} ${customer.zip_code}`,
+    ssn: "", // Not available in current customer data
+    status: "active", // Default status
+    joinDate: customer.move_in_date || new Date().toISOString().split('T')[0],
+    units: [] // Would need to be populated from unit rentals
   };
 };
 
@@ -149,12 +157,22 @@ export const ContentRenderer = ({
 
   // Show unit details if viewing a specific unit
   if (viewingUnitDetails) {
+    const transformedUnit = transformUnitForDetails(viewingUnitDetails);
     return (
       <div className="h-full overflow-auto">
         <UnitDetailsPage
-          unit={viewingUnitDetails}
+          unit={transformedUnit}
           onBack={onBackFromUnit}
-          onUnitUpdate={onUnitUpdate}
+          onUnitUpdate={(updatedUnit) => {
+            // Transform back to useAppState Unit format
+            const transformedBack = {
+              ...viewingUnitDetails,
+              monthly_rate: updatedUnit.monthly_rate,
+              climate_controlled: updatedUnit.climate_controlled,
+              status: updatedUnit.status as any
+            };
+            onUnitUpdate(transformedBack);
+          }}
           customers={databaseCustomers}
           facilities={facilities}
         />
