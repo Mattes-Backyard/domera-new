@@ -1,5 +1,7 @@
+
 import { useState } from "react";
 import { useNotificationEvents } from "./useNotificationEvents";
+import { Customer, DatabaseCustomer } from "@/types/customer";
 
 interface Unit {
   id: string;
@@ -215,7 +217,7 @@ export const useAppState = () => {
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [viewingUnitDetails, setViewingUnitDetails] = useState<Unit | null>(null);
-  const [viewingTenantDetails, setViewingTenantDetails] = useState<Customer | null>(null);
+  const [viewingTenantDetails, setViewingTenantDetails] = useState<DatabaseCustomer | null>(null);
   const [showFloorPlan, setShowFloorPlan] = useState(false);
   const [units, setUnits] = useState<Unit[]>(initialUnits);
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
@@ -288,4 +290,4 @@ export const useAppState = () => {
   };
 };
 
-export type { Unit, Customer };
+export type { Unit };
