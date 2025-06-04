@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -115,6 +114,57 @@ export const useInvoices = () => {
     return symbols[currency] || currency;
   };
 
+  const loadImageAsBase64 = async (imageUrl: string): Promise<string | null> => {
+    try {
+      // Check if it's a Supabase storage URL or external URL
+      if (imageUrl.includes('supabase')) {
+        // Extract the path from the full URL
+        const urlParts = imageUrl.split('/');
+        const bucketIndex = urlParts.findIndex(part => part === 'company-assets');
+        if (bucketIndex !== -1) {
+          const filePath = urlParts.slice(bucketIndex + 1).join('/');
+          
+          const { data: logoData, error } = await supabase.storage
+            .from('company-assets')
+            .download(filePath);
+          
+          if (error || !logoData) {
+            console.log('Could not download logo from Supabase storage:', error);
+            return null;
+          }
+          
+          // Convert blob to base64
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(logoData);
+          });
+        }
+      } else {
+        // Handle external URLs or local images
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx?.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+          };
+          img.onerror = () => resolve(null);
+          img.src = imageUrl;
+        });
+      }
+    } catch (error) {
+      console.log('Error loading image:', error);
+      return null;
+    }
+    return null;
+  };
+
   const generateInvoicePDF = async (invoice: Invoice) => {
     try {
       console.log('Starting PDF generation for invoice:', invoice.invoice_number);
@@ -123,123 +173,192 @@ export const useInvoices = () => {
       const currency = invoice.currency || companyInfo?.currency || 'EUR';
       const currencySymbol = getCurrencySymbol(currency);
       
-      // Add company logo if available
-      if (companyInfo?.logo_url) {
-        try {
-          console.log('Loading company logo:', companyInfo.logo_url);
-          
-          // Get the full URL for the logo
-          const { data: logoData } = await supabase.storage
-            .from('company-assets')
-            .download(companyInfo.logo_url.replace('company-assets/', ''));
-          
-          if (logoData) {
-            const logoBlob = new Blob([logoData]);
-            const logoUrl = URL.createObjectURL(logoBlob);
-            
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            
-            await new Promise((resolve, reject) => {
-              img.onload = resolve;
-              img.onerror = reject;
-              img.src = logoUrl;
-            });
-            
-            // Add logo to PDF (top left, 25x25 size)
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx?.drawImage(img, 0, 0);
-            
-            const imageData = canvas.toDataURL('image/jpeg', 0.8);
-            pdf.addImage(imageData, 'JPEG', 20, 10, 25, 25);
-            
-            URL.revokeObjectURL(logoUrl);
-          }
-        } catch (error) {
-          console.log('Could not load company logo for PDF:', error);
+      // Set up colors
+      const primaryColor = '#1e40af'; // Blue
+      const secondaryColor = '#64748b'; // Gray
+      const textColor = '#1f2937'; // Dark gray
+      
+      // Add company logo
+      let logoAdded = false;
+      const logoUrl = companyInfo?.logo_url || '/lovable-uploads/aa4e4530-c735-48d1-93c8-a9372425fab5.png';
+      
+      try {
+        console.log('Loading company logo:', logoUrl);
+        const logoBase64 = await loadImageAsBase64(logoUrl);
+        
+        if (logoBase64) {
+          pdf.addImage(logoBase64, 'JPEG', 20, 15, 30, 30);
+          logoAdded = true;
         }
+      } catch (error) {
+        console.log('Could not load company logo for PDF:', error);
       }
       
-      // Company header (adjusted position to account for logo)
-      pdf.setFontSize(20);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(companyInfo?.company_name || 'StorageFlow Solutions', companyInfo?.logo_url ? 50 : 20, 25);
+      // Header background
+      pdf.setFillColor(248, 250, 252); // Light gray background
+      pdf.rect(0, 0, 210, 60, 'F');
       
-      // Company information
+      // Company information section
+      const companyStartX = logoAdded ? 55 : 20;
+      pdf.setTextColor(textColor);
+      pdf.setFontSize(22);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(companyInfo?.company_name || 'StorageFlow Solutions', companyStartX, 25);
+      
+      // Company details
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(secondaryColor);
+      
       const companyLines = [
-        companyInfo?.address || '123 Business Street',
-        `${companyInfo?.city || 'Stockholm'}, ${companyInfo?.postal_code || '12345'}`,
+        companyInfo?.address || 'Alögatan 5',
+        `${companyInfo?.postal_code || '25730'} ${companyInfo?.city || 'Rydebäck'}`,
         companyInfo?.country || 'Sweden',
-        `Phone: ${companyInfo?.phone || '+46 8 123 456 78'}`,
-        `Email: ${companyInfo?.email || 'billing@storageflow.com'}`,
-        `VAT: ${companyInfo?.vat_number || 'SE123456789001'}`
+        `Phone: ${companyInfo?.phone || '+46730824768'}`,
+        `Email: ${companyInfo?.email || 'invoice@company.com'}`,
+        `VAT: ${companyInfo?.vat_number || 'SE32321321'}`
       ];
       
       companyLines.forEach((line, index) => {
-        pdf.text(line, companyInfo?.logo_url ? 50 : 20, 35 + (index * 5));
+        pdf.text(line, companyStartX, 32 + (index * 4));
       });
 
-      // Invoice details (right side)
-      pdf.setFontSize(24);
+      // Invoice title and details (right side)
+      pdf.setTextColor(primaryColor);
+      pdf.setFontSize(32);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('INVOICE', 150, 30);
+      pdf.text('INVOICE', 140, 30);
       
-      pdf.setFontSize(10);
+      // Invoice details box
+      pdf.setDrawColor(primaryColor);
+      pdf.setLineWidth(0.5);
+      pdf.rect(140, 35, 50, 25);
+      
+      pdf.setFontSize(9);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`Invoice #: ${invoice.invoice_number}`, 150, 40);
-      pdf.text(`Issue Date: ${invoice.issue_date}`, 150, 45);
-      pdf.text(`Due Date: ${invoice.due_date}`, 150, 50);
-      pdf.text(`Status: ${invoice.status.toUpperCase()}`, 150, 55);
-      pdf.text(`Currency: ${currency}`, 150, 60);
+      pdf.setTextColor(textColor);
+      
+      const invoiceDetails = [
+        `Invoice #: ${invoice.invoice_number}`,
+        `Issue Date: ${invoice.issue_date}`,
+        `Due Date: ${invoice.due_date}`,
+        `Currency: ${currency}`
+      ];
+      
+      invoiceDetails.forEach((detail, index) => {
+        pdf.text(detail, 142, 40 + (index * 4));
+      });
 
-      // Customer information
-      pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Bill To:', 20, 85);
+      // Status badge
+      const statusColors: Record<string, string> = {
+        draft: '#6b7280',
+        sent: '#3b82f6',
+        paid: '#10b981',
+        overdue: '#ef4444',
+        cancelled: '#6b7280',
+        pending: '#f59e0b'
+      };
       
-      pdf.setFontSize(10);
+      pdf.setFillColor(statusColors[invoice.status] || '#6b7280');
+      pdf.roundedRect(140, 62, 30, 8, 2, 2, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(invoice.status.toUpperCase(), 142, 67);
+
+      // Bill To section
+      pdf.setTextColor(primaryColor);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('BILL TO:', 20, 85);
+      
+      pdf.setTextColor(textColor);
+      pdf.setFontSize(11);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`Customer ID: ${invoice.customer_id}`, 20, 95);
+      pdf.text(`Customer ID: ${invoice.customer_id}`, 20, 92);
 
       // Items table
-      const tableStartY = 115;
+      const tableStartY = 110;
+      const tableWidth = 170;
+      const rowHeight = 8;
       
-      // Table headers
+      // Table header
+      pdf.setFillColor(primaryColor);
+      pdf.rect(20, tableStartY, tableWidth, rowHeight, 'F');
+      
+      pdf.setTextColor(255, 255, 252);
+      pdf.setFontSize(10);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('Description', 20, tableStartY);
-      pdf.text('Period', 80, tableStartY);
-      pdf.text('Amount', 150, tableStartY);
-      
-      // Table line
-      pdf.line(20, tableStartY + 2, 190, tableStartY + 2);
+      pdf.text('DESCRIPTION', 22, tableStartY + 5);
+      pdf.text('PERIOD', 100, tableStartY + 5);
+      pdf.text('AMOUNT', 160, tableStartY + 5);
       
       // Table content
+      const contentY = tableStartY + rowHeight;
+      pdf.setFillColor(248, 250, 252);
+      pdf.rect(20, contentY, tableWidth, rowHeight, 'F');
+      
+      pdf.setTextColor(textColor);
       pdf.setFont('helvetica', 'normal');
       const description = invoice.description || 'Storage Unit Rental';
-      pdf.text(description, 20, tableStartY + 10);
-      pdf.text(`${invoice.issue_date} - ${invoice.due_date}`, 80, tableStartY + 10);
-      pdf.text(`${currencySymbol}${invoice.subtotal.toFixed(2)}`, 150, tableStartY + 10);
+      pdf.text(description, 22, contentY + 5);
+      pdf.text(`${invoice.issue_date} - ${invoice.due_date}`, 100, contentY + 5);
+      pdf.text(`${currencySymbol}${invoice.subtotal.toFixed(2)}`, 160, contentY + 5);
       
-      // Table bottom line
-      pdf.line(20, tableStartY + 15, 190, tableStartY + 15);
+      // Table border
+      pdf.setDrawColor(200, 200, 200);
+      pdf.setLineWidth(0.1);
+      pdf.rect(20, tableStartY, tableWidth, rowHeight * 2);
 
-      // Totals
-      const totalsY = tableStartY + 30;
-      pdf.text(`Subtotal: ${currencySymbol}${invoice.subtotal.toFixed(2)}`, 130, totalsY);
-      pdf.text(`VAT (${invoice.vat_rate}%): ${currencySymbol}${invoice.vat_amount.toFixed(2)}`, 130, totalsY + 8);
+      // Totals section
+      const totalsStartY = contentY + 25;
+      const totalsX = 130;
       
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(`Total: ${currencySymbol}${invoice.total_amount.toFixed(2)}`, 130, totalsY + 16);
-
-      // Payment terms
+      // Totals background
+      pdf.setFillColor(248, 250, 252);
+      pdf.rect(totalsX, totalsStartY, 60, 25, 'F');
+      pdf.setDrawColor(200, 200, 200);
+      pdf.rect(totalsX, totalsStartY, 60, 25);
+      
+      pdf.setTextColor(textColor);
+      pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
-      pdf.text('Payment Terms: Net 30 days', 20, totalsY + 35);
-      pdf.text('Thank you for your business!', 20, totalsY + 45);
+      
+      // Subtotal
+      pdf.text('Subtotal:', totalsX + 2, totalsStartY + 6);
+      pdf.text(`${currencySymbol}${invoice.subtotal.toFixed(2)}`, totalsX + 35, totalsStartY + 6);
+      
+      // VAT
+      pdf.text(`VAT (${invoice.vat_rate}%):`, totalsX + 2, totalsStartY + 12);
+      pdf.text(`${currencySymbol}${invoice.vat_amount.toFixed(2)}`, totalsX + 35, totalsStartY + 12);
+      
+      // Total
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(12);
+      pdf.text('TOTAL:', totalsX + 2, totalsStartY + 20);
+      pdf.text(`${currencySymbol}${invoice.total_amount.toFixed(2)}`, totalsX + 35, totalsStartY + 20);
+
+      // Footer section
+      const footerY = 240;
+      
+      // Payment terms
+      pdf.setTextColor(textColor);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('PAYMENT TERMS:', 20, footerY);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Net 30 days', 20, footerY + 6);
+      
+      // Thank you message
+      pdf.setTextColor(primaryColor);
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Thank you for your business!', 20, footerY + 20);
+      
+      // Footer line
+      pdf.setDrawColor(primaryColor);
+      pdf.setLineWidth(1);
+      pdf.line(20, footerY + 25, 190, footerY + 25);
 
       // Convert PDF to blob with correct content type
       const pdfOutput = pdf.output('blob');
