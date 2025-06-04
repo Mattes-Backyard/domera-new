@@ -20,16 +20,21 @@ interface Unit {
 interface FloorPlanViewProps {
   units: Unit[];
   onBack: () => void;
+  onUnitClick?: (unit: Unit) => void;
   onUnitUpdate?: (updatedUnit: Unit) => void;
 }
 
-export const FloorPlanView = ({ units, onBack, onUnitUpdate }: FloorPlanViewProps) => {
+export const FloorPlanView = ({ units, onBack, onUnitClick, onUnitUpdate }: FloorPlanViewProps) => {
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
 
   const handleUnitClick = (unitId: string) => {
     const unit = units.find(u => u.id === unitId);
     if (unit) {
-      setSelectedUnit(unit);
+      if (onUnitClick) {
+        onUnitClick(unit);
+      } else {
+        setSelectedUnit(unit);
+      }
     }
   };
 

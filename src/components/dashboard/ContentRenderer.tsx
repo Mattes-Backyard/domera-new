@@ -73,6 +73,21 @@ interface ContentRendererProps {
   selectedSites: string[];
 }
 
+// Transform database customer to tenant format for TenantDetailsPage
+const transformCustomerToTenant = (customer: Customer) => {
+  return {
+    id: customer.id,
+    name: `${customer.first_name} ${customer.last_name}`,
+    email: customer.email,
+    phone: customer.phone,
+    address: `${customer.address}, ${customer.city}, ${customer.state} ${customer.zip_code}`,
+    ssn: "", // Not available in current customer data
+    status: "active", // Default status
+    joinDate: customer.move_in_date || new Date().toISOString().split('T')[0],
+    units: [] // Would need to be populated from unit rentals
+  };
+};
+
 export const ContentRenderer = ({
   activeView,
   searchQuery,
@@ -102,8 +117,9 @@ export const ContentRenderer = ({
     return (
       <FloorPlanView 
         units={units}
-        onBackClick={onBackFromFloorPlan}
+        onBack={onBackFromFloorPlan}
         onUnitClick={onUnitSelect}
+        onUnitUpdate={onUnitUpdate}
       />
     );
   }
@@ -114,7 +130,7 @@ export const ContentRenderer = ({
       <UnitDetailsPage
         unit={viewingUnitDetails}
         onBack={onBackFromUnit}
-        onUpdate={onUnitUpdate}
+        onUnitUpdate={onUnitUpdate}
         customers={customers}
         facilities={facilities}
       />
@@ -123,12 +139,11 @@ export const ContentRenderer = ({
 
   // Show tenant details if viewing a specific tenant
   if (viewingTenantDetails) {
+    const transformedTenant = transformCustomerToTenant(viewingTenantDetails);
     return (
       <TenantDetailsPage
-        customer={viewingTenantDetails}
-        units={units}
+        tenant={transformedTenant}
         onBack={onBackFromTenant}
-        onUnitClick={onUnitSelect}
       />
     );
   }
@@ -160,16 +175,15 @@ export const ContentRenderer = ({
         />
       );
     case "reports":
-      return <ReportsDashboard units={units} customers={customers} />;
+      return <ReportsDashboard />;
     case "tasks":
-      return <TasksView units={units} customers={customers} onQuickAddUnit={onQuickAddUnit} />;
+      return <TasksView onQuickAddUnit={onQuickAddUnit} />;
     case "billing":
-      return <BillingView customers={customers} units={units} />;
+      return <BillingView />;
     case "operations":
       return (
         <OperationsView
           units={units}
-          customers={customers}
           onTenantClick={onTenantClick}
           facilities={facilities}
           selectedSites={selectedSites}

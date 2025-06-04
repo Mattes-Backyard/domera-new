@@ -22,13 +22,40 @@ interface Unit {
   site: string;
 }
 
+interface Customer {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  move_in_date?: string;
+  lease_end_date?: string;
+  security_deposit?: number;
+  balance?: number;
+  notes?: string;
+  facility_id: string;
+}
+
+interface Facility {
+  id: string;
+  name: string;
+}
+
 interface UnitDetailsPageProps {
   unit: Unit;
   onBack: () => void;
   onUnitUpdate?: (updatedUnit: Unit) => void;
+  customers?: Customer[];
+  facilities?: Facility[];
 }
 
-export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageProps) => {
+export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate, customers = [], facilities = [] }: UnitDetailsPageProps) => {
   const isMobile = useIsMobile();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAssignTenantDialogOpen, setIsAssignTenantDialogOpen] = useState(false);
@@ -79,6 +106,7 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate }: UnitDetailsPageP
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
         onSave={handleUnitUpdate}
+        facilities={facilities}
       />
 
       <AssignTenantDialog
