@@ -1,4 +1,3 @@
-
 import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
@@ -142,6 +141,7 @@ export const ContentRenderer = ({
   onQuickAddUnit,
   selectedSites,
 }: ContentRendererProps) => {
+  
   // Show floor plan if requested
   if (showFloorPlan) {
     return (

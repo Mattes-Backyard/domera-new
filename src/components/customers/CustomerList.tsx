@@ -19,12 +19,33 @@ interface Customer {
   balance: number;
 }
 
+// DatabaseCustomer type from Supabase
+interface DatabaseCustomer {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  move_in_date?: string;
+  lease_end_date?: string;
+  security_deposit?: number;
+  balance?: number;
+  notes?: string;
+  facility_id: string;
+}
+
 interface CustomerListProps {
   selectedCustomerId?: string | null;
   onClearSelection?: () => void;
   customers?: Customer[];
-  onAddCustomer?: (customer: Customer) => void;
-  onViewDetails?: (customerId: string) => void;
+  onCustomerAdd?: (customer: DatabaseCustomer) => void;
+  onTenantClick?: (tenantId: string) => void;
   triggerAddDialog?: boolean;
   onAddDialogClose?: () => void;
 }
@@ -33,8 +54,8 @@ export const CustomerList = ({
   selectedCustomerId, 
   onClearSelection, 
   customers = [], 
-  onAddCustomer, 
-  onViewDetails,
+  onCustomerAdd, 
+  onTenantClick,
   triggerAddDialog = false,
   onAddDialogClose
 }: CustomerListProps) => {
@@ -79,7 +100,7 @@ export const CustomerList = ({
 
   const handleCustomerClick = (customer: Customer) => {
     console.log("Customer clicked:", customer.id);
-    onViewDetails?.(customer.id);
+    onTenantClick?.(customer.id);
   };
 
   return (
@@ -98,7 +119,7 @@ export const CustomerList = ({
               Clear Selection
             </Button>
           )}
-          <AddCustomerDialog onSave={onAddCustomer} />
+          <AddCustomerDialog onSave={onCustomerAdd} />
         </div>
       </div>
 
