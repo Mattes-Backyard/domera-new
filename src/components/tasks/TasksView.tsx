@@ -7,14 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { QuickTaskDialog } from './QuickTaskDialog';
 import { TaskList } from './TaskList';
 import { useTasks } from '@/contexts/TaskContext';
-import type { Unit, Customer } from '@/hooks/useAppState';
 
 interface TasksViewProps {
-  units?: Unit[];
-  customers?: Customer[];
+  // Remove onQuickAddUnit prop since it's not used
 }
 
-export const TasksView = ({ units = [], customers = [] }: TasksViewProps) => {
+export const TasksView = ({}: TasksViewProps) => {
   const { tasks } = useTasks();
   const [selectedAssignee, setSelectedAssignee] = useState<string>('all');
 
@@ -44,7 +42,7 @@ export const TasksView = ({ units = [], customers = [] }: TasksViewProps) => {
           <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
           <p className="text-gray-600">Manage and track your team's tasks</p>
         </div>
-        <QuickTaskDialog units={units} customers={customers} />
+        <QuickTaskDialog />
       </div>
 
       {/* Stats Cards */}
@@ -138,8 +136,6 @@ export const TasksView = ({ units = [], customers = [] }: TasksViewProps) => {
         <TabsContent value="all">
           <TaskList 
             filterBy={{ assignedTo: selectedAssignee === 'all' ? undefined : selectedAssignee }}
-            units={units}
-            customers={customers}
           />
         </TabsContent>
 
@@ -149,8 +145,6 @@ export const TasksView = ({ units = [], customers = [] }: TasksViewProps) => {
               status: 'todo', 
               assignedTo: selectedAssignee === 'all' ? undefined : selectedAssignee 
             }}
-            units={units}
-            customers={customers}
           />
         </TabsContent>
 
@@ -160,8 +154,6 @@ export const TasksView = ({ units = [], customers = [] }: TasksViewProps) => {
               status: 'in-progress', 
               assignedTo: selectedAssignee === 'all' ? undefined : selectedAssignee 
             }}
-            units={units}
-            customers={customers}
           />
         </TabsContent>
 
@@ -171,8 +163,6 @@ export const TasksView = ({ units = [], customers = [] }: TasksViewProps) => {
               status: 'completed', 
               assignedTo: selectedAssignee === 'all' ? undefined : selectedAssignee 
             }}
-            units={units}
-            customers={customers}
           />
         </TabsContent>
       </Tabs>

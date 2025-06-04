@@ -177,7 +177,7 @@ export const ContentRenderer = ({
     case "reports":
       return <ReportsDashboard />;
     case "tasks":
-      return <TasksView onQuickAddUnit={onQuickAddUnit} />;
+      return <TasksView />;
     case "billing":
       return <BillingView />;
     case "operations":
@@ -185,7 +185,6 @@ export const ContentRenderer = ({
         <OperationsView
           units={units}
           onTenantClick={onTenantClick}
-          facilities={facilities}
           selectedSites={selectedSites}
         />
       );
