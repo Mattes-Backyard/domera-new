@@ -23,18 +23,25 @@ interface Unit {
   site: string;
 }
 
-// Use the Customer type from useRealtimeSupabaseData (transformed data)
-interface Customer {
+// Use DatabaseCustomer type from Supabase
+interface DatabaseCustomer {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   phone: string;
-  units: string[];
-  balance: number;
-  status: string;
-  moveInDate?: string;
-  emergencyContact?: string;
-  emergencyPhone?: string;
+  address: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  move_in_date?: string;
+  lease_end_date?: string;
+  security_deposit?: number;
+  balance?: number;
+  notes?: string;
+  facility_id: string;
 }
 
 interface Facility {
@@ -48,15 +55,15 @@ interface ContentRendererProps {
   selectedUnitId: string | null;
   selectedCustomerId: string | null;
   viewingUnitDetails: Unit | null;
-  viewingTenantDetails: Customer | null;
+  viewingTenantDetails: DatabaseCustomer | null;
   showFloorPlan: boolean;
   units: Unit[];
-  customers: Customer[];
+  customers: DatabaseCustomer[];
   facilities: Facility[];
   onUnitSelect: (unit: Unit) => void;
   onUnitUpdate: (unit: Unit) => void;
   onUnitAdd: (unit: Unit) => void;
-  onCustomerAdd: (customer: Customer) => void;
+  onCustomerAdd: (customer: DatabaseCustomer) => void;
   onTenantClick: (tenantId: string) => void;
   onClearUnitSelection: () => void;
   onClearCustomerSelection: () => void;
@@ -67,28 +74,20 @@ interface ContentRendererProps {
   selectedSites: string[];
 }
 
-// Transform customer to tenant format for TenantDetailsPage
-const transformCustomerToTenant = (customer: Customer) => {
-  // Transform unit IDs to TenantUnit objects
-  const tenantUnits = customer.units.map(unitId => ({
-    unitId: unitId,
-    unitNumber: unitId,
-    status: "good" as const,
-    monthlyRate: 0, // Would need to be fetched from unit data
-    leaseStart: customer.moveInDate || new Date().toISOString().split('T')[0],
-    leaseEnd: undefined,
-    balance: customer.balance || 0
-  }));
+// Transform DatabaseCustomer to tenant format for TenantDetailsPage
+const transformCustomerToTenant = (customer: DatabaseCustomer) => {
+  // For now, we'll assume no units are assigned - this would need to be fetched from unit_rentals table
+  const tenantUnits: any[] = [];
 
   return {
     id: customer.id,
-    name: customer.name,
+    name: `${customer.first_name} ${customer.last_name}`,
     email: customer.email,
     phone: customer.phone,
-    address: "", // Not available in current customer data
+    address: customer.address,
     ssn: "", // Not available in current customer data
-    status: customer.status || "active",
-    joinDate: customer.moveInDate || new Date().toISOString().split('T')[0],
+    status: "active", // Default status
+    joinDate: customer.move_in_date || new Date().toISOString().split('T')[0],
     units: tenantUnits
   };
 };
