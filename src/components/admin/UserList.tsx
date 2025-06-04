@@ -48,7 +48,9 @@ export const UserList = () => {
         last_name: user.last_name,
         phone: user.phone,
         role: user.role,
-        facility_name: user.facility?.name || 'No facility assigned',
+        facility_name: Array.isArray(user.facility) && user.facility.length > 0 
+          ? user.facility[0].name 
+          : 'No facility assigned',
         created_at: user.created_at
       })) || [];
 
