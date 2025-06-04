@@ -19,6 +19,7 @@ interface Unit {
   tenantId: string | null;
   rate: number;
   climate: boolean;
+  site: string;
 }
 
 interface UnitDetailsPageProps {
