@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -17,6 +18,7 @@ export interface Invoice {
   status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled' | 'pending';
   description?: string;
   pdf_file_path?: string;
+  currency: string;
   created_at: string;
   updated_at: string;
 }
@@ -38,7 +40,7 @@ export interface CompanyInfo {
 export interface CreateInvoiceData {
   invoice_number: string;
   customer_id: string;
-  unit_rental_id: string; // Made required - no longer optional
+  unit_rental_id: string;
   issue_date: string;
   due_date: string;
   subtotal: number;
@@ -47,6 +49,7 @@ export interface CreateInvoiceData {
   total_amount: number;
   status: Invoice['status'];
   description?: string;
+  currency: string;
 }
 
 export const useInvoices = () => {
@@ -73,7 +76,8 @@ export const useInvoices = () => {
       // Type assertion to ensure status field matches our union type
       const typedInvoices = (invoicesData || []).map(invoice => ({
         ...invoice,
-        status: invoice.status as Invoice['status']
+        status: invoice.status as Invoice['status'],
+        currency: invoice.currency || 'EUR'
       }));
 
       setInvoices(typedInvoices);

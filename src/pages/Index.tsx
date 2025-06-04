@@ -135,6 +135,10 @@ const Index = () => {
     }
   };
 
+  const handleAdminClick = () => {
+    setActiveView("admin");
+  };
+
   return (
     <NotificationProvider>
       <TaskProvider>
@@ -149,6 +153,7 @@ const Index = () => {
               <DashboardHeader 
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
+                onAdminClick={handleAdminClick}
                 onSearchResultClick={handleSearchResultClick}
                 units={units}
                 customers={customers}

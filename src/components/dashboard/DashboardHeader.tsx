@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { NotificationDropdown } from "@/components/dashboard/NotificationDropdown";
@@ -8,9 +9,25 @@ interface DashboardHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onAdminClick: () => void;
+  onSearchResultClick?: (type: 'unit' | 'customer', id: string) => void;
+  units?: any[];
+  customers?: any[];
+  onFloorPlanClick?: () => void;
+  selectedSites?: string[];
+  onSitesChange?: (sites: string[]) => void;
 }
 
-export const DashboardHeader = ({ searchQuery, onSearchChange, onAdminClick }: DashboardHeaderProps) => {
+export const DashboardHeader = ({ 
+  searchQuery, 
+  onSearchChange, 
+  onAdminClick,
+  onSearchResultClick,
+  units,
+  customers,
+  onFloorPlanClick,
+  selectedSites,
+  onSitesChange
+}: DashboardHeaderProps) => {
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -21,17 +38,17 @@ export const DashboardHeader = ({ searchQuery, onSearchChange, onAdminClick }: D
           </div>
         </div>
 
-        
         <div className="flex items-center space-x-4">
-          
-          <Input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="max-w-md rounded-full pl-10"
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <div className="relative">
+            <Input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="max-w-md rounded-full pl-10"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          </div>
           
           <NotificationDropdown />
           <UserMenu onAdminClick={onAdminClick} />

@@ -2,8 +2,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompanySettings } from "./CompanySettings";
 import { FacilityManagement } from "./FacilityManagement";
 import { AddUserDialog } from "./AddUserDialog";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 
 export const AdminInterface = () => {
+  const { facilities, refreshData } = useCompanySettings();
+
+  const handleUserAdded = () => {
+    refreshData();
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6">
@@ -22,9 +29,9 @@ export const AdminInterface = () => {
         <TabsContent value="users" className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">User Management</h2>
-            <AddUserDialog />
+            <AddUserDialog facilities={facilities} onUserAdded={handleUserAdded} />
           </div>
-          {/* Keep existing user management content */}
+          
         </TabsContent>
 
         <TabsContent value="company">

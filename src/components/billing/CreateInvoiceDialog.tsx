@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,15 @@ import { useCompanySettings } from "@/hooks/useCompanySettings";
 interface CreateInvoiceDialogProps {
   onCreateInvoice: (data: CreateInvoiceData) => Promise<any>;
 }
+
+const getCurrencySymbol = (currency: string) => {
+  const symbols: Record<string, string> = {
+    EUR: '€',
+    USD: '$',
+    SEK: 'kr'
+  };
+  return symbols[currency] || currency;
+};
 
 export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProps) => {
   const [open, setOpen] = useState(false);
@@ -93,15 +103,6 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
       return `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
     }
     return `Customer ${customer.id?.slice(0, 8)}...`;
-  };
-
-  const getCurrencySymbol = (currency: string) => {
-    const symbols: Record<string, string> = {
-      EUR: '€',
-      USD: '$',
-      SEK: 'kr'
-    };
-    return symbols[currency] || currency;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -210,7 +211,7 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
                         key={rental.id} 
                         value={rental.id}
                       >
-                        {rental.unit_name} - €{rental.monthly_rate || 0}/month
+                        {rental.unit_name} - {currencySymbol}{rental.monthly_rate || 0}/month
                       </SelectItem>
                     ))
                   ) : (
