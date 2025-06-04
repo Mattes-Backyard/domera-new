@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/useAuth";
+import { CompanyLogo } from "@/components/ui/company-logo";
 
 const menuItems = [
   {
@@ -95,11 +96,7 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
     <Sidebar className="border-r border-gray-200 bg-white">
       <SidebarHeader className="p-6">
         <div className="flex items-center space-x-2">
-          <img 
-            src="/lovable-uploads/ef3cdb43-d066-4a2d-8139-bec16ef0f18d.png" 
-            alt="Domera Logo" 
-            className="h-8 w-8"
-          />
+          <CompanyLogo size="sm" className="h-8 w-8" />
           <div>
             <h2 className="text-xl font-bold text-gray-900">Domera</h2>
             <p className="text-sm text-gray-500">Storage Management</p>
