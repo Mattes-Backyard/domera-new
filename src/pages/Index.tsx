@@ -119,7 +119,24 @@ const Index = () => {
     // Find customer in the customers array from Supabase
     const customer = customers.find(c => c.id === tenantId);
     if (customer) {
-      setViewingTenantDetails(customer);
+      // Convert Customer to DatabaseCustomer format
+      const databaseCustomer: DatabaseCustomer = {
+        id: customer.id,
+        first_name: customer.name.split(' ')[0] || '',
+        last_name: customer.name.split(' ').slice(1).join(' ') || '',
+        email: customer.email,
+        phone: customer.phone,
+        address: '', // Not available in Customer type
+        city: '', // Not available in Customer type
+        state: '', // Not available in Customer type
+        zip_code: '', // Not available in Customer type
+        emergency_contact_name: customer.emergencyContact,
+        emergency_contact_phone: customer.emergencyPhone,
+        move_in_date: customer.moveInDate,
+        balance: customer.balance,
+        facility_id: '', // This should be set based on the facility
+      };
+      setViewingTenantDetails(databaseCustomer);
     }
   };
 
