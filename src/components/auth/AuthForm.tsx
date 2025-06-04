@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,17 +53,14 @@ export const AuthForm = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-6">
             <img 
               src="/lovable-uploads/ef3cdb43-d066-4a2d-8139-bec16ef0f18d.png" 
-              alt="Domera Storage Logo" 
-              className="h-16 w-16 object-contain"
+              alt="Logo" 
+              className="h-24 w-24 object-contain"
             />
           </div>
-          <CardTitle className="text-2xl font-bold text-slate-800">
-            Domera Storage
-          </CardTitle>
-          <p className="text-slate-600">Access your storage management dashboard</p>
+          <p className="text-slate-600">Access your property management system</p>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
@@ -144,7 +142,7 @@ export const AuthForm = () => {
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? 'Creating account...' : 'Sign Up'}
                 </Button>
-              </form>
+                </form>
             </TabsContent>
           </Tabs>
         </CardContent>
