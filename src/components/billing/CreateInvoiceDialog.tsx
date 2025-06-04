@@ -17,7 +17,7 @@ interface CreateInvoiceDialogProps {
 
 export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProps) => {
   const [open, setOpen] = useState(false);
-  const { customers, unitRentals } = useRealtimeSupabaseData();
+  const { customers, unitRentals, units } = useRealtimeSupabaseData();
   
   const [formData, setFormData] = useState({
     customer_id: "",
@@ -48,18 +48,28 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
       rental.is_active === true
     );
     
-    return customerRentals;
+    // Get unit details for each rental
+    return customerRentals.map(rental => {
+      const unit = units.find(u => u.id === rental.unit_id);
+      return {
+        ...rental,
+        unit_name: unit ? `Unit ${unit.unit_number}` : `Unit ${rental.unit_id?.slice(0, 8)}...`,
+        unit_details: unit
+      };
+    });
   };
 
   const handleUnitChange = (rentalId: string) => {
-    const rental = unitRentals.find(r => r.id === rentalId);
+    const customerUnits = getCustomerUnits();
+    const selectedRental = customerUnits.find(r => r.id === rentalId);
     
-    if (rental) {
+    if (selectedRental) {
+      const unitName = selectedRental.unit_name || 'Storage unit';
       setFormData(prev => ({ 
         ...prev, 
         unit_rental_id: rentalId,
-        subtotal: rental.monthly_rate || 0,
-        description: `Storage unit rental - Rental ${rentalId.slice(0, 8)}...`
+        subtotal: selectedRental.monthly_rate || 0,
+        description: `${unitName} rental`
       }));
     }
   };
@@ -72,6 +82,14 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
       subtotal: 0,
       description: "Storage unit rental"
     }));
+  };
+
+  const getCustomerName = (customer: any) => {
+    if (customer.name) return customer.name;
+    if (customer.first_name || customer.last_name) {
+      return `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
+    }
+    return `Customer ${customer.id?.slice(0, 8)}...`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -153,9 +171,9 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
                   {customers.map((customer) => (
                     <SelectItem 
                       key={customer.id} 
-                      value={customer.id || `customer-${Math.random()}`}
+                      value={customer.id}
                     >
-                      {customer.name || `Customer ${customer.id?.slice(0, 8) || 'Unknown'}...`}
+                      {getCustomerName(customer)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -177,9 +195,9 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
                     customerUnits.map((rental) => (
                       <SelectItem 
                         key={rental.id} 
-                        value={rental.id || `rental-${Math.random()}`}
+                        value={rental.id}
                       >
-                        Rental {rental.id?.slice(0, 8) || 'Unknown'}... - €{rental.monthly_rate || 0}/month
+                        {rental.unit_name} - €{rental.monthly_rate || 0}/month
                       </SelectItem>
                     ))
                   ) : (
