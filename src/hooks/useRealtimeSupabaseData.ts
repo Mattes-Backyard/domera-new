@@ -1,8 +1,31 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+
+// Sample names to use when profile data is missing
+const sampleNames = [
+  { first: 'Sarah', last: 'Johnson' },
+  { first: 'Mike', last: 'Chen' },
+  { first: 'Emily', last: 'Davis' },
+  { first: 'James', last: 'Wilson' },
+  { first: 'Lisa', last: 'Anderson' },
+  { first: 'David', last: 'Brown' },
+  { first: 'Jessica', last: 'Miller' },
+  { first: 'Robert', last: 'Garcia' },
+  { first: 'Ashley', last: 'Rodriguez' },
+  { first: 'Michael', last: 'Martinez' }
+];
+
+const getRandomName = (id: string) => {
+  // Use a simple hash of the ID to consistently return the same name for the same ID
+  const hash = id.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const index = Math.abs(hash) % sampleNames.length;
+  return sampleNames[index];
+};
 
 export const useRealtimeSupabaseData = () => {
   const { user, profile } = useAuth();
@@ -44,7 +67,7 @@ export const useRealtimeSupabaseData = () => {
           unitStatus = 'occupied';
         }
         
-        // Format customer name consistently
+        // Format customer name consistently with realistic names
         let tenantName = null;
         let tenantId = null;
         
@@ -54,7 +77,9 @@ export const useRealtimeSupabaseData = () => {
           tenantName = `${firstName} ${lastName}`.trim() || null;
           tenantId = customer.user_id || customer.id;
         } else if (customer) {
-          tenantName = `Customer ${customer.id.slice(-4)}`;
+          // Use realistic random names instead of "Customer XXXX"
+          const randomName = getRandomName(customer.id);
+          tenantName = `${randomName.first} ${randomName.last}`;
           tenantId = customer.user_id || customer.id;
         }
         
@@ -86,22 +111,28 @@ export const useRealtimeSupabaseData = () => {
 
       // Transform customers data
       const transformedCustomers = customersData?.map(customer => {
-        // Format customer name consistently
+        // Format customer name consistently with realistic names
         let customerName = 'Unknown Customer';
+        let customerEmail = 'customer@placeholder.com';
         
         if (customer.profile) {
           const firstName = customer.profile.first_name || '';
           const lastName = customer.profile.last_name || '';
           customerName = `${firstName} ${lastName}`.trim();
+          customerEmail = customer.profile.email || 'customer@placeholder.com';
           
           if (!customerName) {
-            customerName = `Customer ${customer.id.slice(-4)}`;
+            const randomName = getRandomName(customer.id);
+            customerName = `${randomName.first} ${randomName.last}`;
+            customerEmail = `${randomName.first.toLowerCase()}.${randomName.last.toLowerCase()}@email.com`;
           }
         } else {
-          customerName = `Customer ${customer.id.slice(-4)}`;
+          // Use realistic random names and emails instead of "Customer XXXX"
+          const randomName = getRandomName(customer.id);
+          customerName = `${randomName.first} ${randomName.last}`;
+          customerEmail = `${randomName.first.toLowerCase()}.${randomName.last.toLowerCase()}@email.com`;
         }
         
-        const customerEmail = customer.profile?.email || `customer${customer.id.slice(-4)}@placeholder.com`;
         const customerPhone = customer.profile?.phone || customer.emergency_contact_phone || 'No phone';
 
         // Get active units for this customer

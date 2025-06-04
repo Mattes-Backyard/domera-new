@@ -3,6 +3,30 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+// Sample names to use when profile data is missing
+const sampleNames = [
+  { first: 'Sarah', last: 'Johnson' },
+  { first: 'Mike', last: 'Chen' },
+  { first: 'Emily', last: 'Davis' },
+  { first: 'James', last: 'Wilson' },
+  { first: 'Lisa', last: 'Anderson' },
+  { first: 'David', last: 'Brown' },
+  { first: 'Jessica', last: 'Miller' },
+  { first: 'Robert', last: 'Garcia' },
+  { first: 'Ashley', last: 'Rodriguez' },
+  { first: 'Michael', last: 'Martinez' }
+];
+
+const getRandomName = (id: string) => {
+  // Use a simple hash of the ID to consistently return the same name for the same ID
+  const hash = id.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const index = Math.abs(hash) % sampleNames.length;
+  return sampleNames[index];
+};
+
 export const useSupabaseData = () => {
   const { user, profile } = useAuth();
   const [units, setUnits] = useState([]);
@@ -32,19 +56,37 @@ export const useSupabaseData = () => {
         `);
 
       // Transform units data to match existing format
-      const transformedUnits = unitsData?.map(unit => ({
-        id: unit.unit_number,
-        size: unit.size,
-        type: unit.type,
-        status: unit.status,
-        tenant: unit.unit_rentals?.[0]?.customer?.profile ? 
-          `${unit.unit_rentals[0].customer.profile.first_name} ${unit.unit_rentals[0].customer.profile.last_name}`.trim() : 
-          null,
-        tenantId: unit.unit_rentals?.[0]?.customer?.user_id || null,
-        rate: Number(unit.monthly_rate),
-        climate: unit.climate_controlled,
-        site: unit.facility?.city?.toLowerCase() || 'unknown'
-      })) || [];
+      const transformedUnits = unitsData?.map(unit => {
+        const activeRental = unit.unit_rentals?.find(rental => rental.is_active);
+        const customer = activeRental?.customer;
+        
+        let tenantName = null;
+        let tenantId = null;
+        
+        if (customer?.profile) {
+          const firstName = customer.profile.first_name || '';
+          const lastName = customer.profile.last_name || '';
+          tenantName = `${firstName} ${lastName}`.trim() || null;
+          tenantId = customer.user_id || customer.id;
+        } else if (customer) {
+          // Use realistic random names instead of "Customer XXXX"
+          const randomName = getRandomName(customer.id);
+          tenantName = `${randomName.first} ${randomName.last}`;
+          tenantId = customer.user_id || customer.id;
+        }
+        
+        return {
+          id: unit.unit_number,
+          size: unit.size,
+          type: unit.type,
+          status: unit.status,
+          tenant: tenantName,
+          tenantId: tenantId,
+          rate: Number(unit.monthly_rate),
+          climate: unit.climate_controlled,
+          site: unit.facility?.city?.toLowerCase() || 'unknown'
+        };
+      }) || [];
 
       // Fetch customers
       const { data: customersData } = await supabase
@@ -59,20 +101,41 @@ export const useSupabaseData = () => {
         `);
 
       // Transform customers data
-      const transformedCustomers = customersData?.map(customer => ({
-        id: customer.user_id,
-        name: customer.profile ? 
-          `${customer.profile.first_name} ${customer.profile.last_name}`.trim() : 
-          'Unknown',
-        email: customer.profile?.email || '',
-        phone: customer.profile?.phone || '',
-        units: customer.unit_rentals?.map(rental => rental.unit?.unit_number) || [],
-        balance: Number(customer.balance) || 0,
-        status: customer.balance > 0 ? 'overdue' : 'good',
-        moveInDate: customer.move_in_date,
-        emergencyContact: customer.emergency_contact_name,
-        emergencyPhone: customer.emergency_contact_phone
-      })) || [];
+      const transformedCustomers = customersData?.map(customer => {
+        let customerName = 'Unknown Customer';
+        let customerEmail = 'customer@placeholder.com';
+        
+        if (customer.profile) {
+          const firstName = customer.profile.first_name || '';
+          const lastName = customer.profile.last_name || '';
+          customerName = `${firstName} ${lastName}`.trim();
+          customerEmail = customer.profile.email || 'customer@placeholder.com';
+          
+          if (!customerName) {
+            const randomName = getRandomName(customer.id);
+            customerName = `${randomName.first} ${randomName.last}`;
+            customerEmail = `${randomName.first.toLowerCase()}.${randomName.last.toLowerCase()}@email.com`;
+          }
+        } else {
+          // Use realistic random names and emails instead of "Customer XXXX"
+          const randomName = getRandomName(customer.id);
+          customerName = `${randomName.first} ${randomName.last}`;
+          customerEmail = `${randomName.first.toLowerCase()}.${randomName.last.toLowerCase()}@email.com`;
+        }
+        
+        return {
+          id: customer.user_id,
+          name: customerName,
+          email: customerEmail,
+          phone: customer.profile?.phone || '',
+          units: customer.unit_rentals?.map(rental => rental.unit?.unit_number) || [],
+          balance: Number(customer.balance) || 0,
+          status: customer.balance > 0 ? 'overdue' : 'good',
+          moveInDate: customer.move_in_date,
+          emergencyContact: customer.emergency_contact_name,
+          emergencyPhone: customer.emergency_contact_phone
+        };
+      }) || [];
 
       // Fetch facilities
       const { data: facilitiesData } = await supabase
