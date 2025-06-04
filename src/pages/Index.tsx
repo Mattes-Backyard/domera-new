@@ -12,27 +12,6 @@ import { useAppState } from "@/hooks/useAppState";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useState } from "react";
 
-// Database Customer type for Supabase
-interface DatabaseCustomer {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zip_code: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
-  move_in_date?: string;
-  lease_end_date?: string;
-  security_deposit?: number;
-  balance?: number;
-  notes?: string;
-  facility_id: string;
-}
-
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -111,12 +90,12 @@ const Index = () => {
     addUnit(newUnit);
   };
 
-  const handleCustomerAdd = (newCustomer: DatabaseCustomer) => {
+  const handleCustomerAdd = (newCustomer: any) => {
     addCustomer(newCustomer);
   };
 
   const handleTenantClick = (tenantId: string) => {
-    // Find customer in the DatabaseCustomer array from Supabase
+    // Find customer in the customers array from Supabase
     const customer = customers.find(c => c.id === tenantId);
     if (customer) {
       setViewingTenantDetails(customer);

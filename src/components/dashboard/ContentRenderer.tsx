@@ -23,25 +23,18 @@ interface Unit {
   site: string;
 }
 
-// Supabase Customer type
-interface DatabaseCustomer {
+// Customer type that matches the transformed data from useRealtimeSupabaseData
+interface Customer {
   id: string;
-  first_name: string;
-  last_name: string;
+  name: string;
   email: string;
   phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zip_code: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
-  move_in_date?: string;
-  lease_end_date?: string;
-  security_deposit?: number;
-  balance?: number;
-  notes?: string;
-  facility_id: string;
+  units: string[];
+  balance: number;
+  status: string;
+  moveInDate?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
 }
 
 interface Facility {
@@ -55,15 +48,15 @@ interface ContentRendererProps {
   selectedUnitId: string | null;
   selectedCustomerId: string | null;
   viewingUnitDetails: Unit | null;
-  viewingTenantDetails: DatabaseCustomer | null;
+  viewingTenantDetails: Customer | null;
   showFloorPlan: boolean;
   units: Unit[];
-  customers: DatabaseCustomer[];
+  customers: Customer[];
   facilities: Facility[];
   onUnitSelect: (unit: Unit) => void;
   onUnitUpdate: (unit: Unit) => void;
   onUnitAdd: (unit: Unit) => void;
-  onCustomerAdd: (customer: DatabaseCustomer) => void;
+  onCustomerAdd: (customer: Customer) => void;
   onTenantClick: (tenantId: string) => void;
   onClearUnitSelection: () => void;
   onClearCustomerSelection: () => void;
@@ -74,18 +67,18 @@ interface ContentRendererProps {
   selectedSites: string[];
 }
 
-// Transform database customer to tenant format for TenantDetailsPage
-const transformCustomerToTenant = (customer: DatabaseCustomer) => {
+// Transform customer to tenant format for TenantDetailsPage
+const transformCustomerToTenant = (customer: Customer) => {
   return {
     id: customer.id,
-    name: `${customer.first_name} ${customer.last_name}`,
+    name: customer.name,
     email: customer.email,
     phone: customer.phone,
-    address: `${customer.address}, ${customer.city}, ${customer.state} ${customer.zip_code}`,
+    address: "", // Not available in current customer data
     ssn: "", // Not available in current customer data
-    status: "active", // Default status
-    joinDate: customer.move_in_date || new Date().toISOString().split('T')[0],
-    units: [] // Would need to be populated from unit rentals
+    status: customer.status || "active",
+    joinDate: customer.moveInDate || new Date().toISOString().split('T')[0],
+    units: customer.units || []
   };
 };
 
