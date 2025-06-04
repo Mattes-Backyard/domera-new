@@ -1,3 +1,4 @@
+
 import { AuthForm } from "@/components/auth/AuthForm";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -11,7 +12,7 @@ import { useAppState } from "@/hooks/useAppState";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useState } from "react";
 
-// DatabaseCustomer type from Supabase
+// Database Customer type for Supabase
 interface DatabaseCustomer {
   id: string;
   first_name: string;
@@ -110,35 +111,15 @@ const Index = () => {
     addUnit(newUnit);
   };
 
-  const handleCustomerAdd = async (newCustomer: DatabaseCustomer) => {
-    try {
-      // The addCustomer function from useRealtimeSupabaseData expects DatabaseCustomer
-      // but we need to ensure it's properly implemented there
-      await addCustomer(newCustomer);
-    } catch (error) {
-      console.error('Error adding customer:', error);
-    }
+  const handleCustomerAdd = (newCustomer: DatabaseCustomer) => {
+    addCustomer(newCustomer);
   };
 
   const handleTenantClick = (tenantId: string) => {
-    // Find customer in the customers array from Supabase
+    // Find customer in the DatabaseCustomer array from Supabase
     const customer = customers.find(c => c.id === tenantId);
     if (customer) {
-      // Convert Customer to the format expected by viewingTenantDetails
-      const tenantCustomer = {
-        id: customer.id,
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        units: customer.units || [],
-        status: customer.status,
-        joinDate: customer.joinDate,
-        balance: customer.balance,
-        emergencyContact: customer.emergencyContact,
-        emergencyPhone: customer.emergencyPhone,
-        moveInDate: customer.moveInDate,
-      };
-      setViewingTenantDetails(tenantCustomer);
+      setViewingTenantDetails(customer);
     }
   };
 

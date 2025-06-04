@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,33 +19,12 @@ interface Customer {
   balance: number;
 }
 
-// DatabaseCustomer type from Supabase
-interface DatabaseCustomer {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zip_code: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
-  move_in_date?: string;
-  lease_end_date?: string;
-  security_deposit?: number;
-  balance?: number;
-  notes?: string;
-  facility_id: string;
-}
-
 interface CustomerListProps {
   selectedCustomerId?: string | null;
   onClearSelection?: () => void;
   customers?: Customer[];
-  onCustomerAdd?: (customer: DatabaseCustomer) => void;
-  onTenantClick?: (tenantId: string) => void;
+  onAddCustomer?: (customer: Customer) => void;
+  onViewDetails?: (customerId: string) => void;
   triggerAddDialog?: boolean;
   onAddDialogClose?: () => void;
 }
@@ -55,8 +33,8 @@ export const CustomerList = ({
   selectedCustomerId, 
   onClearSelection, 
   customers = [], 
-  onCustomerAdd, 
-  onTenantClick,
+  onAddCustomer, 
+  onViewDetails,
   triggerAddDialog = false,
   onAddDialogClose
 }: CustomerListProps) => {
@@ -101,13 +79,7 @@ export const CustomerList = ({
 
   const handleCustomerClick = (customer: Customer) => {
     console.log("Customer clicked:", customer.id);
-    onTenantClick?.(customer.id);
-  };
-
-  // Wrapper function to handle the type conversion
-  const handleAddCustomer = (dbCustomer: DatabaseCustomer) => {
-    console.log("Adding customer:", dbCustomer);
-    onCustomerAdd?.(dbCustomer);
+    onViewDetails?.(customer.id);
   };
 
   return (
@@ -126,7 +98,7 @@ export const CustomerList = ({
               Clear Selection
             </Button>
           )}
-          <AddCustomerDialog onSave={handleAddCustomer} />
+          <AddCustomerDialog onSave={onAddCustomer} />
         </div>
       </div>
 

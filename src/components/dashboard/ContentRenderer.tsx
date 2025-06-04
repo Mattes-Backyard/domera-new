@@ -1,3 +1,4 @@
+
 import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
@@ -22,7 +23,7 @@ interface Unit {
   site: string;
 }
 
-// Use DatabaseCustomer type from Supabase
+// Supabase Customer type
 interface DatabaseCustomer {
   id: string;
   first_name: string;
@@ -41,18 +42,6 @@ interface DatabaseCustomer {
   balance?: number;
   notes?: string;
   facility_id: string;
-}
-
-// Customer interface that matches what CustomerList component expects
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  units: string[];
-  status: string;
-  joinDate: string;
-  balance: number;
 }
 
 interface Facility {
@@ -85,35 +74,18 @@ interface ContentRendererProps {
   selectedSites: string[];
 }
 
-// Transform DatabaseCustomer to the format expected by CustomerList
-const transformDatabaseCustomerToCustomer = (dbCustomer: DatabaseCustomer): Customer => {
-  return {
-    id: dbCustomer.id,
-    name: `${dbCustomer.first_name} ${dbCustomer.last_name}`,
-    email: dbCustomer.email,
-    phone: dbCustomer.phone,
-    units: [], // This would need to be populated from unit_rentals
-    balance: dbCustomer.balance || 0,
-    status: dbCustomer.balance && dbCustomer.balance > 0 ? 'overdue' : 'good',
-    joinDate: dbCustomer.move_in_date || new Date().toISOString().split('T')[0], // Use move_in_date or current date as fallback
-  };
-};
-
-// Transform DatabaseCustomer to tenant format for TenantDetailsPage
+// Transform database customer to tenant format for TenantDetailsPage
 const transformCustomerToTenant = (customer: DatabaseCustomer) => {
-  // For now, we'll assume no units are assigned - this would need to be fetched from unit_rentals table
-  const tenantUnits: any[] = [];
-
   return {
     id: customer.id,
     name: `${customer.first_name} ${customer.last_name}`,
     email: customer.email,
     phone: customer.phone,
-    address: customer.address,
+    address: `${customer.address}, ${customer.city}, ${customer.state} ${customer.zip_code}`,
     ssn: "", // Not available in current customer data
     status: "active", // Default status
     joinDate: customer.move_in_date || new Date().toISOString().split('T')[0],
-    units: tenantUnits
+    units: [] // Would need to be populated from unit rentals
   };
 };
 
@@ -141,7 +113,6 @@ export const ContentRenderer = ({
   onQuickAddUnit,
   selectedSites,
 }: ContentRendererProps) => {
-  
   // Show floor plan if requested
   if (showFloorPlan) {
     return (
@@ -194,13 +165,12 @@ export const ContentRenderer = ({
         />
       );
     case "customers":
-      // Transform DatabaseCustomer[] to Customer[] for CustomerList
-      const transformedCustomers = customers.map(transformDatabaseCustomerToCustomer);
       return (
         <CustomerList
+          searchQuery={searchQuery}
           selectedCustomerId={selectedCustomerId}
           onClearSelection={onClearCustomerSelection}
-          customers={transformedCustomers}
+          customers={customers}
           onCustomerAdd={onCustomerAdd}
           onTenantClick={onTenantClick}
         />
