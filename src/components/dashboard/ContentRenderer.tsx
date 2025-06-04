@@ -44,18 +44,16 @@ interface DatabaseCustomer {
   facility_id: string;
 }
 
-// Transform DatabaseCustomer to display format for CustomerList
-interface TransformedCustomer {
+// Customer interface that matches what CustomerList component expects
+interface Customer {
   id: string;
   name: string;
   email: string;
   phone: string;
   units: string[];
-  balance: number;
   status: string;
-  moveInDate?: string;
-  emergencyContact?: string;
-  emergencyPhone?: string;
+  joinDate: string;
+  balance: number;
 }
 
 interface Facility {
@@ -89,7 +87,7 @@ interface ContentRendererProps {
 }
 
 // Transform DatabaseCustomer to the format expected by CustomerList
-const transformDatabaseCustomerToCustomer = (dbCustomer: DatabaseCustomer): TransformedCustomer => {
+const transformDatabaseCustomerToCustomer = (dbCustomer: DatabaseCustomer): Customer => {
   return {
     id: dbCustomer.id,
     name: `${dbCustomer.first_name} ${dbCustomer.last_name}`,
@@ -98,9 +96,7 @@ const transformDatabaseCustomerToCustomer = (dbCustomer: DatabaseCustomer): Tran
     units: [], // This would need to be populated from unit_rentals
     balance: dbCustomer.balance || 0,
     status: dbCustomer.balance && dbCustomer.balance > 0 ? 'overdue' : 'good',
-    moveInDate: dbCustomer.move_in_date,
-    emergencyContact: dbCustomer.emergency_contact_name,
-    emergencyPhone: dbCustomer.emergency_contact_phone
+    joinDate: dbCustomer.move_in_date || new Date().toISOString().split('T')[0], // Use move_in_date or current date as fallback
   };
 };
 
