@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import jsPDF from 'jspdf';
 
 export interface Invoice {
   id: string;
@@ -99,20 +100,89 @@ export const useInvoices = () => {
   };
 
   const generateInvoicePDF = async (invoice: Invoice) => {
-    // This will generate a PDF and upload it to Supabase storage
-    const pdfContent = generatePDFContent(invoice, companyInfo);
-    
     try {
-      // Convert HTML to PDF (simplified for demo - in production you'd use a proper PDF library)
-      const blob = new Blob([pdfContent], { type: 'application/pdf' });
+      const pdf = new jsPDF();
+      
+      // Company logo and header
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(companyInfo?.company_name || 'StorageFlow Solutions', 20, 30);
+      
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(companyInfo?.address || '123 Business Street', 20, 40);
+      pdf.text(`${companyInfo?.city || 'Stockholm'}, ${companyInfo?.postal_code || '12345'}`, 20, 45);
+      pdf.text(companyInfo?.country || 'Sweden', 20, 50);
+      pdf.text(`Phone: ${companyInfo?.phone || '+46 8 123 456 78'}`, 20, 55);
+      pdf.text(`Email: ${companyInfo?.email || 'billing@storageflow.com'}`, 20, 60);
+      pdf.text(`VAT: ${companyInfo?.vat_number || 'SE123456789001'}`, 20, 65);
+
+      // Invoice details (right side)
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('INVOICE', 150, 30);
+      
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Invoice #: ${invoice.invoice_number}`, 150, 40);
+      pdf.text(`Issue Date: ${invoice.issue_date}`, 150, 45);
+      pdf.text(`Due Date: ${invoice.due_date}`, 150, 50);
+      pdf.text(`Status: ${invoice.status.toUpperCase()}`, 150, 55);
+
+      // Customer information
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Bill To:', 20, 80);
+      
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Customer ID: ${invoice.customer_id}`, 20, 90);
+
+      // Items table
+      const tableStartY = 110;
+      
+      // Table headers
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Description', 20, tableStartY);
+      pdf.text('Period', 80, tableStartY);
+      pdf.text('Amount', 150, tableStartY);
+      
+      // Table line
+      pdf.line(20, tableStartY + 2, 190, tableStartY + 2);
+      
+      // Table content
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Storage Unit Rental', 20, tableStartY + 10);
+      pdf.text(`${invoice.issue_date} - ${invoice.due_date}`, 80, tableStartY + 10);
+      pdf.text(`€${invoice.subtotal.toFixed(2)}`, 150, tableStartY + 10);
+      
+      // Table bottom line
+      pdf.line(20, tableStartY + 15, 190, tableStartY + 15);
+
+      // Totals
+      const totalsY = tableStartY + 30;
+      pdf.text(`Subtotal: €${invoice.subtotal.toFixed(2)}`, 130, totalsY);
+      pdf.text(`VAT (${invoice.vat_rate}%): €${invoice.vat_amount.toFixed(2)}`, 130, totalsY + 8);
+      
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`Total: €${invoice.total_amount.toFixed(2)}`, 130, totalsY + 16);
+
+      // Payment terms
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Payment Terms: Net 30 days', 20, totalsY + 35);
+      pdf.text('Thank you for your business!', 20, totalsY + 45);
+
+      // Convert PDF to blob
+      const pdfBlob = pdf.output('blob');
       const fileName = `invoice-${invoice.invoice_number}.pdf`;
       
       // Upload to Supabase storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('invoices')
-        .upload(fileName, blob, {
+        .upload(fileName, pdfBlob, {
           cacheControl: '3600',
-          upsert: true
+          upsert: true,
+          contentType: 'application/pdf'
         });
 
       if (uploadError) {
@@ -138,81 +208,68 @@ export const useInvoices = () => {
     }
   };
 
-  const generatePDFContent = (invoice: Invoice, company: CompanyInfo | null) => {
-    // Simplified PDF content generation (in production, use a proper PDF library)
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Invoice ${invoice.invoice_number}</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 40px; }
-          .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-          .company-info { text-align: left; }
-          .invoice-info { text-align: right; }
-          .customer-info { margin: 20px 0; }
-          .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          .items-table th, .items-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          .items-table th { background-color: #f2f2f2; }
-          .totals { text-align: right; margin-top: 20px; }
-          .total-line { margin: 5px 0; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div class="company-info">
-            <h2>${company?.company_name || 'StorageFlow Solutions'}</h2>
-            <p>${company?.address || '123 Business Street'}</p>
-            <p>${company?.city || 'Stockholm'}, ${company?.postal_code || '12345'}</p>
-            <p>${company?.country || 'Sweden'}</p>
-            <p>Phone: ${company?.phone || '+46 8 123 456 78'}</p>
-            <p>Email: ${company?.email || 'billing@storageflow.com'}</p>
-            <p>VAT: ${company?.vat_number || 'SE123456789001'}</p>
-          </div>
-          <div class="invoice-info">
-            <h1>INVOICE</h1>
-            <p><strong>Invoice #:</strong> ${invoice.invoice_number}</p>
-            <p><strong>Issue Date:</strong> ${invoice.issue_date}</p>
-            <p><strong>Due Date:</strong> ${invoice.due_date}</p>
-            <p><strong>Status:</strong> ${invoice.status.toUpperCase()}</p>
-          </div>
-        </div>
-        
-        <div class="customer-info">
-          <h3>Bill To:</h3>
-          <p>Customer ID: ${invoice.customer_id}</p>
-        </div>
+  const previewInvoicePDF = async (invoice: Invoice) => {
+    try {
+      let pdfPath = invoice.pdf_file_path;
+      
+      // Generate PDF if it doesn't exist
+      if (!pdfPath) {
+        pdfPath = await generateInvoicePDF(invoice);
+        if (!pdfPath) return;
+      }
 
-        <table class="items-table">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Period</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Storage Unit Rental</td>
-              <td>${invoice.issue_date} - ${invoice.due_date}</td>
-              <td>€${invoice.subtotal.toFixed(2)}</td>
-            </tr>
-          </tbody>
-        </table>
+      // Get the PDF from storage
+      const { data, error } = await supabase.storage
+        .from('invoices')
+        .download(pdfPath);
 
-        <div class="totals">
-          <div class="total-line"><strong>Subtotal: €${invoice.subtotal.toFixed(2)}</strong></div>
-          <div class="total-line">VAT (${invoice.vat_rate}%): €${invoice.vat_amount.toFixed(2)}</div>
-          <div class="total-line"><strong>Total: €${invoice.total_amount.toFixed(2)}</strong></div>
-        </div>
+      if (error) {
+        console.error('Error downloading PDF for preview:', error);
+        return;
+      }
 
-        <div style="margin-top: 40px;">
-          <p><strong>Payment Terms:</strong> Net 30 days</p>
-          <p><strong>Thank you for your business!</strong></p>
-        </div>
-      </body>
-      </html>
-    `;
+      // Create blob URL and open in new tab
+      const url = URL.createObjectURL(data);
+      window.open(url, '_blank');
+      
+      // Clean up the URL after a delay
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      console.error('Error previewing PDF:', error);
+    }
+  };
+
+  const downloadInvoicePDF = async (invoice: Invoice) => {
+    try {
+      let pdfPath = invoice.pdf_file_path;
+      
+      // Generate PDF if it doesn't exist
+      if (!pdfPath) {
+        pdfPath = await generateInvoicePDF(invoice);
+        if (!pdfPath) return;
+      }
+
+      const { data, error } = await supabase.storage
+        .from('invoices')
+        .download(pdfPath);
+
+      if (error) {
+        console.error('Error downloading PDF:', error);
+        return;
+      }
+
+      // Create download link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice-${invoice.invoice_number}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+    }
   };
 
   const createInvoice = async (invoiceData: CreateInvoiceData) => {
@@ -260,37 +317,6 @@ export const useInvoices = () => {
     }
   };
 
-  const downloadInvoicePDF = async (invoice: Invoice) => {
-    if (!invoice.pdf_file_path) {
-      // Generate PDF if it doesn't exist
-      const pdfPath = await generateInvoicePDF(invoice);
-      if (!pdfPath) return;
-    }
-
-    try {
-      const { data, error } = await supabase.storage
-        .from('invoices')
-        .download(invoice.pdf_file_path!);
-
-      if (error) {
-        console.error('Error downloading PDF:', error);
-        return;
-      }
-
-      // Create download link
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `invoice-${invoice.invoice_number}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-    }
-  };
-
   useEffect(() => {
     if (user) {
       fetchInvoices();
@@ -305,6 +331,7 @@ export const useInvoices = () => {
     createInvoice,
     updateInvoiceStatus,
     generateInvoicePDF,
+    previewInvoicePDF,
     downloadInvoicePDF,
     refreshInvoices: fetchInvoices
   };

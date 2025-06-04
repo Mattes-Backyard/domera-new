@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import { useInvoices } from "@/hooks/useInvoices";
 
 interface TenantUnit {
@@ -36,7 +35,7 @@ interface TenantLedgerTabsProps {
 }
 
 export const TenantLedgerTabs = ({ tenantId, units, selectedUnit }: TenantLedgerTabsProps) => {
-  const { invoices, downloadInvoicePDF } = useInvoices();
+  const { invoices, downloadInvoicePDF, previewInvoicePDF } = useInvoices();
   const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);
   
   const selectedUnitData = units.find(unit => unit.unitId === selectedUnit);
@@ -94,6 +93,13 @@ export const TenantLedgerTabs = ({ tenantId, units, selectedUnit }: TenantLedger
         return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const handlePreviewInvoice = async (invoiceNumber: string) => {
+    const invoice = invoices.find(inv => inv.invoice_number === invoiceNumber);
+    if (invoice) {
+      await previewInvoicePDF(invoice);
     }
   };
 
@@ -169,13 +175,22 @@ export const TenantLedgerTabs = ({ tenantId, units, selectedUnit }: TenantLedger
                     <TableCell>
                       <div className="flex items-center gap-1">
                         {entry.type === "invoice" && entry.invoiceNumber && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDownloadInvoice(entry.invoiceNumber!)}
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
+                          <>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handlePreviewInvoice(entry.invoiceNumber!)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleDownloadInvoice(entry.invoiceNumber!)}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </>
                         )}
                         <button className="text-gray-400 hover:text-gray-600">⋮</button>
                       </div>
@@ -226,14 +241,24 @@ export const TenantLedgerTabs = ({ tenantId, units, selectedUnit }: TenantLedger
                       <p className="font-medium">Invoice {entry.invoiceNumber}</p>
                       <p className="text-sm text-gray-600">Date: {entry.date}</p>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleDownloadInvoice(entry.invoiceNumber!)}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download PDF
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handlePreviewInvoice(entry.invoiceNumber!)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Preview
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDownloadInvoice(entry.invoiceNumber!)}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download PDF
+                      </Button>
+                    </div>
                   </div>
                 ))}
               

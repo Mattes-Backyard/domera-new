@@ -12,7 +12,7 @@ import { useRealtimeSupabaseData } from "@/hooks/useRealtimeSupabaseData";
 import { toast } from "sonner";
 
 export const BillingView = () => {
-  const { invoices, loading, updateInvoiceStatus, downloadInvoicePDF, generateInvoicePDF, createInvoice } = useInvoices();
+  const { invoices, loading, updateInvoiceStatus, downloadInvoicePDF, generateInvoicePDF, previewInvoicePDF, createInvoice } = useInvoices();
   const { customers } = useRealtimeSupabaseData();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -126,6 +126,15 @@ export const BillingView = () => {
       toast.success("Invoice PDF generated");
     } catch (error) {
       toast.error("Failed to generate PDF");
+    }
+  };
+
+  const handlePreviewPDF = async (invoice: Invoice) => {
+    try {
+      await previewInvoicePDF(invoice);
+      toast.success("Opening invoice preview");
+    } catch (error) {
+      toast.error("Failed to preview PDF");
     }
   };
 
@@ -368,7 +377,7 @@ export const BillingView = () => {
                     
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => handleGeneratePDF(invoice)}>
+                        <Button variant="ghost" size="sm" onClick={() => handlePreviewPDF(invoice)}>
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleDownloadPDF(invoice)}>
