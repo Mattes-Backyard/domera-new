@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -48,7 +47,7 @@ export const useCompanySettings = () => {
       const { data, error } = await supabase
         .from('company_info')
         .select('*')
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching company info:', error);
@@ -111,12 +110,17 @@ export const useCompanySettings = () => {
   };
 
   const uploadLogo = async (file: File) => {
-    if (!user) return null;
+    if (!user) {
+      toast.error('You must be logged in to upload a logo');
+      return null;
+    }
 
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `logo-${Date.now()}.${fileExt}`;
       const filePath = `logos/${fileName}`;
+
+      console.log('Uploading file to:', filePath);
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('company-assets')
@@ -127,15 +131,18 @@ export const useCompanySettings = () => {
 
       if (uploadError) {
         console.error('Error uploading logo:', uploadError);
-        toast.error('Failed to upload logo');
+        toast.error(`Failed to upload logo: ${uploadError.message}`);
         return null;
       }
+
+      console.log('Upload successful:', uploadData);
 
       const { data: urlData } = supabase.storage
         .from('company-assets')
         .getPublicUrl(uploadData.path);
 
       const logoUrl = urlData.publicUrl;
+      console.log('Logo URL:', logoUrl);
 
       // Update company info with new logo URL
       const updated = await updateCompanyInfo({ logo_url: logoUrl });
