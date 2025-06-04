@@ -5,9 +5,10 @@ import { FacilityManagement } from "./FacilityManagement";
 import { AddUserDialog } from "./AddUserDialog";
 import { UserList } from "./UserList";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { CompanyLogo } from "@/components/ui/company-logo";
 
 export const AdminInterface = () => {
-  const { facilities, refreshData } = useCompanySettings();
+  const { facilities, refreshData, companyInfo } = useCompanySettings();
 
   const handleUserAdded = () => {
     refreshData();
@@ -15,9 +16,14 @@ export const AdminInterface = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Admin Panel</h1>
-        <p className="text-muted-foreground">Manage system settings and configurations</p>
+      <div className="mb-6 flex items-center gap-4">
+        <CompanyLogo size="lg" />
+        <div>
+          <h1 className="text-3xl font-bold">Admin Panel</h1>
+          <p className="text-muted-foreground">
+            Manage system settings and configurations for {companyInfo?.company_name || 'your company'}
+          </p>
+        </div>
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">

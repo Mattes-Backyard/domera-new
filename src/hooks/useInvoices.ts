@@ -93,7 +93,7 @@ export const useInvoices = () => {
       const { data: companyData, error: companyError } = await supabase
         .from('company_info')
         .select('*')
-        .single();
+        .maybeSingle();
 
       if (companyError && companyError.code !== 'PGRST116') {
         console.error('Error fetching company info:', companyError);
@@ -121,10 +121,37 @@ export const useInvoices = () => {
       const currency = invoice.currency || companyInfo?.currency || 'EUR';
       const currencySymbol = getCurrencySymbol(currency);
       
-      // Company logo and header
+      // Add company logo if available
+      if (companyInfo?.logo_url) {
+        try {
+          // Create an image element to load the logo
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = companyInfo.logo_url!;
+          });
+          
+          // Add logo to PDF (top left, 30x30 size)
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx?.drawImage(img, 0, 0);
+          
+          const imageData = canvas.toDataURL('image/jpeg', 0.8);
+          pdf.addImage(imageData, 'JPEG', 20, 10, 25, 25);
+        } catch (error) {
+          console.log('Could not load company logo for PDF:', error);
+        }
+      }
+      
+      // Company header (adjusted position to account for logo)
       pdf.setFontSize(20);
       pdf.setFont('helvetica', 'bold');
-      pdf.text(companyInfo?.company_name || 'StorageFlow Solutions', 20, 30);
+      pdf.text(companyInfo?.company_name || 'StorageFlow Solutions', companyInfo?.logo_url ? 50 : 20, 25);
       
       // Company information
       pdf.setFontSize(10);
@@ -139,7 +166,7 @@ export const useInvoices = () => {
       ];
       
       companyLines.forEach((line, index) => {
-        pdf.text(line, 20, 40 + (index * 5));
+        pdf.text(line, companyInfo?.logo_url ? 50 : 20, 35 + (index * 5));
       });
 
       // Invoice details (right side)
