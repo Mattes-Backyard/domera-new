@@ -20,7 +20,7 @@ const Index = () => {
   // Use real-time data instead of regular data
   const { 
     units, 
-    customers, 
+    customers: databaseCustomers, 
     facilities, 
     loading: dataLoading, 
     addUnit, 
@@ -79,6 +79,11 @@ const Index = () => {
     );
   }
 
+  // Transform database customers to Customer format for compatibility
+  const customers: Customer[] = databaseCustomers.map(dbCustomer => 
+    transformDatabaseCustomerToCustomer(dbCustomer, [])
+  );
+
   const handleUnitSelect = (unit: any) => {
     setViewingUnitDetails(unit);
   };
@@ -96,32 +101,10 @@ const Index = () => {
   };
 
   const handleTenantClick = (tenantId: string) => {
-    // Find customer in the transformed customers array
-    const customer = customers.find(c => c.id === tenantId);
+    // Find customer in the database customers array
+    const customer = databaseCustomers.find(c => c.id === tenantId);
     if (customer) {
-      // Convert Customer back to DatabaseCustomer for tenant details view
-      const nameParts = customer.name.split(' ');
-      const databaseCustomer: DatabaseCustomer = {
-        id: customer.id,
-        first_name: nameParts[0] || '',
-        last_name: nameParts.slice(1).join(' ') || '',
-        email: customer.email,
-        phone: customer.phone,
-        address: '',
-        city: '',
-        state: '',
-        zip_code: '',
-        emergency_contact_name: customer.emergencyContact,
-        emergency_contact_phone: customer.emergencyPhone,
-        move_in_date: customer.moveInDate,
-        lease_end_date: undefined,
-        security_deposit: undefined,
-        balance: customer.balance,
-        notes: undefined,
-        facility_id: '',
-        user_id: customer.id,
-      };
-      setViewingTenantDetails(databaseCustomer);
+      setViewingTenantDetails(customer);
     }
   };
 

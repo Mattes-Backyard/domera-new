@@ -43,18 +43,7 @@ export interface Customer {
   emergencyPhone?: string;
 }
 
-// CustomerUnit type for CustomerDetailsPage
-export interface CustomerUnit {
-  unitId: string;
-  unitNumber: string;
-  status: "good" | "overdue" | "pending";
-  monthlyRate: number;
-  leaseStart: string;
-  leaseEnd?: string;
-  balance: number;
-}
-
-// Customer type for CustomerDetailsPage
+// Customer type for CustomerDetailsPage (replacing Tenant)
 export interface CustomerDetails {
   id: string;
   name: string;
@@ -65,6 +54,17 @@ export interface CustomerDetails {
   status: string;
   joinDate: string;
   units: CustomerUnit[];
+}
+
+// CustomerUnit type for CustomerDetailsPage
+export interface CustomerUnit {
+  unitId: string;
+  unitNumber: string;
+  status: "good" | "overdue" | "pending";
+  monthlyRate: number;
+  leaseStart: string;
+  leaseEnd?: string;
+  balance: number;
 }
 
 // Helper function to transform DatabaseCustomer to Customer

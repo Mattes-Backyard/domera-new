@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -50,11 +51,11 @@ export const useRealtimeSupabaseData = () => {
         let customerId = null;
         
         if (unit.status === 'occupied' && customer) {
-          customerName = `${customer.first_name} ${customer.last_name}`.trim();
+          customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
           customerId = customer.user_id || customer.id;
         } else if (activeRental && customer) {
           unitStatus = 'occupied';
-          customerName = `${customer.first_name} ${customer.last_name}`.trim();
+          customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
           customerId = customer.user_id || customer.id;
         }
         

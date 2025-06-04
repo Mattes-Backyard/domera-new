@@ -2,16 +2,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, Mail, Phone, MapPin, CreditCard, Calendar } from "lucide-react";
-import { DatabaseCustomer } from "@/types/customer";
+import { CustomerDetails } from "@/types/customer";
 
 interface CustomerInfoCardProps {
-  tenant: DatabaseCustomer;
+  customer: CustomerDetails;
 }
 
-export const TenantInfoCard = ({ tenant: customer }: CustomerInfoCardProps) => {
-  const customerName = `${customer.first_name} ${customer.last_name}`.trim() || 'Unknown Customer';
-  const customerAddress = `${customer.address}, ${customer.city}, ${customer.state} ${customer.zip_code}`;
-
+export const CustomerInfoCard = ({ customer }: CustomerInfoCardProps) => {
   return (
     <Card>
       <CardHeader>
@@ -25,7 +22,7 @@ export const TenantInfoCard = ({ tenant: customer }: CustomerInfoCardProps) => {
           <div className="flex-1 space-y-3">
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-600 w-20">Name:</span>
-              <span className="font-medium">{customerName}</span>
+              <span className="font-medium">{customer.name}</span>
             </div>
             <div className="flex items-center space-x-2">
               <Mail className="h-4 w-4 text-gray-400" />
@@ -43,7 +40,7 @@ export const TenantInfoCard = ({ tenant: customer }: CustomerInfoCardProps) => {
             <MapPin className="h-4 w-4 text-gray-400" />
             <div>
               <p className="text-sm text-gray-600">Address</p>
-              <p className="font-medium">{customerAddress}</p>
+              <p className="font-medium">{customer.address}</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
@@ -57,16 +54,16 @@ export const TenantInfoCard = ({ tenant: customer }: CustomerInfoCardProps) => {
             <Calendar className="h-4 w-4 text-gray-400" />
             <div>
               <p className="text-sm text-gray-600">Join Date</p>
-              <p className="font-medium">{customer.join_date || customer.move_in_date}</p>
+              <p className="font-medium">{customer.joinDate}</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
             <User className="h-4 w-4 text-gray-400" />
             <div>
               <p className="text-sm text-gray-600">Status</p>
-              <div className="flex space-x-2 mt-1">
-                <Badge variant="outline" className="text-xs">{customer.status}</Badge>
-              </div>
+              <Badge variant="outline" className="text-xs">
+                {customer.status}
+              </Badge>
             </div>
           </div>
         </div>

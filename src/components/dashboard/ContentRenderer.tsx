@@ -2,7 +2,7 @@
 import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
-import { TenantDetailsPage } from "@/components/tenants/TenantDetailsPage";
+import { CustomerDetailsPage } from "@/components/customers/CustomerDetailsPage";
 import { ReportsDashboard } from "@/components/reports/ReportsDashboard";
 import { TasksView } from "@/components/tasks/TasksView";
 import { BillingView } from "@/components/billing/BillingView";
@@ -10,7 +10,7 @@ import { OperationsView } from "@/components/operations/OperationsView";
 import { FloorPlanView } from "@/components/floor-plan/FloorPlanView";
 import { AdminInterface } from "@/components/admin/AdminInterface";
 import { IntegrationsView } from "@/components/integrations/IntegrationsView";
-import { Customer, DatabaseCustomer, transformCustomerToDatabaseCustomer, Tenant } from "@/types/customer";
+import { Customer, DatabaseCustomer, transformCustomerToDatabaseCustomer, CustomerDetails } from "@/types/customer";
 import type { Unit } from "@/hooks/useAppState";
 
 interface Facility {
@@ -97,8 +97,8 @@ const transformUnitForDetails = (unit: Unit) => {
   }
 };
 
-// Transform database customer to tenant format for TenantDetailsPage
-const transformCustomerToTenant = (customer: DatabaseCustomer): Tenant => {
+// Transform database customer to CustomerDetails format
+const transformCustomerToCustomerDetails = (customer: DatabaseCustomer): CustomerDetails => {
   if (!customer) {
     console.error('Customer is null or undefined');
     return {
@@ -121,13 +121,13 @@ const transformCustomerToTenant = (customer: DatabaseCustomer): Tenant => {
       email: customer.email || '',
       phone: customer.phone || '',
       address: `${customer.address || ''}, ${customer.city || ''}, ${customer.state || ''} ${customer.zip_code || ''}`.trim(),
-      ssn: "",
-      status: "active",
-      joinDate: customer.move_in_date || new Date().toISOString().split('T')[0],
+      ssn: customer.ssn || '',
+      status: customer.status || 'active',
+      joinDate: customer.move_in_date || customer.join_date || new Date().toISOString().split('T')[0],
       units: []
     };
   } catch (error) {
-    console.error('Error transforming customer to tenant:', error, customer);
+    console.error('Error transforming customer to CustomerDetails:', error, customer);
     return {
       id: customer.id || '',
       name: 'Error',
@@ -248,13 +248,13 @@ export const ContentRenderer = ({
     );
   }
 
-  // Show tenant details if viewing a specific tenant
+  // Show customer details if viewing a specific customer
   if (viewingTenantDetails) {
-    const transformedTenant = transformCustomerToTenant(viewingTenantDetails);
+    const transformedCustomer = transformCustomerToCustomerDetails(viewingTenantDetails);
     return (
       <div className="h-full overflow-auto">
-        <TenantDetailsPage
-          tenant={transformedTenant}
+        <CustomerDetailsPage
+          customer={transformedCustomer}
           onBack={onBackFromTenant}
         />
       </div>
@@ -324,7 +324,7 @@ export const ContentRenderer = ({
               onClearSelection={onClearCustomerSelection}
               customers={databaseCustomers}
               onCustomerAdd={onCustomerAdd}
-              onTenantClick={onTenantClick}
+              onCustomerClick={onTenantClick}
             />
           </div>
         );

@@ -26,6 +26,7 @@ export const AddCustomerDialog = ({
     city: "",
     state: "",
     zip_code: "",
+    ssn: "",
     emergency_contact_name: "",
     emergency_contact_phone: "",
   });
@@ -43,6 +44,9 @@ export const AddCustomerDialog = ({
       city: formData.city,
       state: formData.state,
       zip_code: formData.zip_code,
+      ssn: formData.ssn,
+      status: 'active',
+      join_date: new Date().toISOString().split('T')[0],
       emergency_contact_name: formData.emergency_contact_name,
       emergency_contact_phone: formData.emergency_contact_phone,
       move_in_date: new Date().toISOString().split('T')[0],
@@ -64,6 +68,7 @@ export const AddCustomerDialog = ({
       city: "",
       state: "",
       zip_code: "",
+      ssn: "",
       emergency_contact_name: "",
       emergency_contact_phone: "",
     });
@@ -122,6 +127,16 @@ export const AddCustomerDialog = ({
               id="phone"
               value={formData.phone}
               onChange={handleInputChange("phone")}
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="ssn">SSN</Label>
+            <Input
+              id="ssn"
+              value={formData.ssn}
+              onChange={handleInputChange("ssn")}
               required
             />
           </div>
