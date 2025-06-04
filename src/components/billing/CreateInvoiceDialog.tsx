@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,7 @@ interface CreateInvoiceDialogProps {
 
 export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProps) => {
   const [open, setOpen] = useState(false);
-  const { customers, units } = useRealtimeSupabaseData();
+  const { customers, units, unitRentals } = useRealtimeSupabaseData();
   
   const [formData, setFormData] = useState({
     customer_id: "",
@@ -42,26 +41,35 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
   const getCustomerUnits = () => {
     if (!formData.customer_id) return [];
     
-    // Find the selected customer
-    const selectedCustomer = customers.find(c => c.id === formData.customer_id);
-    if (!selectedCustomer) return [];
-    
-    // Filter units that belong to this customer (occupied units with matching tenantId)
-    return units.filter(unit => 
-      unit.status === 'occupied' && 
-      unit.tenantId === formData.customer_id
+    // Find active unit rentals for the selected customer
+    const customerRentals = unitRentals.filter(rental => 
+      rental.customer_id === formData.customer_id && 
+      rental.is_active === true
     );
+    
+    // Get the units for these rentals
+    const customerUnitIds = customerRentals.map(rental => rental.unit_id);
+    return units.filter(unit => customerUnitIds.includes(unit.id));
   };
 
   const handleUnitChange = (unitId: string) => {
     const unit = units.find(u => u.id === unitId);
     if (unit) {
-      setFormData(prev => ({ 
-        ...prev, 
-        unit_rental_id: unitId, 
-        subtotal: unit.rate || 0,
-        description: `Storage unit rental - Unit ${unit.id}`
-      }));
+      // Find the rental record to get the unit_rental_id
+      const rental = unitRentals.find(r => 
+        r.unit_id === unitId && 
+        r.customer_id === formData.customer_id && 
+        r.is_active === true
+      );
+      
+      if (rental) {
+        setFormData(prev => ({ 
+          ...prev, 
+          unit_rental_id: rental.id, // Use the rental ID, not the unit ID
+          subtotal: rental.monthly_rate || unit.monthly_rate || 0,
+          description: `Storage unit rental - Unit ${unit.unit_number}`
+        }));
+      }
     }
   };
 
@@ -169,11 +177,20 @@ export const CreateInvoiceDialog = ({ onCreateInvoice }: CreateInvoiceDialogProp
                 </SelectTrigger>
                 <SelectContent>
                   {customerUnits.length > 0 ? (
-                    customerUnits.map((unit) => (
-                      <SelectItem key={unit.id} value={unit.id}>
-                        Unit {unit.id} - €{unit.rate || 0}/month
-                      </SelectItem>
-                    ))
+                    customerUnits.map((unit) => {
+                      const rental = unitRentals.find(r => 
+                        r.unit_id === unit.id && 
+                        r.customer_id === formData.customer_id && 
+                        r.is_active === true
+                      );
+                      const rate = rental?.monthly_rate || unit.monthly_rate || 0;
+                      
+                      return (
+                        <SelectItem key={unit.id} value={unit.id}>
+                          Unit {unit.unit_number} - €{rate}/month
+                        </SelectItem>
+                      );
+                    })
                   ) : (
                     formData.customer_id && (
                       <SelectItem value="" disabled>
