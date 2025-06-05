@@ -1,3 +1,4 @@
+
 import { Users, Package, BarChart3, Settings, CreditCard, AlertTriangle, Zap, Wrench, CheckSquare, ChevronDown, Plug, Calendar, Shield, UserCog } from "lucide-react";
 import {
   Sidebar,
@@ -84,8 +85,16 @@ interface DashboardSidebarProps {
 }
 
 export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebarProps) => {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const isAdmin = profile?.role === 'admin';
+
+  // Debug logging
+  console.log('DashboardSidebar render:', {
+    user: user?.id,
+    profile: profile,
+    isAdmin: isAdmin,
+    profileRole: profile?.role
+  });
 
   const handleMenuClick = (viewId: string) => {
     console.log('Sidebar menu clicked:', viewId);
@@ -126,7 +135,13 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
         </SidebarGroup>
         
         <SidebarGroup>
-          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+          <SidebarGroupLabel>
+            Settings
+            {/* Debug info - remove in production */}
+            <span className="text-xs text-gray-400 ml-2">
+              (Role: {profile?.role || 'none'})
+            </span>
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <Collapsible>
@@ -160,6 +175,14 @@ export const DashboardSidebar = ({ activeView, setActiveView }: DashboardSidebar
                             <UserCog className="h-4 w-4" />
                             <span>Admin Panel</span>
                           </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      )}
+                      {/* Debug info - remove in production */}
+                      {!isAdmin && (
+                        <SidebarMenuSubItem>
+                          <div className="px-3 py-1 text-xs text-gray-400">
+                            Admin panel hidden (role: {profile?.role || 'none'})
+                          </div>
                         </SidebarMenuSubItem>
                       )}
                     </SidebarMenuSub>

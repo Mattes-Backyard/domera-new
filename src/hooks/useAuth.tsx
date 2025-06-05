@@ -23,17 +23,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState(null);
 
   const refreshProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user found, cannot refresh profile');
+      return;
+    }
     
     try {
-      const { data } = await supabase
+      console.log('Refreshing profile for user:', user.id);
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
       
+      console.log('Profile refresh result:', { data, error });
+      
       if (data) {
         setProfile(data);
+        console.log('Profile updated:', data);
+      } else if (error) {
+        console.error('Error refreshing profile:', error);
       }
     } catch (error) {
       console.error('Error refreshing profile:', error);
@@ -82,12 +91,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setLoading(false);
           
           if (session?.user) {
-            // Use setTimeout to prevent potential deadlock
+            // Force profile refresh on any auth change
             setTimeout(() => {
               if (mounted) {
                 refreshProfile();
               }
-            }, 0);
+            }, 100);
           } else {
             setProfile(null);
           }
@@ -100,6 +109,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Refresh profile when user changes
+  useEffect(() => {
+    if (user) {
+      refreshProfile();
+    }
+  }, [user?.id]);
 
   const signUp = async (email: string, password: string, userData?: any) => {
     setLoading(true);
