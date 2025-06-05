@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import jsPDF from 'jspdf';
+import { useModernInvoicePDF } from './useModernInvoicePDF';
 
 export interface Invoice {
   id: string;
@@ -53,6 +53,7 @@ export interface CreateInvoiceData {
 
 export const useInvoices = () => {
   const { user, profile } = useAuth();
+  const { generateModernInvoicePDF, previewModernInvoicePDF, getCurrencySymbol: getModernCurrencySymbol } = useModernInvoicePDF();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -167,207 +168,47 @@ export const useInvoices = () => {
 
   const generateInvoicePDF = async (invoice: Invoice) => {
     try {
-      console.log('Starting PDF generation for invoice:', invoice.invoice_number);
+      console.log('Generating modern invoice PDF for:', invoice.invoice_number);
       
-      // Get unit information for the invoice
-      let unitNumber = '';
-      if (invoice.unit_rental_id) {
-        const { data: rentalData } = await supabase
-          .from('unit_rentals')
-          .select(`
-            *,
-            units (
-              unit_number
-            )
-          `)
-          .eq('id', invoice.unit_rental_id)
-          .single();
-        
-        if (rentalData?.units) {
-          unitNumber = rentalData.units.unit_number || '';
-        }
-      }
-      
-      const pdf = new jsPDF();
-      const currency = invoice.currency || companyInfo?.currency || 'EUR';
-      const currencySymbol = getCurrencySymbol(currency);
-      
-      // Set up colors to match the invoice design
-      const darkGreen = '#2d5016'; // Dark green for headings
-      const lightGray = '#f5f5f5'; // Light gray for table headers
-      const blackText = '#000000'; // Black for main text
-      
-      // Company information section (left side)
-      pdf.setTextColor(blackText);
-      pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(companyInfo?.company_name || 'Sesam Self Storage Operations AB', 20, 25);
-      
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(10);
-      const companyLines = [
-        companyInfo?.address || 'c/o Revisorerna Syd AB,',
-        `${companyInfo?.address || 'Storgatan 22A,'}`,
-        `${companyInfo?.city || 'Malmö'}`,
-        '',
-        `${companyInfo?.phone || '042-44 88 000'}`,
-        `${companyInfo?.email || 'faktura@sesamselfstorage.se'}`
-      ];
-      
-      companyLines.forEach((line, index) => {
-        pdf.text(line, 20, 35 + (index * 5));
-      });
-
-      // Add company logo in upper right corner
-      let logoAdded = false;
-      const logoUrl = companyInfo?.logo_url || '/lovable-uploads/aa4e4530-c735-48d1-93c8-a9372425fab5.png';
-      
-      try {
-        console.log('Loading company logo:', logoUrl);
-        const logoBase64 = await loadImageAsBase64(logoUrl);
-        
-        if (logoBase64) {
-          // Position logo in upper right corner
-          pdf.addImage(logoBase64, 'JPEG', 140, 15, 50, 25);
-          logoAdded = true;
-        }
-      } catch (error) {
-        console.log('Could not load company logo for PDF:', error);
+      if (!companyInfo) {
+        throw new Error('Company information not available');
       }
 
-      // Customer information section (left side, below company info)
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('CUSTOMER NAME', 20, 90);
-      pdf.text('Address', 20, 96);
-      
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(`Customer ID: ${invoice.customer_id}`, 20, 110);
+      const modernInvoiceData = {
+        id: invoice.id,
+        invoice_number: invoice.invoice_number,
+        customer_id: invoice.customer_id,
+        unit_rental_id: invoice.unit_rental_id,
+        issue_date: invoice.issue_date,
+        due_date: invoice.due_date,
+        subtotal: invoice.subtotal,
+        vat_rate: invoice.vat_rate,
+        vat_amount: invoice.vat_amount,
+        total_amount: invoice.total_amount,
+        status: invoice.status,
+        description: invoice.description,
+        currency: invoice.currency
+      };
 
-      // Invoice details section (right side)
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Fakturadatum', 130, 90);
-      pdf.text('Fakturanummer', 130, 96);
-      pdf.text('Avser period', 130, 102);
+      const modernCompanyInfo = {
+        company_name: companyInfo.company_name,
+        address: companyInfo.address,
+        city: companyInfo.city,
+        postal_code: companyInfo.postal_code,
+        country: companyInfo.country,
+        phone: companyInfo.phone,
+        email: companyInfo.email,
+        vat_number: companyInfo.vat_number,
+        logo_url: companyInfo.logo_url,
+        currency: companyInfo.currency
+      };
 
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(invoice.issue_date, 170, 90);
-      pdf.text(invoice.invoice_number, 170, 96);
-      pdf.text(`${invoice.issue_date}`, 170, 102);
-      pdf.text(`${invoice.due_date}`, 170, 108);
-
-      // "Faktura" heading centered
-      pdf.setTextColor(blackText);
-      pdf.setFontSize(24);
-      pdf.setFont('helvetica', 'bold');
-      const pageWidth = pdf.internal.pageSize.width;
-      const textWidth = pdf.getTextWidth('Faktura');
-      pdf.text('Faktura', (pageWidth - textWidth) / 2, 140);
-
-      // Table header
-      const tableStartY = 160;
-      const tableWidth = 170;
-      const rowHeight = 8;
-      
-      // Table header background (light gray)
-      pdf.setFillColor(245, 245, 245);
-      pdf.rect(20, tableStartY, tableWidth, rowHeight, 'F');
-      
-      // Table header text
-      pdf.setTextColor(blackText);
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Benämning', 22, tableStartY + 5);
-      pdf.text('Lev ant', 130, tableStartY + 5);
-      pdf.text('Summa', 165, tableStartY + 5);
-      
-      // Table content row - use unit number if available
-      const contentY = tableStartY + rowHeight;
-      pdf.setFont('helvetica', 'normal');
-      const description = invoice.description || `Hyra Förråd ${unitNumber || '1-A1-10'}`;
-      pdf.text(description, 22, contentY + 5);
-      pdf.text('1', 130, contentY + 5);
-      pdf.text(`${invoice.subtotal.toFixed(2).replace('.', ',')} ${currencySymbol === '€' ? 'kr' : currencySymbol}`, 165, contentY + 5);
-      
-      // Insurance row if needed
-      if (invoice.vat_amount > 0) {
-        const insuranceY = contentY + rowHeight;
-        pdf.text('Försäkringsvärde upp till: kr 50000,00', 22, insuranceY + 5);
-        pdf.text('1', 130, insuranceY + 5);
-        pdf.text(`${invoice.vat_amount.toFixed(2).replace('.', ',')} kr`, 165, insuranceY + 5);
-      }
-
-      // Table borders
-      pdf.setDrawColor(200, 200, 200);
-      pdf.setLineWidth(0.5);
-      pdf.rect(20, tableStartY, tableWidth, rowHeight * 3);
-      pdf.line(20, tableStartY + rowHeight, 190, tableStartY + rowHeight);
-      pdf.line(20, tableStartY + rowHeight * 2, 190, tableStartY + rowHeight * 2);
-      
-      // Vertical lines
-      pdf.line(125, tableStartY, 125, tableStartY + rowHeight * 3);
-      pdf.line(160, tableStartY, 160, tableStartY + rowHeight * 3);
-
-      // Totals section (right side)
-      const totalsStartY = tableStartY + 50;
-      
-      // Totals box
-      pdf.setFillColor(245, 245, 245);
-      pdf.rect(130, totalsStartY, 60, 30, 'F');
-      pdf.setDrawColor(200, 200, 200);
-      pdf.rect(130, totalsStartY, 60, 30);
-      
-      pdf.setTextColor(blackText);
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'bold');
-      
-      // Totals text
-      pdf.text('Exkl. moms', 132, totalsStartY + 8);
-      pdf.text(`${invoice.subtotal.toFixed(2).replace('.', ',')} kr`, 165, totalsStartY + 8);
-      
-      pdf.text('Moms', 132, totalsStartY + 16);
-      pdf.text(`${invoice.vat_amount.toFixed(2).replace('.', ',')} kr`, 165, totalsStartY + 16);
-      
-      pdf.text('ATT BETALA', 132, totalsStartY + 24);
-      pdf.text(`${invoice.total_amount.toFixed(2).replace('.', ',')} kr`, 165, totalsStartY + 24);
-
-      // Payment terms at bottom
-      const footerY = 240;
-      
-      pdf.setTextColor(blackText);
-      pdf.setFontSize(9);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text('Betalningsvillkor, företag: 30 dagar', 20, footerY);
-      pdf.text('Betalningsvillkor, privatpersoner: betalning sker genom korttransaktion den 1 i aktuell månad', 20, footerY + 5);
-      pdf.text('Enligt ML 3 kap §2 utgår ingen moms för privatpersoner, medan företag betalar 25 % moms.', 20, footerY + 10);
-
-      // Convert PDF to blob with correct content type
-      const pdfOutput = pdf.output('blob');
-      const fileName = `invoice-${invoice.invoice_number}.pdf`;
-      
-      console.log('Uploading PDF to storage:', fileName);
-      
-      // Upload to Supabase storage with proper PDF content type
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('company-assets')
-        .upload(`invoices/${fileName}`, pdfOutput, {
-          cacheControl: '3600',
-          upsert: true,
-          contentType: 'application/pdf'
-        });
-
-      if (uploadError) {
-        console.error('Error uploading PDF:', uploadError);
-        throw new Error(`Failed to upload PDF: ${uploadError.message}`);
-      }
-
-      console.log('PDF uploaded successfully:', uploadData.path);
+      const pdfPath = await generateModernInvoicePDF(modernInvoiceData, modernCompanyInfo);
 
       // Update invoice record with file path
       const { error: updateError } = await supabase
         .from('invoices')
-        .update({ pdf_file_path: uploadData.path })
+        .update({ pdf_file_path: pdfPath })
         .eq('id', invoice.id);
 
       if (updateError) {
@@ -375,68 +216,57 @@ export const useInvoices = () => {
         throw new Error(`Failed to update invoice: ${updateError.message}`);
       }
 
-      console.log('Invoice updated with PDF path');
-      await fetchInvoices(); // Refresh the invoices list
+      console.log('Invoice updated with modern PDF path');
+      await fetchInvoices();
       
-      return uploadData.path;
+      return pdfPath;
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('Error generating modern PDF:', error);
       throw error;
     }
   };
 
   const previewInvoicePDF = async (invoice: Invoice) => {
     try {
-      console.log('Preview requested for invoice:', invoice.invoice_number);
+      console.log('Preview requested for modern invoice:', invoice.invoice_number);
       
-      let pdfPath = invoice.pdf_file_path;
-      
-      // Generate PDF if it doesn't exist
-      if (!pdfPath) {
-        console.log('PDF does not exist, generating...');
-        pdfPath = await generateInvoicePDF(invoice);
-        if (!pdfPath) {
-          throw new Error('Failed to generate PDF');
-        }
+      if (!companyInfo) {
+        throw new Error('Company information not available');
       }
 
-      console.log('Downloading PDF from path:', pdfPath);
+      const modernInvoiceData = {
+        id: invoice.id,
+        invoice_number: invoice.invoice_number,
+        customer_id: invoice.customer_id,
+        unit_rental_id: invoice.unit_rental_id,
+        issue_date: invoice.issue_date,
+        due_date: invoice.due_date,
+        subtotal: invoice.subtotal,
+        vat_rate: invoice.vat_rate,
+        vat_amount: invoice.vat_amount,
+        total_amount: invoice.total_amount,
+        status: invoice.status,
+        description: invoice.description,
+        currency: invoice.currency,
+        pdf_file_path: invoice.pdf_file_path
+      };
 
-      // Get the PDF from storage
-      const { data, error } = await supabase.storage
-        .from('company-assets')
-        .download(pdfPath);
+      const modernCompanyInfo = {
+        company_name: companyInfo.company_name,
+        address: companyInfo.address,
+        city: companyInfo.city,
+        postal_code: companyInfo.postal_code,
+        country: companyInfo.country,
+        phone: companyInfo.phone,
+        email: companyInfo.email,
+        vat_number: companyInfo.vat_number,
+        logo_url: companyInfo.logo_url,
+        currency: companyInfo.currency
+      };
 
-      if (error) {
-        console.error('Error downloading PDF for preview:', error);
-        throw new Error(`Failed to download PDF: ${error.message}`);
-      }
-
-      if (!data) {
-        throw new Error('No PDF data received');
-      }
-
-      console.log('PDF downloaded successfully, opening preview');
-
-      // Create blob URL and open in new tab
-      const blob = new Blob([data], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const newWindow = window.open(url, '_blank');
-      
-      if (!newWindow) {
-        // Fallback: create download if popup blocked
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `invoice-${invoice.invoice_number}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-      
-      // Clean up the URL after a delay
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      await previewModernInvoicePDF(modernInvoiceData, modernCompanyInfo);
     } catch (error) {
-      console.error('Error previewing PDF:', error);
+      console.error('Error previewing modern PDF:', error);
       throw error;
     }
   };
@@ -601,6 +431,6 @@ export const useInvoices = () => {
     previewInvoicePDF,
     downloadInvoicePDF,
     refreshInvoices: fetchInvoices,
-    getCurrencySymbol
+    getCurrencySymbol: getModernCurrencySymbol
   };
 };
