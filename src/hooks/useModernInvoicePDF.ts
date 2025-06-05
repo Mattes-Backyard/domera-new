@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import jsPDF from 'jspdf';
@@ -17,6 +16,7 @@ export interface ModernInvoiceData {
   status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled' | 'pending';
   description?: string;
   currency: string;
+  pdf_file_path?: string;
 }
 
 export interface ModernCompanyInfo {
