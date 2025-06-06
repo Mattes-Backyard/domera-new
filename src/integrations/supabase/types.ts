@@ -209,6 +209,39 @@ export type Database = {
           },
         ]
       }
+      invoice_templates: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          template_data: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          template_data: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          template_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           created_at: string
@@ -514,6 +547,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      template_components: {
+        Row: {
+          component_data: Json
+          created_at: string
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          component_data: Json
+          created_at?: string
+          id?: string
+          name: string
+          type: string
+        }
+        Update: {
+          component_data?: Json
+          created_at?: string
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
       }
       unit_rentals: {
         Row: {
