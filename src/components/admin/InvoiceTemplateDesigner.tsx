@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,11 +64,12 @@ const DroppableCanvas: React.FC<DroppableCanvasProps> = ({
   onComponentDelete,
   colors
 }) => {
+  const dropRef = useRef<HTMLDivElement>(null);
   const [{ isOver }, drop] = useDrop(() => ({
     accept: [ItemTypes.COMPONENT, ItemTypes.EXISTING_COMPONENT],
     drop: (item: any, monitor) => {
       const offset = monitor.getClientOffset();
-      const canvasRect = drop.current?.getBoundingClientRect();
+      const canvasRect = dropRef.current?.getBoundingClientRect();
       if (offset && canvasRect) {
         const x = ((offset.x - canvasRect.left) / canvasRect.width) * 100;
         const y = ((offset.y - canvasRect.top) / canvasRect.height) * 100;
@@ -80,9 +81,15 @@ const DroppableCanvas: React.FC<DroppableCanvasProps> = ({
     }),
   }));
 
+  // Combine refs
+  const combinedRef = (node: HTMLDivElement) => {
+    dropRef.current = node;
+    drop(node);
+  };
+
   return (
     <div
-      ref={drop}
+      ref={combinedRef}
       className={`relative w-full h-[600px] border-2 border-dashed border-gray-300 rounded-lg bg-white overflow-hidden ${
         isOver ? 'border-blue-500 bg-blue-50' : ''
       }`}

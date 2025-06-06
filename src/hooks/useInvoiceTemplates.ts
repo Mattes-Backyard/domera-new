@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import type { Json } from '@/integrations/supabase/types';
 
 export interface InvoiceTemplate {
   id: string;
@@ -44,6 +45,33 @@ export interface ComponentLibraryItem {
   created_at: string;
 }
 
+// Helper function to safely parse template data from Supabase Json type
+const parseTemplateData = (data: Json): TemplateData => {
+  if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
+    return data as TemplateData;
+  }
+  
+  // Fallback to default structure if parsing fails
+  return {
+    layout: {
+      type: 'single-column',
+      spacing: 'normal',
+      colors: {
+        primary: '#2563eb',
+        secondary: '#64748b',
+        success: '#10b981',
+        background: '#ffffff',
+      },
+    },
+    components: [],
+  };
+};
+
+// Helper function to convert TemplateData to Json for Supabase
+const templateDataToJson = (data: TemplateData): Json => {
+  return data as Json;
+};
+
 export const useInvoiceTemplates = () => {
   const { user, profile } = useAuth();
   const [templates, setTemplates] = useState<InvoiceTemplate[]>([]);
@@ -62,7 +90,12 @@ export const useInvoiceTemplates = () => {
         return;
       }
 
-      setTemplates(data || []);
+      const parsedTemplates = (data || []).map(template => ({
+        ...template,
+        template_data: parseTemplateData(template.template_data)
+      }));
+
+      setTemplates(parsedTemplates);
     } catch (error) {
       console.error('Error fetching templates:', error);
     }
@@ -95,7 +128,10 @@ export const useInvoiceTemplates = () => {
       const { data, error } = await supabase
         .from('invoice_templates')
         .insert([{
-          ...templateData,
+          name: templateData.name,
+          description: templateData.description,
+          is_default: templateData.is_default,
+          template_data: templateDataToJson(templateData.template_data),
           created_by: user.id
         }])
         .select()
@@ -120,12 +156,19 @@ export const useInvoiceTemplates = () => {
     }
 
     try {
+      const updateData: any = {
+        updated_at: new Date().toISOString()
+      };
+
+      // Only add fields that are being updated
+      if (updates.name !== undefined) updateData.name = updates.name;
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.is_default !== undefined) updateData.is_default = updates.is_default;
+      if (updates.template_data !== undefined) updateData.template_data = templateDataToJson(updates.template_data);
+
       const { data, error } = await supabase
         .from('invoice_templates')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
