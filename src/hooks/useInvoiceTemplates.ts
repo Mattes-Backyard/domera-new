@@ -47,8 +47,15 @@ export interface ComponentLibraryItem {
 
 // Helper function to safely parse template data from Supabase Json type
 const parseTemplateData = (data: Json): TemplateData => {
-  if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
-    return data as TemplateData;
+  // Type guard to check if data has the required structure
+  if (
+    data && 
+    typeof data === 'object' && 
+    !Array.isArray(data) &&
+    'layout' in data &&
+    'components' in data
+  ) {
+    return data as unknown as TemplateData;
   }
   
   // Fallback to default structure if parsing fails
@@ -69,7 +76,7 @@ const parseTemplateData = (data: Json): TemplateData => {
 
 // Helper function to convert TemplateData to Json for Supabase
 const templateDataToJson = (data: TemplateData): Json => {
-  return data as Json;
+  return data as unknown as Json;
 };
 
 export const useInvoiceTemplates = () => {
