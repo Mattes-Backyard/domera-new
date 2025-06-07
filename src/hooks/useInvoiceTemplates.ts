@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -13,6 +12,14 @@ export interface InvoiceTemplate {
   created_by: string;
   created_at: string;
   updated_at: string;
+  usage_count?: number;
+  last_used_at?: string;
+  category?: string;
+  tags?: string[];
+  is_public?: boolean;
+  version?: number;
+  parent_template_id?: string;
+  preview_image_url?: string;
 }
 
 export interface TemplateData {
