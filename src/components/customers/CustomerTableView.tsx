@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, Mail, Phone, MapPin, AlertCircle, Clock, CheckCircle2 } from "lucide-react";
+import { Eye, Mail, Phone, MapPin, AlertCircle, Clock, CheckCircle2, Users } from "lucide-react";
 import { DatabaseCustomer } from "@/types/customer";
 import { useState } from "react";
 
