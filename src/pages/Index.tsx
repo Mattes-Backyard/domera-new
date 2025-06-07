@@ -181,6 +181,7 @@ const Index = () => {
                   units={units}
                   customers={customers}
                   facilities={facilities}
+                  databaseCustomers={databaseCustomers}
                   onUnitSelect={handleUnitSelect}
                   onUnitUpdate={handleUnitUpdate}
                   onUnitAdd={handleUnitAdd}

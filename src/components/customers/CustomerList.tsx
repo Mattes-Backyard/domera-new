@@ -1,10 +1,9 @@
 
 import { useState } from "react";
 import { CustomerCard } from "./CustomerCard";
+import { CustomerTableView } from "./CustomerTableView";
+import { CustomerGridHeader } from "./CustomerGridHeader";
 import { AddCustomerDialog } from "./AddCustomerDialog";
-import { Button } from "@/components/ui/button";
-import { Plus, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { DatabaseCustomer } from "@/types/customer";
 
 interface CustomerListProps {
@@ -15,82 +14,102 @@ interface CustomerListProps {
   onCustomerAdd: (customer: DatabaseCustomer) => void;
   onCustomerClick: (customerId: string) => void;
   customerUnits?: Record<string, string[]>;
+  facilities?: any[];
 }
 
 export const CustomerList = ({
-  searchQuery,
+  searchQuery: externalSearchQuery,
   selectedCustomerId,
   onClearSelection,
   customers,
   onCustomerAdd,
   onCustomerClick,
   customerUnits = {},
+  facilities = [],
 }: CustomerListProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [facilityFilter, setFacilityFilter] = useState("all");
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
-  const effectiveSearchQuery = searchQuery || localSearchQuery;
+  const effectiveSearchQuery = externalSearchQuery || localSearchQuery;
   
   const filteredCustomers = customers.filter(customer => {
-    // Use actual database fields for filtering
+    // Search filter
     const customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim().toLowerCase();
     const searchLower = effectiveSearchQuery.toLowerCase();
-    
-    return customerName.includes(searchLower) ||
-           customer.email?.toLowerCase().includes(searchLower) ||
-           customer.phone?.includes(effectiveSearchQuery);
+    const matchesSearch = !effectiveSearchQuery || 
+      customerName.includes(searchLower) ||
+      customer.email?.toLowerCase().includes(searchLower) ||
+      customer.phone?.includes(effectiveSearchQuery);
+
+    // Status filter
+    const matchesStatus = statusFilter === "all" || customer.status === statusFilter;
+
+    // Facility filter
+    const matchesFacility = facilityFilter === "all" || customer.facility_id === facilityFilter;
+
+    return matchesSearch && matchesStatus && matchesFacility;
   });
 
   const handleViewDetails = (customer: DatabaseCustomer) => {
     onCustomerClick(customer.id);
   };
 
+  const handleClearFilters = () => {
+    setLocalSearchQuery("");
+    setStatusFilter("all");
+    setFacilityFilter("all");
+    if (selectedCustomerId) {
+      onClearSelection();
+    }
+  };
+
   return (
     <div className="space-y-6 p-6 h-full overflow-auto">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Customer
-        </Button>
-      </div>
-
-      {!searchQuery && (
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search customers..."
-            value={localSearchQuery}
-            onChange={(e) => setLocalSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      )}
+      <CustomerGridHeader
+        customers={customers}
+        onAddCustomer={() => setIsAddDialogOpen(true)}
+        searchQuery={localSearchQuery}
+        onSearchChange={setLocalSearchQuery}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        facilityFilter={facilityFilter}
+        onFacilityFilterChange={setFacilityFilter}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onClearFilters={handleClearFilters}
+        facilities={facilities}
+      />
 
       {effectiveSearchQuery && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-600">
             {filteredCustomers.length} customer(s) found for "{effectiveSearchQuery}"
           </p>
-          {selectedCustomerId && (
-            <Button variant="outline" onClick={onClearSelection}>
-              Clear Selection
-            </Button>
-          )}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCustomers.map((customer) => (
-          <CustomerCard
-            key={customer.id}
-            customer={customer}
-            isSelected={selectedCustomerId === customer.id}
-            onViewDetails={handleViewDetails}
-            units={customerUnits[customer.id] || []}
-          />
-        ))}
-      </div>
+      {viewMode === 'table' ? (
+        <CustomerTableView
+          customers={filteredCustomers}
+          onViewDetails={handleViewDetails}
+          selectedCustomerId={selectedCustomerId}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCustomers.map((customer) => (
+            <CustomerCard
+              key={customer.id}
+              customer={customer}
+              isSelected={selectedCustomerId === customer.id}
+              onViewDetails={handleViewDetails}
+              units={customerUnits[customer.id] || []}
+            />
+          ))}
+        </div>
+      )}
 
       {filteredCustomers.length === 0 && effectiveSearchQuery && (
         <div className="text-center py-12">
