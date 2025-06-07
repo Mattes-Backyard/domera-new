@@ -211,36 +211,68 @@ export type Database = {
       }
       invoice_templates: {
         Row: {
+          category: string | null
           created_at: string
           created_by: string
           description: string | null
           id: string
           is_default: boolean
+          is_public: boolean | null
+          last_used_at: string | null
           name: string
+          parent_template_id: string | null
+          preview_image_url: string | null
+          tags: string[] | null
           template_data: Json
           updated_at: string
+          usage_count: number | null
+          version: number | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           created_by: string
           description?: string | null
           id?: string
           is_default?: boolean
+          is_public?: boolean | null
+          last_used_at?: string | null
           name: string
+          parent_template_id?: string | null
+          preview_image_url?: string | null
+          tags?: string[] | null
           template_data: Json
           updated_at?: string
+          usage_count?: number | null
+          version?: number | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
           id?: string
           is_default?: boolean
+          is_public?: boolean | null
+          last_used_at?: string | null
           name?: string
+          parent_template_id?: string | null
+          preview_image_url?: string | null
+          tags?: string[] | null
           template_data?: Json
           updated_at?: string
+          usage_count?: number | null
+          version?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invoice_templates_parent_template_id_fkey"
+            columns: ["parent_template_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoices: {
         Row: {
@@ -255,6 +287,7 @@ export type Database = {
           pdf_file_path: string | null
           status: string
           subtotal: number
+          template_id: string | null
           total_amount: number
           unit_rental_id: string | null
           updated_at: string
@@ -273,6 +306,7 @@ export type Database = {
           pdf_file_path?: string | null
           status?: string
           subtotal: number
+          template_id?: string | null
           total_amount: number
           unit_rental_id?: string | null
           updated_at?: string
@@ -291,13 +325,22 @@ export type Database = {
           pdf_file_path?: string | null
           status?: string
           subtotal?: number
+          template_id?: string | null
           total_amount?: number
           unit_rental_id?: string | null
           updated_at?: string
           vat_amount?: number
           vat_rate?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invoices_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       maintenance_requests: {
         Row: {
@@ -571,6 +614,45 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      template_usage_logs: {
+        Row: {
+          id: string
+          invoice_id: string | null
+          template_id: string | null
+          used_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          invoice_id?: string | null
+          template_id?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          invoice_id?: string | null
+          template_id?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_usage_logs_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_usage_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "invoice_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       unit_rentals: {
         Row: {
