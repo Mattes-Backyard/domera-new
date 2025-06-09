@@ -25,7 +25,16 @@ export const useSupabaseData = () => {
           facility:facilities(name, city, tenant_id),
           unit_rentals(
             *,
-            customer:customers(*)
+            customer:customers(
+              id,
+              user_id,
+              first_name,
+              last_name,
+              email,
+              phone,
+              emergency_contact_name,
+              emergency_contact_phone
+            )
           )
         `);
 
@@ -58,24 +67,35 @@ export const useSupabaseData = () => {
 
       // Transform units data to match existing format
       const transformedUnits = unitsData?.map(unit => {
-        const activeRental = unit.unit_rentals?.find(rental => rental.is_active);
+        // Find the active rental for this unit
+        const activeRental = unit.unit_rentals?.find(rental => rental.is_active === true);
         const customer = activeRental?.customer;
         
+        // Determine the actual unit status based on rental data
         let unitStatus = unit.status;
         let customerName = null;
         let customerId = null;
         
-        if (unit.status === 'occupied' && customer) {
-          const firstName = (customer as any).first_name || '';
-          const lastName = (customer as any).last_name || '';
-          customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
-          customerId = customer.user_id || customer.id;
-        } else if (activeRental && customer) {
+        if (activeRental && customer) {
+          // Unit has an active rental, so it should be occupied
           unitStatus = 'occupied';
-          const firstName = (customer as any).first_name || '';
-          const lastName = (customer as any).last_name || '';
-          customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
+          
+          // Build customer name from available data
+          const firstName = customer.first_name || '';
+          const lastName = customer.last_name || '';
+          
+          if (firstName || lastName) {
+            customerName = `${firstName} ${lastName}`.trim();
+          } else if (customer.emergency_contact_name) {
+            customerName = customer.emergency_contact_name;
+          } else {
+            customerName = customer.email || 'Unknown Customer';
+          }
+          
           customerId = customer.user_id || customer.id;
+        } else if (unit.status === 'occupied') {
+          // Unit is marked as occupied but has no active rental - fix this
+          unitStatus = 'available';
         }
         
         return {
@@ -87,7 +107,11 @@ export const useSupabaseData = () => {
           tenantId: customerId,
           rate: Number(unit.monthly_rate),
           climate: unit.climate_controlled,
-          site: unit.facility?.city?.toLowerCase() || 'unknown'
+          site: unit.facility?.city?.toLowerCase() || 'unknown',
+          facility: unit.facility ? {
+            id: unit.facility_id,
+            name: unit.facility.name
+          } : null
         };
       }) || [];
 
@@ -98,7 +122,7 @@ export const useSupabaseData = () => {
           *,
           unit_rentals(
             *,
-            unit:units(unit_number)
+            unit:units(unit_number, facility_id)
           )
         `);
 

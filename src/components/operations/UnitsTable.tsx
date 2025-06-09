@@ -125,6 +125,9 @@ export const UnitsTable = ({ units, selectedUnits, onSelectUnit, onSelectAll, on
                     {unit.tenant && !unit.tenantId && (
                       <div className="text-sm text-blue-600">{unit.tenant}</div>
                     )}
+                    {!unit.tenant && unit.status === 'occupied' && (
+                      <div className="text-sm text-orange-600">Occupied (No tenant data)</div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">

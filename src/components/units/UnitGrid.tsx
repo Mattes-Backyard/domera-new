@@ -1,3 +1,4 @@
+
 import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ interface Unit {
   rate: number;
   climate: boolean;
   site: string;
+  facility?: { id: string; name: string };
 }
 
 interface Facility {
@@ -89,29 +91,25 @@ export const UnitGrid = ({
     }
   };
 
-  const getFacilityName = (site: string) => {
-    // First try to find the facility by ID in the facilities prop (from admin panel)
-    const facility = facilities.find(f => f.id === site);
+  const getFacilityName = (unit: Unit) => {
+    // First try to get facility name from the unit's facility object
+    if (unit.facility?.name) {
+      return unit.facility.name;
+    }
+    
+    // Fallback: try to match by ID in the facilities prop
+    const facility = facilities.find(f => f.id === unit.site);
     if (facility) {
       return facility.name;
     }
     
-    // Fallback: try to match by city name if site is a city name
-    const facilityByCity = facilities.find(f => 
-      f.name.toLowerCase().includes(site.toLowerCase()) || 
-      site.toLowerCase().includes(f.name.toLowerCase())
-    );
-    if (facilityByCity) {
-      return facilityByCity.name;
-    }
-    
     // Last fallback: capitalize the site string
-    return site.charAt(0).toUpperCase() + site.slice(1);
+    return unit.site?.charAt(0).toUpperCase() + unit.site?.slice(1) || 'Unknown Facility';
   };
 
-  const getFacilityColor = (site: string) => {
+  const getFacilityColor = (unit: Unit) => {
     // Use the facility name for consistent coloring
-    const facilityName = getFacilityName(site);
+    const facilityName = getFacilityName(unit);
     
     // Generate consistent colors based on facility name hash
     const hash = facilityName.split('').reduce((a, b) => {
@@ -138,7 +136,7 @@ export const UnitGrid = ({
     
     const query = (searchQuery || localSearchQuery).toLowerCase();
     return units.filter(unit => {
-      const facilityName = getFacilityName(unit.site);
+      const facilityName = getFacilityName(unit);
       const matchesSearch = !query || 
         unit.id.toLowerCase().includes(query) ||
         unit.size.toLowerCase().includes(query) ||
@@ -150,7 +148,9 @@ export const UnitGrid = ({
       const matchesStatus = statusFilter === "all" || unit.status === statusFilter;
       const matchesType = typeFilter === "all" || unit.type === typeFilter;
       const matchesSize = sizeFilter === "all" || unit.size === sizeFilter;
-      const matchesFacility = facilityFilter === "all" || unit.site === facilityFilter;
+      const matchesFacility = facilityFilter === "all" || 
+        unit.facility?.id === facilityFilter || 
+        unit.site === facilityFilter;
       
       return matchesSearch && matchesStatus && matchesType && matchesSize && matchesFacility;
     });
@@ -188,7 +188,7 @@ export const UnitGrid = ({
       return facilities;
     }
     // Fallback to unique sites from units if facilities prop is empty
-    const sites = [...new Set(units.map(unit => unit.site))];
+    const sites = [...new Set(units.map(unit => unit.site).filter(Boolean))];
     return sites.map(site => ({ id: site, name: site.charAt(0).toUpperCase() + site.slice(1) }));
   }, [units, facilities]);
 
@@ -290,8 +290,8 @@ export const UnitGrid = ({
         <div className="grid grid-cols-2 gap-2 text-sm mb-3">
           <div>
             <span className="text-gray-600">Facility:</span>
-            <Badge className={`${getFacilityColor(unit.site)} ml-1`} variant="outline">
-              {getFacilityName(unit.site)}
+            <Badge className={`${getFacilityColor(unit)} ml-1`} variant="outline">
+              {getFacilityName(unit)}
             </Badge>
           </div>
           <div>
@@ -313,6 +313,8 @@ export const UnitGrid = ({
               >
                 {unit.tenant}
               </button>
+            ) : unit.tenant ? (
+              <span className="text-blue-600 text-sm">{unit.tenant}</span>
             ) : (
               <span className="text-gray-500 text-sm">No tenant</span>
             )}
