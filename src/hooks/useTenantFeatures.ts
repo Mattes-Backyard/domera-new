@@ -19,6 +19,8 @@ export interface TenantPermission {
   granted: boolean;
 }
 
+type UserRole = 'admin' | 'manager' | 'customer';
+
 export const useTenantFeatures = () => {
   const { user, profile } = useAuth();
   const [features, setFeatures] = useState<TenantFeature[]>([]);
@@ -90,7 +92,7 @@ export const useTenantFeatures = () => {
     return true;
   };
 
-  const updatePermission = async (role: string, permissionName: string, granted: boolean) => {
+  const updatePermission = async (role: UserRole, permissionName: string, granted: boolean) => {
     if (!profile || profile.role !== 'admin') {
       console.error('Only admins can update permissions');
       return false;

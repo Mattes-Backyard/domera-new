@@ -51,15 +51,30 @@ export const useTenantBranding = () => {
     fetchBranding();
   }, [user, profile]);
 
-  const updateBranding = async (updates: Partial<TenantBranding>) => {
+  const updateBranding = async (updates: Partial<Omit<TenantBranding, 'id' | 'tenant_id'>>) => {
     if (!profile || profile.role !== 'admin') {
       console.error('Only admins can update branding');
       return false;
     }
 
+    // Get current user's tenant_id
+    const { data: facilityData } = await supabase
+      .from('facilities')
+      .select('tenant_id')
+      .eq('id', profile.facility_id)
+      .single();
+
+    if (!facilityData?.tenant_id) {
+      console.error('No tenant_id found for user');
+      return false;
+    }
+
     const { error } = await supabase
       .from('tenant_branding')
-      .upsert(updates)
+      .upsert({ 
+        ...updates, 
+        tenant_id: facilityData.tenant_id 
+      })
       .select()
       .single();
 
