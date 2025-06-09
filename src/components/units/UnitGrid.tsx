@@ -1,4 +1,3 @@
-
 import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -192,6 +191,7 @@ export const UnitGrid = ({
     return sites.map(site => ({ id: site, name: site.charAt(0).toUpperCase() + site.slice(1) }));
   }, [units, facilities]);
 
+  // ... keep existing code (FilterContent component definition)
   const FilterContent = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
       <div className="relative lg:col-span-2">
@@ -482,8 +482,8 @@ export const UnitGrid = ({
                     </TableCell>
 
                     <TableCell>
-                      <Badge className={getFacilityColor(unit.site)} variant="outline">
-                        {getFacilityName(unit.site)}
+                      <Badge className={getFacilityColor(unit)} variant="outline">
+                        {getFacilityName(unit)}
                       </Badge>
                     </TableCell>
                     
