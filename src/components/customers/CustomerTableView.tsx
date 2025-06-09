@@ -1,4 +1,3 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, Mail, Phone, MapPin, AlertCircle, Clock, CheckCircle2, Users } from "lucide-react";
 import { DatabaseCustomer } from "@/types/customer";
 import { useState } from "react";
+import { useTenantFeatures } from "@/hooks/useTenantFeatures";
 
 interface CustomerTableViewProps {
   customers: DatabaseCustomer[];
@@ -21,6 +21,7 @@ export const CustomerTableView = ({
   onBulkAction
 }: CustomerTableViewProps) => {
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
+  const { hasPermission, hasFeature } = useTenantFeatures();
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -95,6 +96,10 @@ export const CustomerTableView = ({
     return days;
   };
 
+  // Check permissions for bulk actions
+  const canSendReminders = hasPermission('process_payments') && hasFeature('automated_billing');
+  const canExportData = hasPermission('view_reports') && hasFeature('data_export');
+
   return (
     <div className="space-y-4">
       {/* Bulk Actions Bar */}
@@ -105,20 +110,24 @@ export const CustomerTableView = ({
               {selectedCustomers.length} customer{selectedCustomers.length !== 1 ? 's' : ''} selected
             </span>
             <div className="flex gap-2">
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => onBulkAction?.('send_reminder', selectedCustomers)}
-              >
-                Send Reminder
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => onBulkAction?.('export', selectedCustomers)}
-              >
-                Export
-              </Button>
+              {canSendReminders && (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => onBulkAction?.('send_reminder', selectedCustomers)}
+                >
+                  Send Reminder
+                </Button>
+              )}
+              {canExportData && (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => onBulkAction?.('export', selectedCustomers)}
+                >
+                  Export
+                </Button>
+              )}
               <Button 
                 size="sm" 
                 variant="outline"
@@ -280,13 +289,15 @@ export const CustomerTableView = ({
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2"
-                      >
-                        <Mail className="h-4 w-4" />
-                      </Button>
+                      {hasPermission('manage_customers') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

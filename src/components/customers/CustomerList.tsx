@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CustomerCard } from "./CustomerCard";
 import { CustomerTableView } from "./CustomerTableView";
@@ -6,6 +5,7 @@ import { CustomerGridHeader } from "./CustomerGridHeader";
 import { AddCustomerDialog } from "./AddCustomerDialog";
 import { DatabaseCustomer } from "@/types/customer";
 import { useToast } from "@/hooks/use-toast";
+import { useTenantFeatures } from "@/hooks/useTenantFeatures";
 
 interface CustomerListProps {
   searchQuery: string;
@@ -32,16 +32,16 @@ export const CustomerList = ({
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [facilityFilter, setFacilityFilter] = useState("all");
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table'); // Default to table for facility managers
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [balanceFilter, setBalanceFilter] = useState("all");
   const [joinDateFilter, setJoinDateFilter] = useState("all");
   
   const { toast } = useToast();
+  const { hasPermission, hasFeature } = useTenantFeatures();
 
   const effectiveSearchQuery = externalSearchQuery || localSearchQuery;
   
   const filteredCustomers = customers.filter(customer => {
-    // Search filter
     const customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim().toLowerCase();
     const searchLower = effectiveSearchQuery.toLowerCase();
     const matchesSearch = !effectiveSearchQuery || 
@@ -50,13 +50,9 @@ export const CustomerList = ({
       customer.phone?.includes(effectiveSearchQuery) ||
       customer.address?.toLowerCase().includes(searchLower);
 
-    // Status filter
     const matchesStatus = statusFilter === "all" || customer.status === statusFilter;
-
-    // Facility filter
     const matchesFacility = facilityFilter === "all" || customer.facility_id === facilityFilter;
 
-    // Balance filter
     let matchesBalance = true;
     if (balanceFilter === "current") {
       matchesBalance = !customer.balance || customer.balance <= 0;
@@ -66,7 +62,6 @@ export const CustomerList = ({
       matchesBalance = customer.balance && customer.balance > 100;
     }
 
-    // Join date filter
     let matchesJoinDate = true;
     if (joinDateFilter !== "all" && customer.join_date) {
       const joinDate = new Date(customer.join_date);
@@ -113,22 +108,44 @@ export const CustomerList = ({
   const handleBulkAction = (action: string, customerIds?: string[]) => {
     switch (action) {
       case 'export':
-        toast({
-          title: "Exporting customers...",
-          description: "Your customer data export will be ready shortly.",
-        });
+        if (hasPermission('view_reports') && hasFeature('data_export')) {
+          toast({
+            title: "Exporting customers...",
+            description: "Your customer data export will be ready shortly.",
+          });
+        } else {
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to export customer data.",
+            variant: "destructive"
+          });
+        }
         break;
       case 'send_reminders':
-        toast({
-          title: "Sending reminders...",
-          description: "Payment reminders are being sent to customers with outstanding balances.",
-        });
+        if (hasPermission('process_payments') && hasFeature('automated_billing')) {
+          toast({
+            title: "Sending reminders...",
+            description: "Payment reminders are being sent to customers with outstanding balances.",
+          });
+        } else {
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to send payment reminders.",
+            variant: "destructive"
+          });
+        }
         break;
       case 'send_reminder':
-        if (customerIds) {
+        if (hasPermission('process_payments') && hasFeature('automated_billing') && customerIds) {
           toast({
             title: "Sending reminders...",
             description: `Payment reminders sent to ${customerIds.length} customer${customerIds.length !== 1 ? 's' : ''}.`,
+          });
+        } else {
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to send payment reminders.",
+            variant: "destructive"
           });
         }
         break;
@@ -137,11 +154,13 @@ export const CustomerList = ({
     }
   };
 
+  const canAddCustomers = hasPermission('manage_customers');
+
   return (
     <div className="space-y-6 p-6 h-full overflow-auto">
       <CustomerGridHeader
         customers={customers}
-        onAddCustomer={() => setIsAddDialogOpen(true)}
+        onAddCustomer={canAddCustomers ? () => setIsAddDialogOpen(true) : undefined}
         searchQuery={localSearchQuery}
         onSearchChange={setLocalSearchQuery}
         statusFilter={statusFilter}
@@ -198,11 +217,13 @@ export const CustomerList = ({
         </div>
       )}
 
-      <AddCustomerDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        onCustomerAdd={onCustomerAdd}
-      />
+      {canAddCustomers && (
+        <AddCustomerDialog
+          open={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
+          onCustomerAdd={onCustomerAdd}
+        />
+      )}
     </div>
   );
 };

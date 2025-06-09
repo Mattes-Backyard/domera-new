@@ -153,19 +153,76 @@ export type Database = {
           },
         ]
       }
+      email_templates: {
+        Row: {
+          created_at: string | null
+          html_content: string
+          id: string
+          is_active: boolean | null
+          subject: string
+          template_type: string
+          tenant_id: string
+          text_content: string | null
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          html_content: string
+          id?: string
+          is_active?: boolean | null
+          subject: string
+          template_type: string
+          tenant_id: string
+          text_content?: string | null
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          html_content?: string
+          id?: string
+          is_active?: boolean | null
+          subject?: string
+          template_type?: string
+          tenant_id?: string
+          text_content?: string | null
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
       facilities: {
         Row: {
           address: string
           city: string
           country: string | null
           created_at: string | null
+          custom_domain: string | null
           email: string | null
           id: string
           manager_id: string | null
+          max_customers: number | null
+          max_units: number | null
           name: string
           phone: string | null
           state: string | null
+          subdomain: string | null
+          subscription_tier:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          tenant_id: string | null
+          tenant_status: Database["public"]["Enums"]["tenant_status"] | null
           timezone: string | null
+          trial_ends_at: string | null
           updated_at: string | null
           zip_code: string | null
         }
@@ -174,13 +231,23 @@ export type Database = {
           city: string
           country?: string | null
           created_at?: string | null
+          custom_domain?: string | null
           email?: string | null
           id?: string
           manager_id?: string | null
+          max_customers?: number | null
+          max_units?: number | null
           name: string
           phone?: string | null
           state?: string | null
+          subdomain?: string | null
+          subscription_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          tenant_id?: string | null
+          tenant_status?: Database["public"]["Enums"]["tenant_status"] | null
           timezone?: string | null
+          trial_ends_at?: string | null
           updated_at?: string | null
           zip_code?: string | null
         }
@@ -189,13 +256,23 @@ export type Database = {
           city?: string
           country?: string | null
           created_at?: string | null
+          custom_domain?: string | null
           email?: string | null
           id?: string
           manager_id?: string | null
+          max_customers?: number | null
+          max_units?: number | null
           name?: string
           phone?: string | null
           state?: string | null
+          subdomain?: string | null
+          subscription_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          tenant_id?: string | null
+          tenant_status?: Database["public"]["Enums"]["tenant_status"] | null
           timezone?: string | null
+          trial_ends_at?: string | null
           updated_at?: string | null
           zip_code?: string | null
         }
@@ -654,6 +731,144 @@ export type Database = {
           },
         ]
       }
+      tenant_branding: {
+        Row: {
+          accent_color: string | null
+          company_name: string | null
+          created_at: string | null
+          custom_css: string | null
+          email_from_address: string | null
+          email_from_name: string | null
+          favicon_url: string | null
+          hide_lovable_badge: boolean | null
+          id: string
+          login_background_url: string | null
+          logo_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          custom_css?: string | null
+          email_from_address?: string | null
+          email_from_name?: string | null
+          favicon_url?: string | null
+          hide_lovable_badge?: boolean | null
+          id?: string
+          login_background_url?: string | null
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          custom_css?: string | null
+          email_from_address?: string | null
+          email_from_name?: string | null
+          favicon_url?: string | null
+          hide_lovable_badge?: boolean | null
+          id?: string
+          login_background_url?: string | null
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_branding_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "facilities"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      tenant_features: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          enabled: boolean | null
+          feature_name: string
+          id: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          enabled?: boolean | null
+          feature_name: string
+          id?: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          enabled?: boolean | null
+          feature_name?: string
+          id?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_features_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      tenant_permissions: {
+        Row: {
+          created_at: string | null
+          granted: boolean | null
+          id: string
+          permission_name: string
+          role: Database["public"]["Enums"]["user_role"]
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          granted?: boolean | null
+          id?: string
+          permission_name: string
+          role: Database["public"]["Enums"]["user_role"]
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          granted?: boolean | null
+          id?: string
+          permission_name?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_permissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
       unit_rentals: {
         Row: {
           created_at: string | null
@@ -766,6 +981,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      feature_enabled: {
+        Args: { feature_name: string }
+        Returns: boolean
+      }
+      get_current_user_tenant_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_customer_facility_ids: {
         Args: Record<PropertyKey, never>
         Returns: string[]
@@ -778,11 +1001,21 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      user_has_permission: {
+        Args: { permission_name: string }
+        Returns: boolean
+      }
     }
     Enums: {
       payment_status: "pending" | "completed" | "failed" | "refunded"
+      subscription_tier:
+        | "starter"
+        | "professional"
+        | "enterprise"
+        | "enterprise_plus"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "pending" | "in_progress" | "completed" | "cancelled"
+      tenant_status: "active" | "suspended" | "trial" | "canceled"
       unit_status: "available" | "occupied" | "reserved" | "maintenance"
       user_role: "admin" | "manager" | "customer"
     }
@@ -901,8 +1134,15 @@ export const Constants = {
   public: {
     Enums: {
       payment_status: ["pending", "completed", "failed", "refunded"],
+      subscription_tier: [
+        "starter",
+        "professional",
+        "enterprise",
+        "enterprise_plus",
+      ],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["pending", "in_progress", "completed", "cancelled"],
+      tenant_status: ["active", "suspended", "trial", "canceled"],
       unit_status: ["available", "occupied", "reserved", "maintenance"],
       user_role: ["admin", "manager", "customer"],
     },

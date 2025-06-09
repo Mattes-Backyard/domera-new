@@ -17,17 +17,44 @@ export const useSupabaseData = () => {
     setLoading(true);
     
     try {
-      // Fetch units based on user role
-      const { data: unitsData } = await supabase
+      // Fetch units based on user role and tenant isolation
+      let unitsQuery = supabase
         .from('units')
         .select(`
           *,
-          facility:facilities(name, city),
+          facility:facilities(name, city, tenant_id),
           unit_rentals(
             *,
             customer:customers(*)
           )
         `);
+
+      // Apply tenant filtering based on user role
+      if (profile.role === 'admin') {
+        // Admins can see all units in their tenant
+        const { data: userFacility } = await supabase
+          .from('facilities')
+          .select('tenant_id')
+          .eq('id', profile.facility_id)
+          .single();
+        
+        if (userFacility?.tenant_id) {
+          const { data: tenantFacilities } = await supabase
+            .from('facilities')
+            .select('id')
+            .eq('tenant_id', userFacility.tenant_id);
+          
+          const facilityIds = tenantFacilities?.map(f => f.id) || [];
+          if (facilityIds.length > 0) {
+            unitsQuery = unitsQuery.in('facility_id', facilityIds);
+          }
+        }
+      } else {
+        // Managers and customers see only their facility
+        unitsQuery = unitsQuery.eq('facility_id', profile.facility_id);
+      }
+
+      const { data: unitsData } = await unitsQuery;
 
       // Transform units data to match existing format
       const transformedUnits = unitsData?.map(unit => {
@@ -39,7 +66,6 @@ export const useSupabaseData = () => {
         let customerId = null;
         
         if (unit.status === 'occupied' && customer) {
-          // Use safe property access
           const firstName = (customer as any).first_name || '';
           const lastName = (customer as any).last_name || '';
           customerName = `${firstName} ${lastName}`.trim() || customer.emergency_contact_name || 'Unknown Customer';
@@ -65,8 +91,8 @@ export const useSupabaseData = () => {
         };
       }) || [];
 
-      // Fetch customers directly from database
-      const { data: customersData } = await supabase
+      // Fetch customers with tenant isolation
+      let customersQuery = supabase
         .from('customers')
         .select(`
           *,
@@ -76,10 +102,36 @@ export const useSupabaseData = () => {
           )
         `);
 
+      // Apply tenant filtering for customers
+      if (profile.role === 'admin') {
+        // Admins can see all customers in their tenant
+        const { data: userFacility } = await supabase
+          .from('facilities')
+          .select('tenant_id')
+          .eq('id', profile.facility_id)
+          .single();
+        
+        if (userFacility?.tenant_id) {
+          const { data: tenantFacilities } = await supabase
+            .from('facilities')
+            .select('id')
+            .eq('tenant_id', userFacility.tenant_id);
+          
+          const facilityIds = tenantFacilities?.map(f => f.id) || [];
+          if (facilityIds.length > 0) {
+            customersQuery = customersQuery.in('facility_id', facilityIds);
+          }
+        }
+      } else {
+        // Managers and customers see only their facility
+        customersQuery = customersQuery.eq('facility_id', profile.facility_id);
+      }
+
+      const { data: customersData } = await customersQuery;
+
       // Transform customers to match our type interface with safe property access
       const transformedCustomers = customersData?.map((customer: any) => ({
         ...customer,
-        // Add computed fields for compatibility using safe property access
         first_name: customer.first_name || customer.emergency_contact_name?.split(' ')[0] || '',
         last_name: customer.last_name || customer.emergency_contact_name?.split(' ').slice(1).join(' ') || '',
         email: customer.email || `customer${customer.id.slice(0, 8)}@storage.com`,
@@ -96,12 +148,28 @@ export const useSupabaseData = () => {
       setUnits(transformedUnits);
       setCustomers(transformedCustomers);
 
-      // Fetch facilities
-      const { data: facilitiesData } = await supabase
-        .from('facilities')
-        .select('*');
+      // Fetch facilities based on tenant access
+      let facilitiesQuery = supabase.from('facilities').select('*');
+      
+      if (profile.role === 'admin') {
+        // Admins can see all facilities in their tenant
+        const { data: userFacility } = await supabase
+          .from('facilities')
+          .select('tenant_id')
+          .eq('id', profile.facility_id)
+          .single();
+        
+        if (userFacility?.tenant_id) {
+          facilitiesQuery = facilitiesQuery.eq('tenant_id', userFacility.tenant_id);
+        }
+      } else {
+        // Managers and customers see only their facility
+        facilitiesQuery = facilitiesQuery.eq('id', profile.facility_id);
+      }
 
+      const { data: facilitiesData } = await facilitiesQuery;
       setFacilities(facilitiesData || []);
+
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -138,7 +206,6 @@ export const useSupabaseData = () => {
       return;
     }
 
-    // Refresh data
     await fetchData();
   };
 
@@ -159,14 +226,29 @@ export const useSupabaseData = () => {
       return;
     }
 
-    // Refresh data
     await fetchData();
   };
 
   const addCustomer = async (customerData) => {
-    // This would need to be implemented based on your customer creation flow
-    console.log('Add customer:', customerData);
-    // Refresh data after adding
+    if (!profile?.facility_id) {
+      console.error('No facility assigned to user');
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('customers')
+      .insert([{
+        ...customerData,
+        facility_id: profile.facility_id
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding customer:', error);
+      return;
+    }
+
     await fetchData();
   };
 
