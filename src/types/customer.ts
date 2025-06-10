@@ -1,4 +1,3 @@
-
 // Unified customer types for the application
 
 // Database Customer type (from Supabase)
@@ -24,6 +23,14 @@ export interface DatabaseCustomer {
   notes?: string;
   facility_id: string;
   user_id?: string;
+  active_units?: Array<{
+    unit_number: string;
+    size: string;
+    monthly_rate: number;
+    type: string;
+    start_date: string;
+    rental_id: string;
+  }>;
 }
 
 // Transformed Customer type (used in UI)
