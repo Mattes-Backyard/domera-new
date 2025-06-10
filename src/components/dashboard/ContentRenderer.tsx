@@ -1,4 +1,3 @@
-
 import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
@@ -41,6 +40,8 @@ interface ContentRendererProps {
   onBackFromFloorPlan: () => void;
   onQuickAddUnit: () => void;
   selectedSites: string[];
+  onCustomerClick: (customerId: string) => void;
+  customerUnits?: Record<string, string[]>;
 }
 
 // Transform Unit from useAppState to FloorPlanView Unit interface
@@ -165,6 +166,8 @@ export const ContentRenderer = ({
   onBackFromFloorPlan,
   onQuickAddUnit,
   selectedSites,
+  onCustomerClick,
+  customerUnits = {},
 }: ContentRendererProps) => {
   console.log('ContentRenderer rendering with activeView:', activeView);
   console.log('Units data:', units);
@@ -324,7 +327,9 @@ export const ContentRenderer = ({
               onClearSelection={onClearCustomerSelection}
               customers={databaseCustomers}
               onCustomerAdd={onCustomerAdd}
-              onCustomerClick={onTenantClick}
+              onCustomerClick={onCustomerClick}
+              customerUnits={customerUnits}
+              facilities={facilities}
             />
           </div>
         );

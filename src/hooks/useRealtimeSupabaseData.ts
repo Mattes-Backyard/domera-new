@@ -10,6 +10,7 @@ export const useRealtimeSupabaseData = () => {
   const [customers, setCustomers] = useState<DatabaseCustomer[]>([]);
   const [facilities, setFacilities] = useState([]);
   const [unitRentals, setUnitRentals] = useState([]);
+  const [customerUnits, setCustomerUnits] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const channelsRef = useRef<any[]>([]);
   const setupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -86,7 +87,7 @@ export const useRealtimeSupabaseData = () => {
           };
         }) || [];
 
-        // Fetch customers directly from database - no transformations needed now
+        // Fetch customers with their unit relationships
         const { data: customersData } = await supabase
           .from('customers')
           .select(`
@@ -98,8 +99,17 @@ export const useRealtimeSupabaseData = () => {
             payments(amount, status)
           `);
 
+        // Build customer-unit mapping
+        const customerUnitsMap: Record<string, string[]> = {};
+        customersData?.forEach((customer: any) => {
+          const activeRentals = customer.unit_rentals?.filter((rental: any) => rental.is_active) || [];
+          const customerUnitNumbers = activeRentals.map((rental: any) => rental.unit?.unit_number).filter(Boolean);
+          customerUnitsMap[customer.id] = customerUnitNumbers;
+        });
+
         // Just set the customers data directly since all fields now exist in the database
         setCustomers(customersData || []);
+        setCustomerUnits(customerUnitsMap);
         setUnits(transformedUnits);
 
         // Fetch facilities
@@ -122,6 +132,7 @@ export const useRealtimeSupabaseData = () => {
       setUnits([]);
       setCustomers([]);
       setFacilities([]);
+      setCustomerUnits({});
     } finally {
       setLoading(false);
     }
@@ -146,7 +157,6 @@ export const useRealtimeSupabaseData = () => {
     // Initial data fetch
     fetchData();
 
-    // ... keep existing code (setupChannels function and channel setup)
     const setupChannels = () => {
       // Clear any existing timeout
       if (setupTimeoutRef.current) {
@@ -441,6 +451,7 @@ export const useRealtimeSupabaseData = () => {
     customers,
     facilities,
     unitRentals,
+    customerUnits,
     loading,
     addUnit,
     updateUnit,
