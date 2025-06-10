@@ -2,8 +2,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Info, User } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AddCommentForm } from "./AddCommentForm";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Comment {
   id: string;
@@ -12,32 +13,18 @@ interface Comment {
   date: string;
 }
 
-const unitHistory = [
-  {
-    date: "2024-11-01",
-    rentalPeriod: "Active Lease",
-    rentedBy: "Jan Ingmar Karlsson",
-    status: "active"
-  },
-  {
-    date: "2022-05-02",
-    rentalPeriod: "2022-05-02 - 2022-05-02",
-    rentedBy: "Roeinvent AB Roeinvent AB",
-    status: "completed"
-  },
-  {
-    date: "2023-01-04",
-    rentalPeriod: "2023-01-04 - 2024-02-02",
-    rentedBy: "Lars Göran Sigurdsson",
-    status: "completed"
-  },
-  {
-    date: "2024-09-28",
-    rentalPeriod: "2024-09-28 - 2024-10-13",
-    rentedBy: "Maxime Anoman",
-    status: "completed"
-  }
-];
+interface RentalHistory {
+  id: string;
+  start_date: string;
+  end_date: string | null;
+  customer_name: string;
+  monthly_rate: number;
+  is_active: boolean;
+}
+
+interface UnitHistoryTabsProps {
+  unitId?: string;
+}
 
 const initialComments: Comment[] = [
   {
@@ -54,8 +41,65 @@ const initialComments: Comment[] = [
   }
 ];
 
-export const UnitHistoryTabs = () => {
+export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
   const [comments, setComments] = useState<Comment[]>(initialComments);
+  const [rentalHistory, setRentalHistory] = useState<RentalHistory[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchRentalHistory = async () => {
+      if (!unitId) return;
+      
+      setLoading(true);
+      try {
+        // Get the actual unit record to get the UUID
+        const { data: unitRecord } = await supabase
+          .from('units')
+          .select('id')
+          .eq('unit_number', unitId)
+          .single();
+
+        if (unitRecord) {
+          // Get all rentals for this unit with customer information
+          const { data: rentals } = await supabase
+            .from('unit_rentals')
+            .select(`
+              id,
+              start_date,
+              end_date,
+              monthly_rate,
+              is_active,
+              customer:customers(
+                first_name,
+                last_name
+              )
+            `)
+            .eq('unit_id', unitRecord.id)
+            .order('start_date', { ascending: false });
+
+          if (rentals) {
+            const formattedHistory = rentals.map(rental => ({
+              id: rental.id,
+              start_date: rental.start_date,
+              end_date: rental.end_date,
+              customer_name: rental.customer 
+                ? `${rental.customer.first_name || ''} ${rental.customer.last_name || ''}`.trim()
+                : 'Unknown Customer',
+              monthly_rate: rental.monthly_rate,
+              is_active: rental.is_active
+            }));
+            setRentalHistory(formattedHistory);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching rental history:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRentalHistory();
+  }, [unitId]);
 
   const handleAddComment = (newComment: Omit<Comment, 'id'>) => {
     const comment: Comment = {
@@ -65,14 +109,19 @@ export const UnitHistoryTabs = () => {
     setComments(prev => [comment, ...prev]);
   };
 
-  const getHistoryStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "text-green-600";
-      case "completed":
-        return "text-blue-600";
-      default:
-        return "text-gray-600";
+  const getRentalStatusDisplay = (rental: RentalHistory) => {
+    if (rental.is_active) {
+      return {
+        text: "Active Lease",
+        color: "text-green-600"
+      };
+    } else {
+      const startDate = new Date(rental.start_date).toLocaleDateString();
+      const endDate = rental.end_date ? new Date(rental.end_date).toLocaleDateString() : 'Ongoing';
+      return {
+        text: `${startDate} - ${endDate}`,
+        color: "text-blue-600"
+      };
     }
   };
 
@@ -82,53 +131,81 @@ export const UnitHistoryTabs = () => {
         <CardTitle>Unit History</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="tenant-roll">
+        <Tabs defaultValue="customer-roll">
           <TabsList>
-            <TabsTrigger value="tenant-roll">Tenant Rent Roll</TabsTrigger>
+            <TabsTrigger value="customer-roll">Customer Rent Roll</TabsTrigger>
             <TabsTrigger value="price-history">Price History</TabsTrigger>
             <TabsTrigger value="status-history">Status History</TabsTrigger>
             <TabsTrigger value="comments">Comments / Remarks</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="tenant-roll" className="mt-6">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      <div className="flex items-center gap-2">
-                        Date <Info className="h-4 w-4" />
-                      </div>
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      <div className="flex items-center gap-2">
-                        Rental Period <Info className="h-4 w-4" />
-                      </div>
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      <div className="flex items-center gap-2">
-                        Rented By <Info className="h-4 w-4" />
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {unitHistory.map((record, index) => (
-                    <tr key={index} className="border-b border-gray-100">
-                      <td className="py-3 px-4 text-gray-900">{record.date}</td>
-                      <td className="py-3 px-4">
-                        <span className={getHistoryStatusColor(record.status)}>
-                          {record.rentalPeriod}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-blue-600">{record.rentedBy}</span>
-                      </td>
+          <TabsContent value="customer-roll" className="mt-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <span className="ml-2 text-gray-600">Loading rental history...</span>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">
+                        <div className="flex items-center gap-2">
+                          Date <Info className="h-4 w-4" />
+                        </div>
+                      </th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">
+                        <div className="flex items-center gap-2">
+                          Rental Period <Info className="h-4 w-4" />
+                        </div>
+                      </th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">
+                        <div className="flex items-center gap-2">
+                          Rented By <Info className="h-4 w-4" />
+                        </div>
+                      </th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">
+                        <div className="flex items-center gap-2">
+                          Monthly Rate <Info className="h-4 w-4" />
+                        </div>
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {rentalHistory.length > 0 ? (
+                      rentalHistory.map((rental) => {
+                        const statusDisplay = getRentalStatusDisplay(rental);
+                        return (
+                          <tr key={rental.id} className="border-b border-gray-100">
+                            <td className="py-3 px-4 text-gray-900">
+                              {new Date(rental.start_date).toLocaleDateString()}
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className={statusDisplay.color}>
+                                {statusDisplay.text}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-blue-600">{rental.customer_name}</span>
+                            </td>
+                            <td className="py-3 px-4 text-gray-900">
+                              ${rental.monthly_rate}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="py-8 text-center text-gray-500">
+                          No rental history available for this unit
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="price-history">

@@ -98,7 +98,7 @@ export const UnitDetailsPage = ({ unit, onBack, onUnitUpdate, customers = [], fa
       </div>
 
       <div className="mt-6 sm:mt-8">
-        <UnitHistoryTabs />
+        <UnitHistoryTabs unitId={unit.id} />
       </div>
 
       <EditUnitDialog
