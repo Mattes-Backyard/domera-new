@@ -98,7 +98,7 @@ const transformUnitForDetails = (unit: Unit) => {
   }
 };
 
-// Transform database customer to CustomerDetails format
+// Transform database customer to CustomerDetails format with proper unit information
 const transformCustomerToCustomerDetails = (customer: DatabaseCustomer): CustomerDetails => {
   if (!customer) {
     console.error('Customer is null or undefined');
@@ -116,6 +116,17 @@ const transformCustomerToCustomerDetails = (customer: DatabaseCustomer): Custome
   }
 
   try {
+    // Get units from customer.active_units if available, or use customerUnits mapping
+    const units = customer.active_units?.map(unitInfo => ({
+      unitId: unitInfo.rental_id || `rental-${unitInfo.unit_number}`,
+      unitNumber: unitInfo.unit_number || '',
+      status: 'good' as const, // Default status
+      monthlyRate: Number(unitInfo.monthly_rate) || 0,
+      leaseStart: unitInfo.start_date || new Date().toISOString().split('T')[0],
+      leaseEnd: undefined,
+      balance: customer.balance || 0
+    })) || [];
+
     return {
       id: customer.id || '',
       name: `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Unknown',
@@ -125,7 +136,7 @@ const transformCustomerToCustomerDetails = (customer: DatabaseCustomer): Custome
       ssn: customer.ssn || '',
       status: customer.status || 'active',
       joinDate: customer.move_in_date || customer.join_date || new Date().toISOString().split('T')[0],
-      units: []
+      units: units
     };
   } catch (error) {
     console.error('Error transforming customer to CustomerDetails:', error, customer);
@@ -171,6 +182,8 @@ export const ContentRenderer = ({
 }: ContentRendererProps) => {
   console.log('ContentRenderer rendering with activeView:', activeView);
   console.log('Units data:', units);
+  console.log('Customers data:', customers);
+  console.log('Customer units mapping:', customerUnits);
   console.log('Facilities data:', facilities);
 
   // Safely transform Customer[] to DatabaseCustomer[] for CustomerList
@@ -253,7 +266,9 @@ export const ContentRenderer = ({
 
   // Show customer details if viewing a specific customer
   if (viewingTenantDetails) {
+    console.log('Rendering customer details for:', viewingTenantDetails);
     const transformedCustomer = transformCustomerToCustomerDetails(viewingTenantDetails);
+    console.log('Transformed customer details:', transformedCustomer);
     return (
       <div className="h-full overflow-auto">
         <CustomerDetailsPage

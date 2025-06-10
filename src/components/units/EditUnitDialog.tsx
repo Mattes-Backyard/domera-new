@@ -38,6 +38,7 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] 
   // Update form data when unit prop changes or dialog opens
   useEffect(() => {
     if (isOpen && unit) {
+      console.log('Setting form data for unit:', unit);
       setFormData({ ...unit });
     }
   }, [unit, isOpen]);
@@ -146,23 +147,19 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] 
             </div>
             
             <div>
-              <Label htmlFor="tenant">Tenant Name</Label>
+              <Label htmlFor="tenant">Current Tenant</Label>
               <Input
                 id="tenant"
-                value={formData.tenant || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, tenant: e.target.value || null }))}
-                placeholder="Leave empty if no tenant"
+                value={formData.tenant || "No tenant assigned"}
+                disabled
+                className="bg-gray-50"
+                placeholder="No tenant assigned"
               />
-            </div>
-            
-            <div>
-              <Label htmlFor="tenantId">Tenant ID</Label>
-              <Input
-                id="tenantId"
-                value={formData.tenantId || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, tenantId: e.target.value || null }))}
-                placeholder="Leave empty if no tenant"
-              />
+              {formData.tenant && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Tenant ID: {formData.tenantId || 'Unknown'}
+                </p>
+              )}
             </div>
             
             <div className="flex items-center space-x-2">
@@ -173,6 +170,16 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] 
               />
               <Label htmlFor="climate">Climate Controlled</Label>
             </div>
+
+            {formData.status === 'occupied' && formData.tenant && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm font-medium text-blue-900">Unit is currently occupied</p>
+                <p className="text-sm text-blue-700">Tenant: {formData.tenant}</p>
+                <p className="text-sm text-blue-600 mt-1">
+                  To change tenant assignment, use the "Assign Tenant" feature or set status to "available" first.
+                </p>
+              </div>
+            )}
           </div>
         </div>
         

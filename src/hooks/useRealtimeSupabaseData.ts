@@ -50,7 +50,7 @@ export const useRealtimeSupabaseData = () => {
 
         setUnitRentals(unitRentalsData || []);
 
-        // Transform units data
+        // Transform units data with better customer relationship handling
         const transformedUnits = unitsData?.map(unit => {
           // Find active rental for this unit
           const activeRental = unit.unit_rentals?.find(rental => rental.is_active);
@@ -60,30 +60,29 @@ export const useRealtimeSupabaseData = () => {
           let customerName = null;
           let customerId = null;
           
-          if (unit.status === 'occupied' && customer) {
-            // Use actual database fields
-            const firstName = customer.first_name || '';
-            const lastName = customer.last_name || '';
-            customerName = `${firstName} ${lastName}`.trim() || 'Unknown Customer';
-            customerId = customer.id;
-          } else if (activeRental && customer) {
+          if (activeRental && customer) {
             unitStatus = 'occupied';
+            // Use actual database fields with fallbacks
             const firstName = customer.first_name || '';
             const lastName = customer.last_name || '';
-            customerName = `${firstName} ${lastName}`.trim() || 'Unknown Customer';
+            customerName = `${firstName} ${lastName}`.trim() || customer.email || 'Unknown Customer';
             customerId = customer.id;
           }
           
           return {
             id: unit.unit_number,
+            unit_number: unit.unit_number,
             size: unit.size,
             type: unit.type,
             status: unitStatus,
             tenant: customerName,
             tenantId: customerId,
             rate: Number(unit.monthly_rate),
+            monthly_rate: Number(unit.monthly_rate),
             climate: unit.climate_controlled,
-            site: unit.facility?.city?.toLowerCase() || 'unknown'
+            climate_controlled: unit.climate_controlled,
+            site: unit.facility?.city?.toLowerCase() || 'unknown',
+            facility_id: unit.facility_id
           };
         }) || [];
 
@@ -94,21 +93,33 @@ export const useRealtimeSupabaseData = () => {
             *,
             unit_rentals(
               *,
-              unit:units(unit_number)
+              unit:units(unit_number, size, monthly_rate, type)
             ),
             payments(amount, status)
           `);
 
-        // Build customer-unit mapping
+        // Build customer-unit mapping with detailed unit information
         const customerUnitsMap: Record<string, string[]> = {};
-        customersData?.forEach((customer: any) => {
+        const enhancedCustomers = customersData?.map((customer: any) => {
           const activeRentals = customer.unit_rentals?.filter((rental: any) => rental.is_active) || [];
           const customerUnitNumbers = activeRentals.map((rental: any) => rental.unit?.unit_number).filter(Boolean);
           customerUnitsMap[customer.id] = customerUnitNumbers;
-        });
+          
+          // Add unit details to customer for easier access
+          return {
+            ...customer,
+            active_units: activeRentals.map((rental: any) => ({
+              unit_number: rental.unit?.unit_number,
+              size: rental.unit?.size,
+              monthly_rate: rental.unit?.monthly_rate,
+              type: rental.unit?.type,
+              start_date: rental.start_date,
+              rental_id: rental.id
+            }))
+          };
+        }) || [];
 
-        // Just set the customers data directly since all fields now exist in the database
-        setCustomers(customersData || []);
+        setCustomers(enhancedCustomers);
         setCustomerUnits(customerUnitsMap);
         setUnits(transformedUnits);
 
@@ -396,11 +407,11 @@ export const useRealtimeSupabaseData = () => {
       .update({
         size: updatedUnit.size,
         type: updatedUnit.type,
-        monthly_rate: updatedUnit.rate,
+        monthly_rate: updatedUnit.rate || updatedUnit.monthly_rate,
         status: updatedUnit.status,
-        climate_controlled: updatedUnit.climate
+        climate_controlled: updatedUnit.climate || updatedUnit.climate_controlled
       })
-      .eq('unit_number', updatedUnit.id);
+      .eq('unit_number', updatedUnit.id || updatedUnit.unit_number);
 
     if (error) {
       console.error('Error updating unit:', error);
@@ -410,7 +421,7 @@ export const useRealtimeSupabaseData = () => {
 
     // If tenant information is being updated, handle rental records
     if (updatedUnit.tenant && updatedUnit.tenantId && !updatedUnit.tenantId.startsWith('placeholder-')) {
-      // Find or create customer record
+      // Find customer record
       const customer = customers.find(c => c.id === updatedUnit.tenantId);
       if (!customer) {
         console.error('Customer not found for tenant ID:', updatedUnit.tenantId);
@@ -418,21 +429,30 @@ export const useRealtimeSupabaseData = () => {
         return;
       }
 
-      // Create or update unit rental
-      const { error: rentalError } = await supabase
-        .from('unit_rentals')
-        .upsert({
-          unit_id: units.find(u => u.id === updatedUnit.id)?.id,
-          customer_id: customer.id,
-          start_date: new Date().toISOString().split('T')[0],
-          monthly_rate: updatedUnit.rate,
-          is_active: true
-        });
+      // Get the actual unit record to get the UUID
+      const { data: unitRecord } = await supabase
+        .from('units')
+        .select('id')
+        .eq('unit_number', updatedUnit.id || updatedUnit.unit_number)
+        .single();
 
-      if (rentalError) {
-        console.error('Error updating rental:', rentalError);
-        toast.error('Failed to update rental information');
-        return;
+      if (unitRecord) {
+        // Create or update unit rental
+        const { error: rentalError } = await supabase
+          .from('unit_rentals')
+          .upsert({
+            unit_id: unitRecord.id,
+            customer_id: customer.id,
+            start_date: new Date().toISOString().split('T')[0],
+            monthly_rate: updatedUnit.rate || updatedUnit.monthly_rate,
+            is_active: true
+          });
+
+        if (rentalError) {
+          console.error('Error updating rental:', rentalError);
+          toast.error('Failed to update rental information');
+          return;
+        }
       }
     }
 
