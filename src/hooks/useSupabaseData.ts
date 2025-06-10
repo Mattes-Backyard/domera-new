@@ -9,6 +9,7 @@ export const useSupabaseData = () => {
   const [units, setUnits] = useState([]);
   const [customers, setCustomers] = useState<DatabaseCustomer[]>([]);
   const [facilities, setFacilities] = useState([]);
+  const [customerUnits, setCustomerUnits] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
@@ -156,14 +157,14 @@ export const useSupabaseData = () => {
         };
       }) || [];
 
-      // Fetch customers with tenant isolation
+      // Fetch customers with their unit relationships
       let customersQuery = supabase
         .from('customers')
         .select(`
           *,
           unit_rentals(
             *,
-            unit:units(unit_number, facility_id)
+            unit:units(unit_number, facility_id, size, type, monthly_rate)
           )
         `);
 
@@ -192,24 +193,35 @@ export const useSupabaseData = () => {
 
       const { data: customersData } = await customersQuery;
 
-      // Transform customers to match our type interface
-      const transformedCustomers = customersData?.map((customer: any) => ({
-        ...customer,
-        first_name: customer.first_name || customer.emergency_contact_name?.split(' ')[0] || '',
-        last_name: customer.last_name || customer.emergency_contact_name?.split(' ').slice(1).join(' ') || '',
-        email: customer.email || `customer${customer.id.slice(0, 8)}@storage.com`,
-        phone: customer.phone || customer.emergency_contact_phone || '',
-        address: customer.address || '',
-        city: customer.city || '',
-        state: customer.state || '',
-        zip_code: customer.zip_code || '',
-        ssn: customer.ssn || '',
-        status: customer.status || 'active',
-        join_date: customer.join_date || customer.move_in_date || new Date().toISOString().split('T')[0]
-      })) || [];
+      // Transform customers and build customer-unit mapping
+      const customerUnitsMap: Record<string, string[]> = {};
+      const transformedCustomers = customersData?.map((customer: any) => {
+        // Get active unit rentals for this customer
+        const activeRentals = customer.unit_rentals?.filter((rental: any) => rental.is_active) || [];
+        const customerUnitNumbers = activeRentals.map((rental: any) => rental.unit?.unit_number).filter(Boolean);
+        
+        // Store customer-unit relationship
+        customerUnitsMap[customer.id] = customerUnitNumbers;
+        
+        return {
+          ...customer,
+          first_name: customer.first_name || customer.emergency_contact_name?.split(' ')[0] || '',
+          last_name: customer.last_name || customer.emergency_contact_name?.split(' ').slice(1).join(' ') || '',
+          email: customer.email || `customer${customer.id.slice(0, 8)}@storage.com`,
+          phone: customer.phone || customer.emergency_contact_phone || '',
+          address: customer.address || '',
+          city: customer.city || '',
+          state: customer.state || '',
+          zip_code: customer.zip_code || '',
+          ssn: customer.ssn || '',
+          status: customer.status || 'active',
+          join_date: customer.join_date || customer.move_in_date || new Date().toISOString().split('T')[0]
+        };
+      }) || [];
 
       setUnits(transformedUnits);
       setCustomers(transformedCustomers);
+      setCustomerUnits(customerUnitsMap);
 
       // Fetch facilities based on tenant access
       let facilitiesQuery = supabase.from('facilities').select('*');
@@ -317,6 +329,7 @@ export const useSupabaseData = () => {
     units,
     customers,
     facilities,
+    customerUnits,
     loading,
     addUnit,
     updateUnit,

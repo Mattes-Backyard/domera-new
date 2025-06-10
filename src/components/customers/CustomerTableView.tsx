@@ -1,8 +1,9 @@
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, Mail, Phone, MapPin, AlertCircle, Clock, CheckCircle2, Users } from "lucide-react";
+import { Eye, Mail, Phone, MapPin, AlertCircle, Clock, CheckCircle2, Users, Package } from "lucide-react";
 import { DatabaseCustomer } from "@/types/customer";
 import { useState } from "react";
 import { useTenantFeatures } from "@/hooks/useTenantFeatures";
@@ -12,13 +13,15 @@ interface CustomerTableViewProps {
   onViewDetails: (customer: DatabaseCustomer) => void;
   selectedCustomerId: string | null;
   onBulkAction?: (action: string, customerIds: string[]) => void;
+  customerUnits?: Record<string, string[]>;
 }
 
 export const CustomerTableView = ({
   customers,
   onViewDetails,
   selectedCustomerId,
-  onBulkAction
+  onBulkAction,
+  customerUnits = {}
 }: CustomerTableViewProps) => {
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const { hasPermission, hasFeature } = useTenantFeatures();
@@ -153,10 +156,10 @@ export const CustomerTableView = ({
               <TableHead className="font-semibold">Customer</TableHead>
               <TableHead className="font-semibold">Contact Info</TableHead>
               <TableHead className="font-semibold">Location</TableHead>
+              <TableHead className="font-semibold">Units</TableHead>
               <TableHead className="font-semibold">Status</TableHead>
               <TableHead className="font-semibold">Balance</TableHead>
               <TableHead className="font-semibold">Join Date</TableHead>
-              <TableHead className="font-semibold">Last Activity</TableHead>
               <TableHead className="font-semibold text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -165,6 +168,7 @@ export const CustomerTableView = ({
               const balanceStatus = getBalanceStatus(customer.balance);
               const joinDaysAgo = getDaysAgo(customer.join_date);
               const isSelected = selectedCustomers.includes(customer.id);
+              const units = customerUnits[customer.id] || [];
               
               return (
                 <TableRow 
@@ -172,10 +176,11 @@ export const CustomerTableView = ({
                   className={`
                     ${selectedCustomerId === customer.id ? 'bg-blue-50 border-blue-200' : ''} 
                     ${isSelected ? 'bg-gray-50' : ''} 
-                    hover:bg-gray-50 transition-colors
+                    hover:bg-gray-50 transition-colors cursor-pointer
                   `}
+                  onClick={() => onViewDetails(customer)}
                 >
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <Checkbox
                       checked={isSelected}
                       onCheckedChange={(checked) => handleSelectCustomer(customer.id, checked as boolean)}
@@ -234,6 +239,28 @@ export const CustomerTableView = ({
                       )}
                     </div>
                   </TableCell>
+
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Package className="h-3 w-3 text-gray-400" />
+                      {units.length > 0 ? (
+                        <div className="space-y-1">
+                          {units.slice(0, 2).map((unitNumber, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {unitNumber}
+                            </Badge>
+                          ))}
+                          {units.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{units.length - 2} more
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-500">No units</span>
+                      )}
+                    </div>
+                  </TableCell>
                   
                   <TableCell>
                     <Badge className={`${getStatusColor(customer.status)} flex items-center gap-1 w-fit`}>
@@ -272,19 +299,15 @@ export const CustomerTableView = ({
                     </div>
                   </TableCell>
                   
-                  <TableCell>
-                    <div className="text-sm text-gray-500">
-                      <div>Last payment:</div>
-                      <div className="text-xs">2 days ago</div>
-                    </div>
-                  </TableCell>
-                  
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onViewDetails(customer)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewDetails(customer);
+                        }}
                         className="h-8 px-2"
                       >
                         <Eye className="h-4 w-4" />
@@ -294,6 +317,7 @@ export const CustomerTableView = ({
                           variant="ghost"
                           size="sm"
                           className="h-8 px-2"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <Mail className="h-4 w-4" />
                         </Button>

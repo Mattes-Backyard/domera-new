@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { CustomerCard } from "./CustomerCard";
 import { CustomerTableView } from "./CustomerTableView";
@@ -188,6 +189,7 @@ export const CustomerList = ({
           onViewDetails={handleViewDetails}
           selectedCustomerId={selectedCustomerId}
           onBulkAction={handleBulkAction}
+          customerUnits={customerUnits}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -21,6 +21,7 @@ const Index = () => {
     units, 
     customers: databaseCustomers, 
     facilities, 
+    customerUnits,
     loading: dataLoading, 
     addUnit, 
     updateUnit, 
@@ -81,7 +82,7 @@ const Index = () => {
 
   // Transform database customers to Customer format for compatibility
   const customers: Customer[] = databaseCustomers.map(dbCustomer => 
-    transformDatabaseCustomerToCustomer(dbCustomer, [])
+    transformDatabaseCustomerToCustomer(dbCustomer, customerUnits[dbCustomer.id] || [])
   );
 
   const handleUnitSelect = (unit: any) => {
@@ -146,6 +147,15 @@ const Index = () => {
     setActiveView("admin");
   };
 
+  const handleCustomerClick = (customerId: string) => {
+    setSelectedCustomerId(customerId);
+    // Find and set viewing tenant details for the customer
+    const customer = databaseCustomers.find(c => c.id === customerId);
+    if (customer) {
+      setViewingTenantDetails(customer);
+    }
+  };
+
   return (
     <NotificationProvider>
       <TaskProvider>
@@ -193,6 +203,8 @@ const Index = () => {
                   onBackFromFloorPlan={handleBackFromFloorPlan}
                   onQuickAddUnit={handleQuickAddUnit}
                   selectedSites={selectedSites}
+                  onCustomerClick={handleCustomerClick}
+                  customerUnits={customerUnits}
                 />
               </div>
             </div>
