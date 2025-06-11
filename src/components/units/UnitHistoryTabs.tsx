@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Info, User } from "lucide-react";
@@ -189,7 +188,7 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
     fetchHistoryData();
   }, [unitUuid]);
 
-  const handleAddComment = async (newComment: Omit<Comment, 'id'>) => {
+  const handleAddComment = async (commentText: string) => {
     if (!unitUuid || !user || !profile) return;
 
     try {
@@ -201,7 +200,7 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
           author_name: profile.first_name && profile.last_name 
             ? `${profile.first_name} ${profile.last_name}`.trim()
             : profile.email || 'Anonymous User',
-          comment_text: newComment.comment_text
+          comment_text: commentText
         })
         .select()
         .single();
