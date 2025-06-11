@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Unit {
   id: string;
@@ -24,6 +26,14 @@ interface Facility {
   name: string;
 }
 
+interface Customer {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+}
+
 interface EditUnitDialogProps {
   unit: Unit;
   isOpen: boolean;
@@ -34,6 +44,53 @@ interface EditUnitDialogProps {
 
 export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] }: EditUnitDialogProps) => {
   const [formData, setFormData] = useState<Unit>(unit);
+  const [currentCustomer, setCurrentCustomer] = useState<Customer | null>(null);
+  const { user } = useAuth();
+
+  // Fetch current customer information when dialog opens
+  useEffect(() => {
+    const fetchCurrentCustomer = async () => {
+      if (!isOpen || !unit.id) return;
+
+      try {
+        // Get the unit's UUID from the database
+        const { data: unitData } = await supabase
+          .from('units')
+          .select('id')
+          .eq('unit_number', unit.id)
+          .single();
+
+        if (!unitData) return;
+
+        // Get active rental for this unit
+        const { data: rentalData } = await supabase
+          .from('unit_rentals')
+          .select(`
+            customer:customers (
+              id,
+              first_name,
+              last_name,
+              email,
+              phone
+            )
+          `)
+          .eq('unit_id', unitData.id)
+          .eq('is_active', true)
+          .single();
+
+        if (rentalData?.customer) {
+          setCurrentCustomer(rentalData.customer as Customer);
+        } else {
+          setCurrentCustomer(null);
+        }
+      } catch (error) {
+        console.error('Error fetching current customer:', error);
+        setCurrentCustomer(null);
+      }
+    };
+
+    fetchCurrentCustomer();
+  }, [isOpen, unit.id]);
 
   // Update form data when unit prop changes or dialog opens
   useEffect(() => {
@@ -53,6 +110,55 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] 
     // Reset to original unit data
     setFormData({ ...unit });
     onClose();
+  };
+
+  const addComment = async (commentText: string) => {
+    if (!user || !commentText.trim()) return;
+
+    try {
+      // Get the unit's UUID from the database
+      const { data: unitData } = await supabase
+        .from('units')
+        .select('id')
+        .eq('unit_number', unit.id)
+        .single();
+
+      if (!unitData) {
+        console.error('Unit not found');
+        return;
+      }
+
+      // Get user's profile for name information
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', user.id)
+        .single();
+
+      const authorName = profileData 
+        ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim()
+        : user.email || 'Unknown User';
+
+      // Insert the comment
+      const { error } = await supabase
+        .from('unit_comments')
+        .insert({
+          unit_id: unitData.id,
+          author_id: user.id,
+          author_name: authorName,
+          comment_text: commentText.trim()
+        });
+
+      if (error) {
+        console.error('Error adding comment:', error);
+        throw error;
+      }
+
+      console.log('Comment added successfully');
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      throw error;
+    }
   };
 
   return (
@@ -147,18 +253,29 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] 
             </div>
             
             <div>
-              <Label htmlFor="tenant">Current Tenant</Label>
-              <Input
-                id="tenant"
-                value={formData.tenant || "No tenant assigned"}
-                disabled
-                className="bg-gray-50"
-                placeholder="No tenant assigned"
-              />
-              {formData.tenant && (
-                <p className="text-sm text-gray-600 mt-1">
-                  Tenant ID: {formData.tenantId || 'Unknown'}
-                </p>
+              <Label htmlFor="customer">Current Customer</Label>
+              {currentCustomer ? (
+                <div className="space-y-2">
+                  <Input
+                    id="customer"
+                    value={`${currentCustomer.first_name} ${currentCustomer.last_name}`}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                  <div className="text-sm text-gray-600">
+                    <p>Email: {currentCustomer.email}</p>
+                    <p>Phone: {currentCustomer.phone}</p>
+                    <p>Customer ID: {currentCustomer.id}</p>
+                  </div>
+                </div>
+              ) : (
+                <Input
+                  id="customer"
+                  value="No customer assigned"
+                  disabled
+                  className="bg-gray-50"
+                  placeholder="No customer assigned"
+                />
               )}
             </div>
             
@@ -171,15 +288,23 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] 
               <Label htmlFor="climate">Climate Controlled</Label>
             </div>
 
-            {formData.status === 'occupied' && formData.tenant && (
+            {formData.status === 'occupied' && currentCustomer && (
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm font-medium text-blue-900">Unit is currently occupied</p>
-                <p className="text-sm text-blue-700">Tenant: {formData.tenant}</p>
+                <p className="text-sm text-blue-700">Customer: {currentCustomer.first_name} {currentCustomer.last_name}</p>
                 <p className="text-sm text-blue-600 mt-1">
-                  To change tenant assignment, use the "Assign Tenant" feature or set status to "available" first.
+                  To change customer assignment, use the "Assign Customer" feature or set status to "available" first.
                 </p>
               </div>
             )}
+
+            {/* Quick Add Comment Section */}
+            <div className="border-t pt-4">
+              <Label className="text-sm font-medium">Quick Add Comment</Label>
+              <div className="mt-2">
+                <AddCommentForm onAddComment={addComment} />
+              </div>
+            </div>
           </div>
         </div>
         

@@ -5,15 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { MessageSquare } from "lucide-react";
 
-interface Comment {
-  id: string;
-  comment_text: string;
-  author_name: string;
-  created_at: string;
-}
-
 interface AddCommentFormProps {
-  onAddComment: (comment: Omit<Comment, 'id'>) => void;
+  onAddComment: (commentText: string) => Promise<void>;
 }
 
 export const AddCommentForm = ({ onAddComment }: AddCommentFormProps) => {
@@ -28,12 +21,7 @@ export const AddCommentForm = ({ onAddComment }: AddCommentFormProps) => {
     setIsSubmitting(true);
     
     try {
-      await onAddComment({
-        comment_text: commentText.trim(),
-        author_name: "", // This will be filled by the parent component
-        created_at: new Date().toISOString()
-      });
-      
+      await onAddComment(commentText.trim());
       setCommentText("");
     } catch (error) {
       console.error('Error adding comment:', error);
