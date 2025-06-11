@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { AddCommentForm } from "./AddCommentForm";
 
 interface Unit {
   id: string;
@@ -112,55 +112,6 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] 
     onClose();
   };
 
-  const addComment = async (commentText: string) => {
-    if (!user || !commentText.trim()) return;
-
-    try {
-      // Get the unit's UUID from the database
-      const { data: unitData } = await supabase
-        .from('units')
-        .select('id')
-        .eq('unit_number', unit.id)
-        .single();
-
-      if (!unitData) {
-        console.error('Unit not found');
-        return;
-      }
-
-      // Get user's profile for name information
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('first_name, last_name')
-        .eq('id', user.id)
-        .single();
-
-      const authorName = profileData 
-        ? `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim()
-        : user.email || 'Unknown User';
-
-      // Insert the comment
-      const { error } = await supabase
-        .from('unit_comments')
-        .insert({
-          unit_id: unitData.id,
-          author_id: user.id,
-          author_name: authorName,
-          comment_text: commentText.trim()
-        });
-
-      if (error) {
-        console.error('Error adding comment:', error);
-        throw error;
-      }
-
-      console.log('Comment added successfully');
-    } catch (error) {
-      console.error('Failed to add comment:', error);
-      throw error;
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -255,19 +206,12 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] 
             <div>
               <Label htmlFor="customer">Current Customer</Label>
               {currentCustomer ? (
-                <div className="space-y-2">
-                  <Input
-                    id="customer"
-                    value={`${currentCustomer.first_name} ${currentCustomer.last_name}`}
-                    disabled
-                    className="bg-gray-50"
-                  />
-                  <div className="text-sm text-gray-600">
-                    <p>Email: {currentCustomer.email}</p>
-                    <p>Phone: {currentCustomer.phone}</p>
-                    <p>Customer ID: {currentCustomer.id}</p>
-                  </div>
-                </div>
+                <Input
+                  id="customer"
+                  value={`${currentCustomer.first_name} ${currentCustomer.last_name}`}
+                  disabled
+                  className="bg-gray-50"
+                />
               ) : (
                 <Input
                   id="customer"
@@ -297,14 +241,6 @@ export const EditUnitDialog = ({ unit, isOpen, onClose, onSave, facilities = [] 
                 </p>
               </div>
             )}
-
-            {/* Quick Add Comment Section */}
-            <div className="border-t pt-4">
-              <Label className="text-sm font-medium">Quick Add Comment</Label>
-              <div className="mt-2">
-                <AddCommentForm onAddComment={addComment} />
-              </div>
-            </div>
           </div>
         </div>
         
