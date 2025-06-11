@@ -1,16 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Info, User } from "lucide-react";
+import { Info, User, Edit2, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AddCommentForm } from "./AddCommentForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 interface Comment {
   id: string;
   comment_text: string;
   author_name: string;
   created_at: string;
+  updated_at?: string;
+  author_id: string;
 }
 
 interface RentalHistory {
@@ -53,6 +56,7 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
   const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([]);
   const [loading, setLoading] = useState(false);
   const [unitUuid, setUnitUuid] = useState<string | null>(null);
+  const [editingComment, setEditingComment] = useState<Comment | null>(null);
 
   // Get the unit UUID from unit number
   useEffect(() => {
@@ -167,10 +171,10 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
           })));
         }
 
-        // Fetch comments
+        // Fetch comments with updated_at field
         const { data: commentsData } = await supabase
           .from('unit_comments')
-          .select('id, comment_text, author_name, created_at')
+          .select('id, comment_text, author_name, created_at, updated_at, author_id')
           .eq('unit_id', unitUuid)
           .order('created_at', { ascending: false });
 
@@ -202,7 +206,7 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
             : profile.email || 'Anonymous User',
           comment_text: commentText
         })
-        .select()
+        .select('id, comment_text, author_name, created_at, updated_at, author_id')
         .single();
 
       if (error) {
@@ -216,6 +220,61 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
     } catch (error) {
       console.error('Error adding comment:', error);
     }
+  };
+
+  const handleUpdateComment = async (commentId: string, commentText: string) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('unit_comments')
+        .update({
+          comment_text: commentText,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', commentId)
+        .eq('author_id', user.id) // Ensure user can only edit their own comments
+        .select('id, comment_text, author_name, created_at, updated_at, author_id')
+        .single();
+
+      if (error) {
+        console.error('Error updating comment:', error);
+        return;
+      }
+
+      if (data) {
+        setComments(prev => prev.map(comment => 
+          comment.id === commentId ? data : comment
+        ));
+      }
+    } catch (error) {
+      console.error('Error updating comment:', error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('unit_comments')
+        .delete()
+        .eq('id', commentId)
+        .eq('author_id', user.id); // Ensure user can only delete their own comments
+
+      if (error) {
+        console.error('Error deleting comment:', error);
+        return;
+      }
+
+      setComments(prev => prev.filter(comment => comment.id !== commentId));
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+    }
+  };
+
+  const canEditComment = (comment: Comment) => {
+    return user && comment.author_id === user.id;
   };
 
   const getRentalStatusDisplay = (rental: RentalHistory) => {
@@ -417,7 +476,12 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
           
           <TabsContent value="comments" className="mt-6">
             <div className="space-y-4">
-              <AddCommentForm onAddComment={handleAddComment} />
+              <AddCommentForm 
+                onAddComment={handleAddComment}
+                onUpdateComment={handleUpdateComment}
+                editingComment={editingComment}
+                onCancelEdit={() => setEditingComment(null)}
+              />
               
               {comments.length > 0 ? (
                 <div className="space-y-3">
@@ -429,9 +493,41 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
                             <User className="h-4 w-4" />
                             <span className="font-medium">{comment.author_name}</span>
                           </div>
-                          <span className="text-sm text-gray-500">
-                            {new Date(comment.created_at).toLocaleDateString()}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm text-gray-500 text-right">
+                              <div>
+                                {new Date(comment.created_at).toLocaleDateString()} at{' '}
+                                {new Date(comment.created_at).toLocaleTimeString([], { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </div>
+                              {comment.updated_at && comment.updated_at !== comment.created_at && (
+                                <div className="text-xs text-gray-400">
+                                  Edited: {new Date(comment.updated_at).toLocaleDateString()}
+                                </div>
+                              )}
+                            </div>
+                            {canEditComment(comment) && (
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setEditingComment(comment)}
+                                  disabled={editingComment?.id === comment.id}
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteComment(comment.id)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <p className="text-gray-900">{comment.comment_text}</p>
                       </CardContent>
