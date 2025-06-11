@@ -2,16 +2,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 
 interface Comment {
   id: string;
-  text: string;
-  author: string;
-  date: string;
+  comment_text: string;
+  author_name: string;
+  created_at: string;
 }
 
 interface AddCommentFormProps {
@@ -19,81 +17,59 @@ interface AddCommentFormProps {
 }
 
 export const AddCommentForm = ({ onAddComment }: AddCommentFormProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [comment, setComment] = useState("");
-  const [author, setAuthor] = useState("");
+  const [commentText, setCommentText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!comment.trim() || !author.trim()) return;
-    
-    const newComment = {
-      text: comment.trim(),
-      author: author.trim(),
-      date: new Date().toLocaleDateString()
-    };
-    
-    onAddComment(newComment);
-    setComment("");
-    setAuthor("");
-    setIsOpen(false);
-  };
+    if (!commentText.trim()) return;
 
-  const handleCancel = () => {
-    setComment("");
-    setAuthor("");
-    setIsOpen(false);
+    setIsSubmitting(true);
+    
+    try {
+      await onAddComment({
+        comment_text: commentText.trim(),
+        author_name: "", // This will be filled by the parent component
+        created_at: new Date().toISOString()
+      });
+      
+      setCommentText("");
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  if (!isOpen) {
-    return (
-      <Button 
-        onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2"
-      >
-        <Plus className="h-4 w-4" />
-        Add Comment
-      </Button>
-    );
-  }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Add New Comment</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="author">Your Name</Label>
-            <Input
-              id="author"
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-              placeholder="Enter your name"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="comment">Comment</Label>
-            <Textarea
-              id="comment"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Enter your comment or remark"
-              rows={4}
-              required
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button type="submit">Add Comment</Button>
-            <Button type="button" variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+      <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+        <MessageSquare className="h-4 w-4" />
+        Add New Comment
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="comment">Comment</Label>
+        <Textarea
+          id="comment"
+          placeholder="Enter your comment or remark about this unit..."
+          value={commentText}
+          onChange={(e) => setCommentText(e.target.value)}
+          rows={3}
+          disabled={isSubmitting}
+        />
+      </div>
+      
+      <div className="flex justify-end">
+        <Button 
+          type="submit" 
+          disabled={!commentText.trim() || isSubmitting}
+          size="sm"
+        >
+          {isSubmitting ? "Adding..." : "Add Comment"}
+        </Button>
+      </div>
+    </form>
   );
 };

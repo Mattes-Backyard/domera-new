@@ -25,7 +25,6 @@ export const useRealtimeSupabaseData = () => {
     setLoading(true);
     
     try {
-      // Add timeout to prevent hanging
       const timeoutPromise = new Promise((_, reject) => {
         fetchTimeoutRef.current = setTimeout(() => reject(new Error('Fetch timeout')), 10000);
       });
@@ -371,46 +370,33 @@ export const useRealtimeSupabaseData = () => {
     };
   }, [user?.id]);
 
-  const addUnit = async (unitData) => {
-    if (!profile?.facility_id) {
-      console.error('No facility assigned to user');
-      return;
-    }
-
-    const { data, error } = await supabase
+  const updateUnit = async (updatedUnit) => {
+    // Get the actual unit record first to ensure we have the UUID
+    const { data: unitRecord, error: unitError } = await supabase
       .from('units')
-      .insert([{
-        unit_number: unitData.id,
-        facility_id: profile.facility_id,
-        size: unitData.size,
-        type: unitData.type,
-        monthly_rate: unitData.rate,
-        status: unitData.status,
-        climate_controlled: unitData.climate
-      }])
-      .select()
+      .select('id, status, monthly_rate')
+      .eq('unit_number', updatedUnit.id || updatedUnit.unit_number)
       .single();
 
-    if (error) {
-      console.error('Error adding unit:', error);
-      toast.error('Failed to add unit');
+    if (unitError || !unitRecord) {
+      console.error('Error fetching unit for update:', unitError);
+      toast.error('Failed to find unit for update');
       return;
     }
 
-    toast.success('Unit added successfully');
-    // Data will be updated automatically via real-time subscription
-  };
+    // Prepare the update data
+    const updateData = {
+      size: updatedUnit.size,
+      type: updatedUnit.type,
+      monthly_rate: updatedUnit.rate || updatedUnit.monthly_rate,
+      status: updatedUnit.status,
+      climate_controlled: updatedUnit.climate || updatedUnit.climate_controlled
+    };
 
-  const updateUnit = async (updatedUnit) => {
+    // Update the unit - this will automatically trigger the logging functions via database triggers
     const { error } = await supabase
       .from('units')
-      .update({
-        size: updatedUnit.size,
-        type: updatedUnit.type,
-        monthly_rate: updatedUnit.rate || updatedUnit.monthly_rate,
-        status: updatedUnit.status,
-        climate_controlled: updatedUnit.climate || updatedUnit.climate_controlled
-      })
+      .update(updateData)
       .eq('unit_number', updatedUnit.id || updatedUnit.unit_number);
 
     if (error) {
@@ -421,7 +407,6 @@ export const useRealtimeSupabaseData = () => {
 
     // If tenant information is being updated, handle rental records
     if (updatedUnit.tenant && updatedUnit.tenantId && !updatedUnit.tenantId.startsWith('placeholder-')) {
-      // Find customer record
       const customer = customers.find(c => c.id === updatedUnit.tenantId);
       if (!customer) {
         console.error('Customer not found for tenant ID:', updatedUnit.tenantId);
@@ -429,40 +414,25 @@ export const useRealtimeSupabaseData = () => {
         return;
       }
 
-      // Get the actual unit record to get the UUID
-      const { data: unitRecord } = await supabase
-        .from('units')
-        .select('id')
-        .eq('unit_number', updatedUnit.id || updatedUnit.unit_number)
-        .single();
+      // Create or update unit rental
+      const { error: rentalError } = await supabase
+        .from('unit_rentals')
+        .upsert({
+          unit_id: unitRecord.id,
+          customer_id: customer.id,
+          start_date: new Date().toISOString().split('T')[0],
+          monthly_rate: updatedUnit.rate || updatedUnit.monthly_rate,
+          is_active: true
+        });
 
-      if (unitRecord) {
-        // Create or update unit rental
-        const { error: rentalError } = await supabase
-          .from('unit_rentals')
-          .upsert({
-            unit_id: unitRecord.id,
-            customer_id: customer.id,
-            start_date: new Date().toISOString().split('T')[0],
-            monthly_rate: updatedUnit.rate || updatedUnit.monthly_rate,
-            is_active: true
-          });
-
-        if (rentalError) {
-          console.error('Error updating rental:', rentalError);
-          toast.error('Failed to update rental information');
-          return;
-        }
+      if (rentalError) {
+        console.error('Error updating rental:', rentalError);
+        toast.error('Failed to update rental information');
+        return;
       }
     }
 
     toast.success('Unit updated successfully');
-    // Data will be updated automatically via real-time subscription
-  };
-
-  const addCustomer = async (customerData) => {
-    // This would need to be implemented based on your customer creation flow
-    console.log('Add customer:', customerData);
     // Data will be updated automatically via real-time subscription
   };
 
@@ -473,9 +443,38 @@ export const useRealtimeSupabaseData = () => {
     unitRentals,
     customerUnits,
     loading,
-    addUnit,
+    addUnit: async (unitData) => {
+      if (!profile?.facility_id) {
+        console.error('No facility assigned to user');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('units')
+        .insert([{
+          unit_number: unitData.id,
+          facility_id: profile.facility_id,
+          size: unitData.size,
+          type: unitData.type,
+          monthly_rate: unitData.rate,
+          status: unitData.status,
+          climate_controlled: unitData.climate
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error adding unit:', error);
+        toast.error('Failed to add unit');
+        return;
+      }
+
+      toast.success('Unit added successfully');
+    },
     updateUnit,
-    addCustomer,
+    addCustomer: async (customerData) => {
+      console.log('Add customer:', customerData);
+    },
     refreshData: fetchData
   };
 };

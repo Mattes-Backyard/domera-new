@@ -869,6 +869,85 @@ export type Database = {
           },
         ]
       }
+      unit_comments: {
+        Row: {
+          author_id: string
+          author_name: string
+          comment_text: string
+          created_at: string
+          id: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          author_name: string
+          comment_text: string
+          created_at?: string
+          id?: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          comment_text?: string
+          created_at?: string
+          id?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_comments_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unit_price_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          effective_date: string
+          id: string
+          monthly_rate: number
+          previous_rate: number | null
+          reason: string | null
+          unit_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          effective_date?: string
+          id?: string
+          monthly_rate: number
+          previous_rate?: number | null
+          reason?: string | null
+          unit_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          effective_date?: string
+          id?: string
+          monthly_rate?: number
+          previous_rate?: number | null
+          reason?: string | null
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_price_history_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unit_rentals: {
         Row: {
           created_at: string | null
@@ -916,6 +995,44 @@ export type Database = {
           },
           {
             foreignKeyName: "unit_rentals_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unit_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          previous_status: Database["public"]["Enums"]["unit_status"] | null
+          reason: string | null
+          status: Database["public"]["Enums"]["unit_status"]
+          unit_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          previous_status?: Database["public"]["Enums"]["unit_status"] | null
+          reason?: string | null
+          status: Database["public"]["Enums"]["unit_status"]
+          unit_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          previous_status?: Database["public"]["Enums"]["unit_status"] | null
+          reason?: string | null
+          status?: Database["public"]["Enums"]["unit_status"]
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_status_history_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
             referencedRelation: "units"
