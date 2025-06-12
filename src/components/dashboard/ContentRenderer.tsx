@@ -9,6 +9,7 @@ import { OperationsView } from "@/components/operations/OperationsView";
 import { FloorPlanView } from "@/components/floor-plan/FloorPlanView";
 import { AdminInterface } from "@/components/admin/AdminInterface";
 import { IntegrationsView } from "@/components/integrations/IntegrationsView";
+import { ProfileView } from "@/components/profile/ProfileView";
 import { Customer, DatabaseCustomer, transformCustomerToDatabaseCustomer, CustomerDetails } from "@/types/customer";
 import type { Unit } from "@/hooks/useAppState";
 
@@ -386,6 +387,12 @@ export const ContentRenderer = ({
         return (
           <div className="h-full overflow-auto">
             <IntegrationsView />
+          </div>
+        );
+      case "profile":
+        return (
+          <div className="h-full overflow-auto">
+            <ProfileView />
           </div>
         );
       default:

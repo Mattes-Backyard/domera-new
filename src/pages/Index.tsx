@@ -147,6 +147,10 @@ const Index = () => {
     handleViewChange("admin");
   };
 
+  const handleProfileClick = () => {
+    handleViewChange("profile");
+  };
+
   const handleCustomerClick = (customerId: string) => {
     setSelectedCustomerId(customerId);
     // Find and set viewing tenant details for the customer
@@ -181,6 +185,7 @@ const Index = () => {
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 onAdminClick={handleAdminClick}
+                onProfileClick={handleProfileClick}
                 onSearchResultClick={handleSearchResultClick}
                 units={units}
                 customers={customers}
