@@ -130,21 +130,21 @@ const Index = () => {
   };
 
   const handleQuickAddUnit = () => {
-    setActiveView("units");
+    handleViewChange("units");
   };
 
   const handleSearchResultClick = (type: 'unit' | 'customer', id: string) => {
     if (type === 'unit') {
       setSelectedUnitId(id);
-      setActiveView('units');
+      handleViewChange('units');
     } else if (type === 'customer') {
       setSelectedCustomerId(id);
-      setActiveView('customers');
+      handleViewChange('customers');
     }
   };
 
   const handleAdminClick = () => {
-    setActiveView("admin");
+    handleViewChange("admin");
   };
 
   const handleCustomerClick = (customerId: string) => {
@@ -156,6 +156,16 @@ const Index = () => {
     }
   };
 
+  const handleViewChange = (view: string) => {
+    // Clear detail view states when switching to main menu views
+    setViewingUnitDetails(null);
+    setViewingTenantDetails(null);
+    setShowFloorPlan(false);
+    
+    // Set the new active view
+    setActiveView(view);
+  };
+
   return (
     <NotificationProvider>
       <TaskProvider>
@@ -163,7 +173,7 @@ const Index = () => {
           <div className="flex min-h-screen bg-gray-50 w-full">
             <DashboardSidebar 
               activeView={activeView} 
-              setActiveView={setActiveView}
+              setActiveView={handleViewChange}
             />
             
             <div className="flex-1 flex flex-col min-h-screen">
