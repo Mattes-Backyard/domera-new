@@ -9,6 +9,7 @@ interface DashboardHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onAdminClick: () => void;
+  onProfileClick?: () => void;
   onSearchResultClick?: (type: 'unit' | 'customer', id: string) => void;
   units?: any[];
   customers?: any[];
@@ -21,6 +22,7 @@ export const DashboardHeader = ({
   searchQuery, 
   onSearchChange, 
   onAdminClick,
+  onProfileClick,
   onSearchResultClick,
   units,
   customers,
@@ -79,7 +81,7 @@ export const DashboardHeader = ({
           
           {/* User Menu */}
           <div className="relative">
-            <UserMenu onAdminClick={onAdminClick} />
+            <UserMenu onAdminClick={onAdminClick} onProfileClick={onProfileClick} />
           </div>
         </div>
       </div>

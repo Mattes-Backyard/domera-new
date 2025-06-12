@@ -15,9 +15,10 @@ import { toast } from 'sonner';
 
 interface UserMenuProps {
   onAdminClick?: () => void;
+  onProfileClick?: () => void;
 }
 
-export const UserMenu = ({ onAdminClick }: UserMenuProps) => {
+export const UserMenu = ({ onAdminClick, onProfileClick }: UserMenuProps) => {
   const { user, profile, signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -32,6 +33,12 @@ export const UserMenu = ({ onAdminClick }: UserMenuProps) => {
   const handleAdminClick = () => {
     if (onAdminClick) {
       onAdminClick();
+    }
+  };
+
+  const handleProfileClick = () => {
+    if (onProfileClick) {
+      onProfileClick();
     }
   };
 
@@ -71,7 +78,7 @@ export const UserMenu = ({ onAdminClick }: UserMenuProps) => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={handleProfileClick}>
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
