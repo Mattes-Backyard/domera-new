@@ -6,6 +6,7 @@ import { AddCommentForm } from "./AddCommentForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface Comment {
   id: string;
@@ -64,17 +65,25 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
       if (!unitId) return;
       
       try {
-        const { data: unitRecord } = await supabase
+        const { data: unitRecord, error } = await supabase
           .from('units')
           .select('id')
           .eq('unit_number', unitId)
           .single();
 
+        if (error) {
+          console.error('Error fetching unit UUID:', error);
+          toast.error('Failed to load unit information');
+          return;
+        }
+
         if (unitRecord) {
+          console.log('Found unit UUID:', unitRecord.id);
           setUnitUuid(unitRecord.id);
         }
       } catch (error) {
         console.error('Error fetching unit UUID:', error);
+        toast.error('Failed to load unit information');
       }
     };
 
@@ -184,6 +193,7 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
 
       } catch (error) {
         console.error('Error fetching history data:', error);
+        toast.error('Failed to load history data');
       } finally {
         setLoading(false);
       }
@@ -193,32 +203,54 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
   }, [unitUuid]);
 
   const handleAddComment = async (commentText: string) => {
-    if (!unitUuid || !user || !profile) return;
+    if (!unitUuid || !user || !profile) {
+      console.error('Missing required data:', { unitUuid, user: !!user, profile: !!profile });
+      toast.error('Unable to add comment - missing user information');
+      return;
+    }
+
+    console.log('Adding comment with data:', {
+      unitUuid,
+      userId: user.id,
+      userRole: profile.role,
+      facilityId: profile.facility_id,
+      authorName: profile.first_name && profile.last_name 
+        ? `${profile.first_name} ${profile.last_name}`.trim()
+        : profile.email || 'Anonymous User'
+    });
 
     try {
+      const commentData = {
+        unit_id: unitUuid,
+        author_id: user.id,
+        author_name: profile.first_name && profile.last_name 
+          ? `${profile.first_name} ${profile.last_name}`.trim()
+          : profile.email || 'Anonymous User',
+        comment_text: commentText
+      };
+
+      console.log('Inserting comment data:', commentData);
+
       const { data, error } = await supabase
         .from('unit_comments')
-        .insert({
-          unit_id: unitUuid,
-          author_id: user.id,
-          author_name: profile.first_name && profile.last_name 
-            ? `${profile.first_name} ${profile.last_name}`.trim()
-            : profile.email || 'Anonymous User',
-          comment_text: commentText
-        })
+        .insert(commentData)
         .select('id, comment_text, author_name, created_at, updated_at, author_id')
         .single();
 
       if (error) {
-        console.error('Error adding comment:', error);
+        console.error('Supabase error adding comment:', error);
+        toast.error(`Failed to add comment: ${error.message}`);
         return;
       }
 
       if (data) {
+        console.log('Successfully added comment:', data);
         setComments(prev => [data, ...prev]);
+        toast.success('Comment added successfully');
       }
     } catch (error) {
       console.error('Error adding comment:', error);
+      toast.error('Failed to add comment');
     }
   };
 
@@ -239,6 +271,7 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
 
       if (error) {
         console.error('Error updating comment:', error);
+        toast.error('Failed to update comment');
         return;
       }
 
@@ -246,9 +279,11 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
         setComments(prev => prev.map(comment => 
           comment.id === commentId ? data : comment
         ));
+        toast.success('Comment updated successfully');
       }
     } catch (error) {
       console.error('Error updating comment:', error);
+      toast.error('Failed to update comment');
     }
   };
 
@@ -264,12 +299,15 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
 
       if (error) {
         console.error('Error deleting comment:', error);
+        toast.error('Failed to delete comment');
         return;
       }
 
       setComments(prev => prev.filter(comment => comment.id !== commentId));
+      toast.success('Comment deleted successfully');
     } catch (error) {
       console.error('Error deleting comment:', error);
+      toast.error('Failed to delete comment');
     }
   };
 
