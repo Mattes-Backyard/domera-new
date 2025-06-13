@@ -12,6 +12,8 @@ interface Unit {
   tenantId: string | null;
   rate: number;
   climate: boolean;
+  site: string;
+  facility?: { id: string; name: string };
 }
 
 interface UnitCardProps {
