@@ -231,6 +231,13 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
 
       console.log('Inserting comment data:', commentData);
 
+      // Add additional debugging for RLS policy issues
+      if (!profile.facility_id) {
+        console.warn('User profile is missing facility_id:', profile);
+        toast.error('Unable to add comment - user profile incomplete. Please contact support.');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('unit_comments')
         .insert(commentData)
@@ -239,7 +246,18 @@ export const UnitHistoryTabs = ({ unitId }: UnitHistoryTabsProps) => {
 
       if (error) {
         console.error('Supabase error adding comment:', error);
-        toast.error(`Failed to add comment: ${error.message}`);
+        // Provide more specific error messaging for RLS issues
+        if (error.code === '42501') {
+          console.error('RLS policy violation details:', {
+            userId: user.id,
+            unitId: unitUuid,
+            userFacilityId: profile.facility_id,
+            userRole: profile.role
+          });
+          toast.error('Permission denied. Please ensure you have access to this unit and try again.');
+        } else {
+          toast.error(`Failed to add comment: ${error.message}`);
+        }
         return;
       }
 
