@@ -1,3 +1,4 @@
+
 import { UnitGrid } from "@/components/units/UnitGrid";
 import { CustomerList } from "@/components/customers/CustomerList";
 import { UnitDetailsPage } from "@/components/units/UnitDetailsPage";
@@ -12,6 +13,7 @@ import { IntegrationsView } from "@/components/integrations/IntegrationsView";
 import { ProfileView } from "@/components/profile/ProfileView";
 import { Customer, DatabaseCustomer, transformCustomerToDatabaseCustomer } from "@/types/customer";
 import type { Unit } from "@/hooks/useAppState";
+import type { Database } from "@/integrations/supabase/types";
 import { 
   transformUnit, 
   transformUnits, 
@@ -54,6 +56,14 @@ interface ContentRendererProps {
   customerUnits?: Record<string, string[]>;
 }
 
+// Helper function to ensure proper status typing
+const ensureUnitStatus = (status: string): Database["public"]["Enums"]["unit_status"] => {
+  const validStatuses: Database["public"]["Enums"]["unit_status"][] = ["available", "occupied", "reserved", "maintenance"];
+  return validStatuses.includes(status as Database["public"]["Enums"]["unit_status"]) 
+    ? (status as Database["public"]["Enums"]["unit_status"])
+    : "available";
+};
+
 // Render helper functions for each view type
 const renderFloorPlan = (props: {
   units: Unit[];
@@ -72,14 +82,20 @@ const renderFloorPlan = (props: {
         onUnitClick={(unit) => {
           const originalUnit = units?.find?.(u => u.id === unit.id);
           if (originalUnit) {
-            onUnitSelect(originalUnit);
+            onUnitSelect({
+              ...originalUnit,
+              status: ensureUnitStatus(originalUnit.status)
+            });
           }
         }}
         onUnitUpdate={(updatedUnit) => {
           const originalUnit = units?.find?.(u => u.id === updatedUnit.id);
           if (originalUnit) {
             const transformedUnit = transformUpdatedUnit(originalUnit, updatedUnit);
-            onUnitUpdate(transformedUnit);
+            onUnitUpdate({
+              ...transformedUnit,
+              status: ensureUnitStatus(transformedUnit.status)
+            });
           }
         }}
       />
@@ -108,7 +124,10 @@ const renderUnitDetails = (props: {
         onBack={onBackFromUnit}
         onUnitUpdate={(updatedUnit) => {
           const transformedBack = transformUpdatedUnit(viewingUnitDetails, updatedUnit);
-          onUnitUpdate(transformedBack);
+          onUnitUpdate({
+            ...transformedBack,
+            status: ensureUnitStatus(transformedBack.status)
+          });
         }}
         customers={customers}
         facilities={facilities}
@@ -160,13 +179,19 @@ const renderUnitsView = (props: {
         onUnitSelect={(unit) => {
           const originalUnit = units?.find?.(u => u.id === unit.id);
           if (originalUnit) {
-            onUnitSelect(originalUnit);
+            onUnitSelect({
+              ...originalUnit,
+              status: ensureUnitStatus(originalUnit.status)
+            });
           }
         }}
         onUnitAdd={(newUnit) => {
           try {
             const transformedBack = transformNewUnit(newUnit);
-            onUnitAdd(transformedBack);
+            onUnitAdd({
+              ...transformedBack,
+              status: ensureUnitStatus(transformedBack.status)
+            });
           } catch (error) {
             console.error('Error adding unit:', error);
           }

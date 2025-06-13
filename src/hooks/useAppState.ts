@@ -1,13 +1,14 @@
 
 import { useState } from "react";
 import { DatabaseCustomer } from "@/types/customer";
+import type { Database } from "@/integrations/supabase/types";
 
 export interface Unit {
   id: string;
   unit_number: string;
   size: string;
   monthly_rate: number;
-  status: "available" | "occupied" | "maintenance" | "reserved";
+  status: Database["public"]["Enums"]["unit_status"];
   type?: string;
   floor_level?: number;
   climate_controlled?: boolean;
