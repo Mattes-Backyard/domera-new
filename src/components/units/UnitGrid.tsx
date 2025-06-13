@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, Search, Filter, X, Plus, Thermometer, MapPin, Menu } from "lucide-react";
+import { Package, Search, Filter, X, Plus, Thermometer, MapPin, Menu, Grid3X3, List } from "lucide-react";
 import { AddUnitDialog } from "./AddUnitDialog";
+import { UnitCard } from "./UnitCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet,
@@ -68,6 +69,21 @@ export const UnitGrid = ({
   const [facilityFilter, setFacilityFilter] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>(() => {
+    // Check localStorage for saved preference, default to 'table'
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('unitGridViewMode') as 'table' | 'cards') || 'table';
+    }
+    return 'table';
+  });
+
+  // Save view mode preference to localStorage
+  const handleViewModeChange = (mode: 'table' | 'cards') => {
+    setViewMode(mode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('unitGridViewMode', mode);
+    }
+  };
 
   useEffect(() => {
     if (triggerAddDialog) {
@@ -353,6 +369,30 @@ export const UnitGrid = ({
                 Clear Selection
               </Button>
             )}
+            {!isMobile && (
+              <div className="flex items-center border rounded-lg">
+                <Button
+                  variant={viewMode === 'table' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => handleViewModeChange('table')}
+                  className="rounded-r-none border-r"
+                  aria-label="Table view"
+                  title="Table view"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'cards' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => handleViewModeChange('cards')}
+                  className="rounded-l-none"
+                  aria-label="Card grid view"
+                  title="Card grid view"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             <Button 
               onClick={() => setIsAddDialogOpen(true)} 
               className="flex items-center gap-2"
@@ -436,6 +476,23 @@ export const UnitGrid = ({
           ))}
           {filteredUnits.length === 0 && (
             <div className="text-center py-8 text-gray-500">
+              No units found matching your criteria.
+            </div>
+          )}
+        </div>
+      ) : viewMode === 'cards' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredUnits.map((unit) => (
+            <UnitCard
+              key={unit.id}
+              unit={unit}
+              isSelected={selectedUnitId === unit.id}
+              onTenantClick={handleTenantClick}
+              onViewDetails={handleUnitClick}
+            />
+          ))}
+          {filteredUnits.length === 0 && (
+            <div className="col-span-full text-center py-8 text-gray-500">
               No units found matching your criteria.
             </div>
           )}
